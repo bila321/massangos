@@ -711,11 +711,12 @@ require_once __DIR__ . '/../includes/header.php';
     // Buscar likes individuais de todas as fotos do álbum para o utilizador actual
     $photo_ids = array_column($photos, 'id');
     $photo_likes_map = [];
+    $photo_comments_map = [];
     if (!empty($photo_ids)) {
         $placeholders = implode(',', array_fill(0, count($photo_ids), '?'));
-        $params = array_merge([$current_user_id], $photo_ids);
 
-        // Total de likes por foto
+        // ── Total de likes por foto ────────────────────────────────
+        $params_likes = array_merge([$current_user_id], $photo_ids);
         $lk = $pdo->prepare("
         SELECT photo_id,
                COUNT(*) AS likes_count,
@@ -724,12 +725,25 @@ require_once __DIR__ . '/../includes/header.php';
         WHERE photo_id IN ($placeholders) AND type = 'like'
         GROUP BY photo_id
     ");
-        $lk->execute($params);
+        $lk->execute($params_likes);
         foreach ($lk->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $photo_likes_map[$row['photo_id']] = [
                 'likes_count' => (int)$row['likes_count'],
                 'user_liked'  => (bool)$row['user_liked'],
             ];
+        }
+
+        // ── Total de comentários raiz por foto ─────────────────────
+        $cm = $pdo->prepare("
+        SELECT photo_id, COUNT(*) AS comments_count
+        FROM photo_comments
+        WHERE photo_id IN ($placeholders)
+          AND parent_comment_id IS NULL
+        GROUP BY photo_id
+    ");
+        $cm->execute($photo_ids);
+        foreach ($cm->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $photo_comments_map[$row['photo_id']] = (int)$row['comments_count'];
         }
     }
     ?>
@@ -740,22 +754,21 @@ require_once __DIR__ . '/../includes/header.php';
                                 . htmlspecialchars($author['username'])
                         ) ?>;
 
-    // Dados de todas as fotos para o lightbox
-    const VA_PHOTOS = <?= json_encode(array_map(function ($p) use ($photo_likes_map) {
+    const VA_PHOTOS = <?= json_encode(array_map(function ($p) use ($photo_likes_map, $photo_comments_map) {
                             $lk = $photo_likes_map[$p['id']] ?? ['likes_count' => 0, 'user_liked' => false];
                             return [
-                                'id'           => $p['id'],
-                                'src'          => get_protected_media_url($p['photo_path']),
-                                'thumb'        => get_protected_media_url('albums/thumbnails/' . basename($p['photo_path'])),
-                                'caption'      => $p['caption'] ?? '',
-                                'show_blur'    => !empty($p['show_blur']),
-                                'explicit_pct' => (int)round($p['ai_explicit_pct'] ?? 0),
-                                'risk_level'   => $p['ai_risk_level'] ?? 'low',
-                                'likes_count'  => $lk['likes_count'],   // ← NOVO
-                                'user_liked'   => $lk['user_liked'],    // ← NOVO
+                                'id'             => $p['id'],
+                                'src'            => get_protected_media_url($p['photo_path']),
+                                'thumb'          => get_protected_media_url('albums/thumbnails/' . basename($p['photo_path'])),
+                                'caption'        => $p['caption'] ?? '',
+                                'show_blur'      => !empty($p['show_blur']),
+                                'explicit_pct'   => (int)round($p['ai_explicit_pct'] ?? 0),
+                                'risk_level'     => $p['ai_risk_level'] ?? 'low',
+                                'likes_count'    => $lk['likes_count'],
+                                'user_liked'     => $lk['user_liked'],
+                                'comments_count' => $photo_comments_map[$p['id']] ?? 0,  // ← NOVO
                             ];
                         }, $photos)) ?>;
-
 
     // ════════════════════════════════════════════════════
     // LIGHTBOX — construído via JS directamente no body
