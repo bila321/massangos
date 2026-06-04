@@ -101,7 +101,7 @@
                         <button class="va-lb-action-btn va-lb-btn-dark" data-action="lb-save" title="Guardar">
                             <i class="fa-regular fa-bookmark"></i>
                         </button>
-                        <span class="va-lb-action-label">Guardar</span>
+                        <span class="va-lb-action-label" id="vaLbSaveCount">0</span>
                     </div>
                     <div class="va-lb-action-group">
                         <button class="va-lb-action-btn va-lb-btn-dark" data-action="lb-share" title="Partilhar">
@@ -307,6 +307,23 @@ function vaSyncPhotoCounters(photo) {
     if (lbComCnt) {
         lbComCnt.textContent =
             photo.comments_count ?? 0;
+    }
+
+    // ── Sincronizar ícone de bookmark da foto ──
+    const lbSaveBtn = document.querySelector('[data-action="lb-save"]');
+    if (lbSaveBtn) {
+        lbSaveBtn.classList.toggle('active', !!photo.user_saved);
+        const icon = lbSaveBtn.querySelector('i');
+        if (icon) {
+            icon.className = photo.user_saved
+                ? 'fa-solid fa-bookmark'
+                : 'fa-regular fa-bookmark';
+        }
+    }
+
+    const lbSaveCnt = document.getElementById('vaLbSaveCount');
+    if (lbSaveCnt) {
+        lbSaveCnt.textContent = photo.saves_count ?? 0;
     }
 
     fetch(
@@ -634,6 +651,71 @@ function vaPerformSave(btn) {
         .catch(console.error);
 }
 
+
+// …
+// SAVE da FOTO individual no lightbox — usa toggle_save.php com item_type=photo
+// …
+let vaPhotoSaveBusy = false;
+
+function vaPerformPhotoSave(btn, event) {
+    // Só aceitar clique real do utilizador
+    if (!event || event.isTrusted !== true) return;
+
+    // Evitar chamadas repetidas
+    if (vaPhotoSaveBusy) return;
+
+    const photo = VA_PHOTOS[vaCurrentIdx];
+    if (!photo || !photo.id) return;
+
+    vaPhotoSaveBusy = true;
+    if (btn) btn.disabled = true;
+
+    const fd = new FormData();
+    fd.append('item_type', 'photo');
+    fd.append('item_id', photo.id);
+    fd.append('csrf_token', CSRF_TOKEN);
+
+    fetch(BASE_URL + 'ajax/toggle_save.php', {
+        method: 'POST',
+        body: fd
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Erro ao guardar foto:', data);
+                return;
+            }
+
+            photo.user_saved = !!data.saved;
+
+            const lbSaveBtn = document.querySelector('[data-action="lb-save"]');
+
+            if (lbSaveBtn) {
+                lbSaveBtn.classList.toggle('active', !!data.saved);
+
+                const icon = lbSaveBtn.querySelector('i');
+                if (icon) {
+                    icon.className = data.saved
+                        ? 'fa-solid fa-bookmark'
+                        : 'fa-regular fa-bookmark';
+                }
+            }
+            // Actualizar contador
+            photo.saves_count = (photo.saves_count ?? 0) + (data.saved ? 1 : -1);
+            if (photo.saves_count < 0) photo.saves_count = 0;
+
+            const lbSaveCnt = document.getElementById('vaLbSaveCount');
+            if (lbSaveCnt) {
+                lbSaveCnt.textContent = photo.saves_count;
+            }
+        })
+        .catch(console.error)
+        .finally(() => {
+            vaPhotoSaveBusy = false;
+            if (btn) btn.disabled = false;
+        });
+}
+
 // …
 // PARTILHAR
 // …
@@ -733,9 +815,14 @@ document.addEventListener('click', function (e) {
 
         // … Guardar (página e lightbox) …
         case 'save':
-        case 'lb-save':
             e.stopPropagation();
             vaPerformSave(btn);
+            break;
+
+        case 'lb-save':
+            e.preventDefault();
+            e.stopPropagation();
+            vaPerformPhotoSave(btn, e);
             break;
 
         // … Partilhar (página e lightbox) …

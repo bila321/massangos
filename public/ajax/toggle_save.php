@@ -63,7 +63,7 @@ try {
     $item_id   = (int)($_POST['item_id'] ?? 0);
 
     // ── Validação básica ──────────────────────────────────────────────────
-    $allowed_types = ['post', 'video', 'album', 'reel'];
+    $allowed_types = ['post', 'video', 'album', 'reel', 'photo'];
 
     if (!in_array($item_type, $allowed_types, true) || $item_id <= 0) {
         http_response_code(400);
@@ -76,7 +76,8 @@ try {
         'post'  => 'posts',
         'video' => 'videos',
         'album' => 'albums',
-        'reel'  => 'videos', // reels são armazenados na tabela videos
+        'reel'  => 'videos',
+        'photo' => 'album_photos',   // ← NOVO
     ];
     $table = $table_map[$item_type];
 

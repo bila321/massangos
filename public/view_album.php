@@ -641,6 +641,7 @@ require_once __DIR__ . '/../includes/header.php';
     const CURRENT_USER_ID = <?= is_logged_in() ? (int)get_current_user_id() : 'null' ?>;
     const FEED_ITEM_ID = <?= $has_feed ? (int)$feed_item_id : 'null' ?>;
     const ALBUM_ID = <?= (int)$album_id ?>;
+    const CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token'] ?? '') ?>;
 
     // ── Blur / conteúdo explícito ──────────────────────────────────────────
     const VA_SHOW_BLUR = <?= $should_blur ? 'true' : 'false' ?>;
@@ -712,6 +713,7 @@ require_once __DIR__ . '/../includes/header.php';
     $photo_ids = array_column($photos, 'id');
     $photo_likes_map = [];
     $photo_comments_map = [];
+    $photo_saves_map = [];          // ← NOVO
     if (!empty($photo_ids)) {
         $placeholders = implode(',', array_fill(0, count($photo_ids), '?'));
 
@@ -745,6 +747,36 @@ require_once __DIR__ . '/../includes/header.php';
         foreach ($cm->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $photo_comments_map[$row['photo_id']] = (int)$row['comments_count'];
         }
+
+        // ── Saves (bookmark) por foto para o utilizador actual ─────
+        $photo_saves_map = [];        // fotos que o utilizador guardou
+        $photo_saves_count = [];      // total de saves por foto (todos os utilizadores)
+
+        // Fotos que o utilizador actual guardou
+        $sv = $pdo->prepare("
+    SELECT item_id AS photo_id
+    FROM saved_posts
+    WHERE user_id = ?
+      AND item_type = 'photo'
+      AND item_id IN ($placeholders)
+");
+        $sv->execute(array_merge([$current_user_id], $photo_ids));
+        foreach ($sv->fetchAll(PDO::FETCH_COLUMN) as $pid) {
+            $photo_saves_map[(int)$pid] = true;
+        }
+
+        // Total de saves por foto (todos os utilizadores)
+        $svc = $pdo->prepare("
+    SELECT item_id AS photo_id, COUNT(*) AS total
+    FROM saved_posts
+    WHERE item_type = 'photo'
+      AND item_id IN ($placeholders)
+    GROUP BY item_id
+");
+        $svc->execute($photo_ids);
+        foreach ($svc->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $photo_saves_count[(int)$row['photo_id']] = (int)$row['total'];
+        }
     }
     ?>
     // Título da aba com contexto do álbum
@@ -754,7 +786,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 . htmlspecialchars($author['username'])
                         ) ?>;
 
-    const VA_PHOTOS = <?= json_encode(array_map(function ($p) use ($photo_likes_map, $photo_comments_map) {
+    const VA_PHOTOS = <?= json_encode(array_map(function ($p) use ($photo_likes_map, $photo_comments_map, $photo_saves_map, $photo_saves_count) {
                             $lk = $photo_likes_map[$p['id']] ?? ['likes_count' => 0, 'user_liked' => false];
                             return [
                                 'id'             => $p['id'],
@@ -766,7 +798,9 @@ require_once __DIR__ . '/../includes/header.php';
                                 'risk_level'     => $p['ai_risk_level'] ?? 'low',
                                 'likes_count'    => $lk['likes_count'],
                                 'user_liked'     => $lk['user_liked'],
-                                'comments_count' => $photo_comments_map[$p['id']] ?? 0,  // ← NOVO
+                                'comments_count' => $photo_comments_map[$p['id']] ?? 0,
+                                'user_saved'     => !empty($photo_saves_map[$p['id']]),
+                                'saves_count'    => $photo_saves_count[$p['id']] ?? 0,
                             ];
                         }, $photos)) ?>;
 
