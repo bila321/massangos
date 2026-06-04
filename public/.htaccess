@@ -1,0 +1,12 @@
+# Proteção Avançada de Mídia - Versão Mínima
+RewriteEngine On
+
+# Redirecionar requisições de mídia para o proxy
+RewriteRule ^media-proxy/(.*)$ media-proxy.php [L,QSA]
+
+# Configurações de segurança gerais (CSP ajustado para http e https  )
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "no-referrer"
+Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:; img-src 'self' data: blob: http: https:; media-src 'self' blob: http: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: https://cdn.jsdelivr.net https://cdn.quilljs.com https://kit.fontawesome.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' http: https: https://cdn.jsdelivr.net https://cdn.quilljs.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: http: https:; connect-src 'self' http: https:;"

@@ -1,0 +1,35 @@
+# ai/identity/requirements_identity.txt
+# Dependências do módulo de verificação de identidade
+# Compatível com Python 3.11 / Windows / XAMPP
+#
+# INSTALAR COM:
+#   pip install -r requirements_identity.txt
+#
+# NOTAS WINDOWS:
+#   - TensorFlow pode requerer Visual C++ Redistributable
+#   - Se TF falhar: pip install tensorflow-cpu
+#   - MediaPipe funciona nativamente no Windows 10/11
+
+# ── Core ──────────────────────────────────────────────────────────────────────
+deepface==0.0.93
+opencv-python==4.9.0.80
+mediapipe==0.10.14
+numpy>=1.24.0,<2.0.0
+
+# ── DeepFace backend (ArcFace precisa de TF ou PyTorch) ───────────────────────
+# Opção A: TensorFlow (recomendado para ArcFace)
+tensorflow==2.15.0
+# OU Opção B (CPU only, menos RAM):
+# tensorflow-cpu==2.15.0
+
+# ── Base de dados ──────────────────────────────────────────────────────────────
+mysql-connector-python==8.3.0
+
+# ── API ────────────────────────────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+
+# ── Já incluído nos requirements.txt principal (não duplicar se já instalado) ──
+# Pillow>=10.0.0
+# requests>=2.31.0

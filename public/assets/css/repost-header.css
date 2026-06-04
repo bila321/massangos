@@ -1,0 +1,62 @@
+/* Container principal do Header */
+.header-author-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Container dos avatares para efeito de sobreposição (opcional) */
+.avatar-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--surface-bg);
+}
+
+/* O segundo avatar menor, como na imagem */
+.profile-thumb-secondary {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: -12px;
+    /* Efeito de sobreposição */
+    border: 2px solid var(--surface-bg);
+    background: var(--surface-bg);
+}
+
+/* Alinhamento dos nomes e ícone */
+.author-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+
+.repost-icon-small {
+    color: #00ba7c;
+    /* Cor clássica de retweet ou a do seu tema */
+    font-size: 0.85rem;
+}
+
+.shared-username-link {
+    font-weight: 800;
+    color: var(--primary-light);
+    text-decoration: none;
+}
+
+
+/* Removemos o fundo cinza do container antigo para parecer nativo do card */
+.original-content-container {
+    border: none;
+    padding: 0;
+    margin-top: 10px;
+    background: transparent;
+}

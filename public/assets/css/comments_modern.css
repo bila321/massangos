@@ -1,0 +1,566 @@
+/* 
+ * comments_modern.css
+ * Modern, Responsive Comment System CSS
+ * Style: Facebook / Instagram inspired
+ * Fully flexible for both full-width pages and sidebar layouts
+ */
+
+:root {
+    --comment-bg: #f0f2f5;
+    --comment-bg-hover: #e4e6e9;
+    --comment-text: #050505;
+    --comment-text-muted: #65676b;
+    --comment-primary: #0866ff;
+    --comment-border: #e5e5e5;
+    --comment-white: #ffffff;
+    --comment-radius: 18px;
+    --comment-font-size: 0.9375rem;
+    --comment-avatar-size: 36px;
+    --comment-avatar-size-small: 32px;
+}
+
+/* ========================================
+   MODO DARK (Para Sidebar do Lightbox)
+   ======================================== */
+.photo-sidebar {
+    --comment-bg: #2a2a2a;
+    --comment-bg-hover: #333333;
+    --comment-text: #e4e6eb;
+    --comment-text-muted: #b0b3b8;
+    --comment-primary: #00f576;
+    --comment-border: #3a3a3a;
+    --comment-white: #1c1e21;
+}
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+
+.comments-container, 
+.comment-section-full,
+.comments-area {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 16px;
+    background-color: var(--comment-white);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Sidebar específico */
+.photo-sidebar .comments-area {
+    padding: 0;
+    height: 100%;
+    overflow-y: auto;
+    background-color: var(--comment-white);
+    gap: 0;
+}
+
+/* ========================================
+   LISTA DE COMENTÁRIOS
+   ======================================== */
+
+.comments-list, 
+.comment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.photo-sidebar .comments-list,
+.photo-sidebar .comment-list {
+    gap: 8px;
+}
+
+/* ========================================
+   ITEM DE COMENTÁRIO INDIVIDUAL
+   ======================================== */
+
+.comment-item {
+    display: flex;
+    gap: 8px;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ========================================
+   AVATAR
+   ======================================== */
+
+.comment-avatar,
+.comment-profile-picture,
+.author-avatar {
+    width: var(--comment-avatar-size);
+    height: var(--comment-avatar-size);
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.comment-replies .comment-avatar,
+.comment-replies .comment-profile-picture {
+    width: var(--comment-avatar-size-small);
+    height: var(--comment-avatar-size-small);
+}
+
+/* ========================================
+   CORPO DO COMENTÁRIO (Bolha)
+   ======================================== */
+
+.comment-body,
+.comment-content-area {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.comment-text-wrapper,
+.comment-text-content {
+    background-color: var(--comment-bg);
+    padding: 8px 12px;
+    border-radius: var(--comment-radius);
+    display: inline-block;
+    position: relative;
+    max-width: 100%;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ========================================
+   HEADER DO COMENTÁRIO
+   ======================================== */
+
+.comment-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.comment-author,
+.comment-author-name,
+.author-details strong {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--comment-text);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comment-author:hover,
+.comment-author-name:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   TEXTO DO COMENTÁRIO
+   ======================================== */
+
+.comment-text,
+.comment-text-content p {
+    margin: 0;
+    font-size: var(--comment-font-size);
+    line-height: 1.3333;
+    color: var(--comment-text);
+    word-break: break-word;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* ========================================
+   AÇÕES (Like, Responder, Tempo)
+   ======================================== */
+
+.comment-actions,
+.comment-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+    padding-left: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.comment-time,
+.comment-timestamp {
+    font-size: 0.75rem;
+    color: var(--comment-text-muted);
+    white-space: nowrap;
+}
+
+.comment-actions button,
+.comment-footer-actions button,
+.btn-reply-comment,
+.btn-comment-like,
+.btn-comment-dislike {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--comment-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+.comment-actions button:hover,
+.comment-footer-actions button:hover {
+    text-decoration: underline;
+}
+
+.btn-comment-like.active {
+    color: var(--comment-primary);
+}
+
+/* ========================================
+   CONTADOR DE LIKES
+   ======================================== */
+
+.comment-likes-count,
+.comment-dislikes-count {
+    font-weight: normal;
+    margin-left: 2px;
+}
+
+/* ========================================
+   RESPOSTAS (Nível secundário)
+   ======================================== */
+
+.comment-replies {
+    margin-left: 44px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 2px solid var(--comment-border);
+    padding-left: 12px;
+    width: calc(100% - 44px);
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .comment-replies {
+        margin-left: 20px;
+        width: calc(100% - 20px);
+        padding-left: 8px;
+    }
+}
+
+/* ========================================
+   FORMULÁRIO DE RESPOSTA
+   ======================================== */
+
+.comment-reply-form,
+.reply-form-container {
+    margin-top: 8px;
+    margin-left: 44px;
+    width: calc(100% - 44px);
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .comment-reply-form,
+    .reply-form-container {
+        margin-left: 20px;
+        width: calc(100% - 20px);
+    }
+}
+
+.comment-form-with-avatar,
+.comment-input-area {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.comment-input-container,
+.comment-input-area {
+    flex-grow: 1;
+    background-color: var(--comment-bg);
+    border-radius: 20px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.comment-input-container textarea,
+.comment-input-area textarea {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    padding: 8px 0;
+    font-size: var(--comment-font-size);
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    min-height: 20px;
+    max-height: 150px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ========================================
+   BOTÃO DE ENVIAR
+   ======================================== */
+
+.btn-send-comment,
+.form-buttons button[type="submit"] {
+    background: none;
+    border: none;
+    color: var(--comment-primary);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-send-comment:hover {
+    transform: scale(1.1);
+}
+
+/* ========================================
+   DROPDOWN DE OPÇÕES (Três pontos)
+   ======================================== */
+
+.comment-actions-dropdown {
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.comment-item:hover .comment-actions-dropdown {
+    opacity: 1;
+}
+
+.dropdown-toggle {
+    background: none;
+    border: none;
+    color: var(--comment-text-muted);
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.dropdown-toggle:hover {
+    background-color: var(--comment-bg-hover);
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--comment-white);
+    border: 1px solid var(--comment-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.dropdown-menu button {
+    width: 100%;
+    padding: 8px 12px;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-menu button:hover {
+    background-color: var(--comment-bg);
+}
+
+/* ========================================
+   HEADER DO POST (Sidebar)
+   ======================================== */
+
+.comments-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--comment-border);
+    background-color: var(--comment-white);
+    flex-shrink: 0;
+}
+
+.post-author-info {
+    display: flex;
+    gap: 12px;
+}
+
+.post-content {
+    margin-top: 8px;
+    font-size: 0.9375rem;
+    color: var(--comment-text);
+}
+
+/* ========================================
+   SEM COMENTÁRIOS
+   ======================================== */
+
+.no-comments {
+    text-align: center;
+    color: var(--comment-text-muted);
+    padding: 40px 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .comments-container, 
+    .comment-section-full {
+        padding: 8px;
+    }
+    
+    .comment-text,
+    .comment-text-content p {
+        font-size: 0.875rem;
+    }
+
+    .comment-actions-dropdown {
+        opacity: 1; /* Sempre visível no mobile */
+        right: 0;
+    }
+
+    .comment-item {
+        gap: 6px;
+    }
+
+    .comment-avatar,
+    .comment-profile-picture {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .comments-container, 
+    .comment-section-full {
+        padding: 4px 8px;
+    }
+
+    .comment-text-wrapper,
+    .comment-text-content {
+        padding: 6px 10px;
+        font-size: 0.875rem;
+    }
+
+    .comment-actions,
+    .comment-footer-actions {
+        gap: 8px;
+        padding-left: 8px;
+    }
+
+    .comment-actions button,
+    .comment-footer-actions button {
+        font-size: 0.7rem;
+    }
+}
+
+/* ========================================
+   SIDEBAR ESPECÍFICO (Lightbox)
+   ======================================== */
+
+.photo-sidebar .comments-area {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+}
+
+.photo-sidebar .comments-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--comment-border);
+}
+
+.photo-sidebar .comments-list {
+    padding: 12px 16px 0;
+    gap: 8px;
+}
+
+.photo-sidebar .comment-item {
+    gap: 6px;
+}
+
+.photo-sidebar .comment-avatar {
+    width: 32px;
+    height: 32px;
+}
+
+.photo-sidebar .comment-text-wrapper {
+    padding: 6px 10px;
+    font-size: 0.875rem;
+}
+
+.photo-sidebar .comment-actions {
+    gap: 8px;
+    padding-left: 8px;
+    font-size: 0.7rem;
+}
+
+/* ========================================
+   SCROLLBAR CUSTOMIZADO
+   ======================================== */
+
+.comments-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comments-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.comments-area::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.comments-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.photo-sidebar .comments-area::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.photo-sidebar .comments-area::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

@@ -1,0 +1,790 @@
+/**
+ * Modals Unified CSS - massangos
+ * Sistema de modais moderno, responsivo e padronizado
+ * Aplicável a todos os modais: Configurações, Verificação, Edição de Perfil, etc.
+ */
+
+/* ============================================
+   1. OVERLAY E CONTAINER PRINCIPAL
+   ============================================ */
+.modal,
+.page-modal {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: overlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    scrollbar-width: none;
+
+}
+
+.post-modal {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: overlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+
+/* Estado ativo do modal */
+.modal[style*="display: flex"],
+.page-modal[style*="display: flex"],
+.post-modal[style*="display: flex"],
+.modal.active,
+.page-modal.active,
+.post-modal.active {
+    display: flex !important;
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+/* ============================================
+   2. CONTEÚDO DO MODAL
+   ============================================ */
+
+.modal-content,
+.page-modal-content {
+    margin: 65px auto;
+    padding: 0;
+    border: none;
+    max-width: 900px;
+    border-radius: 12px;
+    position: absolute;
+    animation: pageModalSlideIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    max-height: 88vh;
+    display: flex;
+    background: var(--card-bg);
+    scrollbar-width: none;
+    right: 0;
+    left: 0;
+
+}
+
+
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Variações de tamanho */
+.modal-content.modal-sm {
+    max-width: 500px;
+}
+
+.modal-content.modal-lg {
+    max-width: 900px;
+}
+
+.modal-content.modal-xl {
+    max-width: 1100px;
+}
+
+/* ============================================
+   3. HEADER DO MODAL
+   ============================================ */
+
+.modal-header-inner,
+.page-modal-header {
+    display: block;
+    padding: 5px;
+    background: var(--card-bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 5px;
+    top: 0;
+    left: 14px;
+    right: 21px;
+    position: absolute;
+    z-index: 1998;
+}
+
+.post-modal-header {
+    display: block;
+    padding: 5px;
+    background: var(--card-bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 5px;
+    top: 0;
+    left: 14px;
+    right: 21px;
+    position: absolute;
+    z-index: 1998;
+    border-bottom: 1px solid var(--border, #e5e5e5);
+}
+
+.post-modal-footer {
+    position: absolute;
+    flex-shrink: 0;
+    bottom: 0 !important;
+    left: 14px;
+    right: 21px;
+    background: var(--card-bg);
+    gap: 10px;
+    z-index: 1999;
+    padding-top: 20px;
+    border-top: 1px color(srgb rgb(255, 255, 255));
+}
+
+.comments-list {
+    margin-bottom: 80px;
+}
+
+.modal-header-inner h2,
+.page-modal-header h2,
+.post-modal-header h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--text-main, #fff);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-header-inner h2 i,
+.page-modal-header h2 i,
+.post-modal-header h2 i {
+    font-size: 1.25rem;
+    color: var(--primary, #07c95b);
+}
+
+.post-modal-video,
+.post-modal-video-thumbnail,
+.album-modal-cover,
+.album-modal-cover-image,
+.post-modal-image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    background-color: #000;
+    border-radius: var(--border-radius);
+}
+
+/* ============================================
+   4. BOTÃO DE FECHAR
+   ============================================ */
+
+.close-button,
+.modal-close,
+.page-modal-close,
+.post-modal-close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    color: white;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 100;
+    transition: transform 0.2s, background 0.2s;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
+    user-select: none;
+    background: none;
+    z-index: 2999;
+}
+
+.close-button:hover,
+.modal-close:hover,
+.page-modal-close:hover,
+.post-modal-close:hover {
+    background: var(--primary-hover, #027e21);
+    box-shadow: 0 6px 16px rgba(7, 201, 91, 0.4);
+}
+
+.close-button:active,
+.modal-close:active,
+.page-modal-close:active,
+.post-modal-close:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   5. CORPO DO MODAL (COM SCROLL)
+   ============================================ */
+/* Ajustes para o conteúdo do post dentro do modal */
+.post-modal-body .single-post-section {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    margin-top: 50px;
+
+}
+
+
+.post-modal-body .main-layout-container {
+    display: block;
+    /* Remove o grid para evitar problemas de alinhamento */
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.post-modal-body .main-content-area {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.post-modal-body .post-card {
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    width: 100%;
+    border-radius: 12px;
+}
+
+.modal-body,
+.page-modal-body,
+.post-modal-body {
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar customizado (Webkit) */
+.modal-body::-webkit-scrollbar,
+.page-modal-body::-webkit-scrollbar,
+.post-modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track,
+.page-modal-body::-webkit-scrollbar-track,
+.post-modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb,
+.page-modal-body::-webkit-scrollbar-thumb,
+.post-modal-body::-webkit-scrollbar-thumb {
+    background: var(--primary, #07c95b);
+    border-radius: 4px;
+    opacity: 0.6;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover,
+.page-modal-body::-webkit-scrollbar-thumb:hover,
+.post-modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover, #027e21);
+    opacity: 1;
+}
+
+/* ============================================
+   6. ITENS DE CONFIGURAÇÃO (SETTINGS)
+   ============================================ */
+
+.settings-item,
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: var(--radius-lg, 0.75rem);
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 8px;
+}
+
+.settings-item:hover,
+.config-item:hover {
+    background: var(--surface-bg, #0f0f0f);
+    border-color: var(--primary, #07c95b);
+    transform: translateX(4px);
+}
+
+.settings-item-icon,
+.config-item-icon {
+    font-size: 1.5rem;
+    color: var(--primary, #07c95b);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(7, 201, 91, 0.1);
+    border-radius: var(--radius-md, 0.5rem);
+    flex-shrink: 0;
+}
+
+.settings-item-content,
+.config-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-item-title,
+.config-item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main, #fff);
+    margin-bottom: 4px;
+}
+
+.settings-item-description,
+.config-item-description {
+    font-size: 0.8rem;
+    color: var(--text-light, #999);
+    line-height: 1.4;
+}
+
+.settings-item-action,
+.config-item-action {
+    font-size: 1.25rem;
+    color: var(--text-light, #999);
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-item:hover .settings-item-action,
+.config-item:hover .config-item-action {
+    color: var(--primary, #07c95b);
+    transform: translateX(4px);
+}
+
+/* ============================================
+   7. FORMULÁRIOS DENTRO DE MODAIS
+   ============================================ */
+
+.modal-body .form-group,
+.page-modal-body .form-group,
+.post-modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-body .form-group label,
+.page-modal-body .form-group label,
+.post-modal-body .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-main, #fff);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.modal-body .form-group input,
+.modal-body .form-group textarea,
+.modal-body .form-group select,
+.page-modal-body .form-group input,
+.page-modal-body .form-group textarea,
+.page-modal-body .form-group select,
+.post-modal-body .form-group input,
+.post-modal-body .form-group textarea,
+.post-modal-body .form-group select {
+    width: 100%;
+    padding: 12px;
+    background: var(--surface-bg, #0f0f0f);
+    border: 1px solid var(--border, #333);
+    border-radius: var(--radius-md, 0.5rem);
+    color: var(--text-main, #fff);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-body .form-group input:focus,
+.modal-body .form-group textarea:focus,
+.modal-body .form-group select:focus,
+.page-modal-body .form-group input:focus,
+.page-modal-body .form-group textarea:focus,
+.page-modal-body .form-group select:focus,
+.post-modal-body .form-group input:focus,
+.post-modal-body .form-group textarea:focus,
+.post-modal-body .form-group select:focus {
+    outline: none;
+    border-color: var(--primary, #07c95b);
+    box-shadow: 0 0 0 3px rgba(7, 201, 91, 0.1);
+    background: var(--card-bg, #1a1a1a);
+}
+
+.modal-body .form-group textarea,
+.page-modal-body .form-group textarea,
+.post-modal-body .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* ============================================
+   8. BOTÕES DENTRO DE MODAIS
+   ============================================ */
+
+.modal-body .btn,
+.page-modal-body .btn,
+.post-modal-body .btn {
+    padding: 12px 24px;
+    border-radius: var(--radius-md, 0.5rem);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+
+.modal-body .btn-primary,
+.page-modal-body .btn-primary,
+.post-modal-body .btn-primary {
+    background: var(--primary, #07c95b);
+    color: white;
+    box-shadow: 0 4px 12px rgba(7, 201, 91, 0.3);
+}
+
+.modal-body .btn-primary:hover,
+.page-modal-body .btn-primary:hover,
+.post-modal-body .btn-primary:hover {
+    background: var(--primary-hover, #027e21);
+    box-shadow: 0 6px 16px rgba(7, 201, 91, 0.4);
+    transform: translateY(-2px);
+}
+
+.modal-body .btn-secondary,
+.page-modal-body .btn-secondary,
+.post-modal-body .btn-secondary {
+    background: var(--surface-bg, #0f0f0f);
+    color: var(--text-main, #fff);
+    border: 1px solid var(--border, #333);
+}
+
+.modal-body .btn-secondary:hover,
+.page-modal-body .btn-secondary:hover,
+.post-modal-body .btn-secondary:hover {
+    background: var(--border, #333);
+    border-color: var(--primary, #07c95b);
+}
+
+.modal-body .btn-danger,
+.page-modal-body .btn-danger,
+.post-modal-body .btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.modal-body .btn-danger:hover,
+.page-modal-body .btn-danger:hover,
+.post-modal-body .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+}
+
+/* ============================================
+   9. SEÇÕES E DIVISORES
+   ============================================ */
+
+.modal-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border, #333);
+}
+
+.modal-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.modal-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main, #fff);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-section-title i {
+    color: var(--primary, #07c95b);
+    font-size: 1.25rem;
+}
+
+/* ============================================
+   10. ESTADOS DE CARREGAMENTO
+   ============================================ */
+
+.modal-loader,
+.page-modal-loader,
+.post-modal-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 40px;
+    min-height: 300px;
+}
+
+.loader-spinner {
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-left: 3px solid var(--primary-color, #4f46e5);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 5s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   11. ALERTAS DENTRO DE MODAIS
+   ============================================ */
+
+.modal-body .alert,
+.page-modal-body .alert,
+.post-modal-body .alert {
+    padding: 16px;
+    border-radius: var(--radius-md, 0.5rem);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border-left: 4px solid;
+}
+
+.modal-body .alert-success,
+.page-modal-body .alert-success,
+.post-modal-body .alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-left-color: #10b981;
+    color: #10b981;
+}
+
+.modal-body .alert-danger,
+.page-modal-body .alert-danger,
+.post-modal-body .alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+    color: #ef4444;
+}
+
+.modal-body .alert-info,
+.page-modal-body .alert-info,
+.post-modal-body .alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.modal-body .alert-warning,
+.page-modal-body .alert-warning,
+.post-modal-body .alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.modal-body .alert i,
+.page-modal-body .alert i,
+.post-modal-body .alert i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ============================================
+   12. RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    .modal,
+    .page-modal,
+    .post-modal {
+        padding: 10px;
+    }
+
+    .modal-content,
+    .page-modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: var(--radius-lg, 0.75rem);
+    }
+
+    .modal-header-inner,
+    .page-modal-header,
+    .post-modal-header {
+        padding: 16px;
+        flex-wrap: wrap;
+    }
+
+    .modal-header-inner h2,
+    .page-modal-header h2,
+    .post-modal-header h2 {
+        font-size: 1.125rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .close-button,
+    .modal-close,
+    .page-modal-close,
+    .post-modal-close {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+    }
+
+    .modal-body,
+    .page-modal-body,
+    .post-modal-body {
+        padding: 16px;
+    }
+
+    .settings-item,
+    .config-item {
+        padding: 12px;
+    }
+
+    .modal-body .btn,
+    .page-modal-body .btn,
+    .post-modal-body .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .modal,
+    .page-modal,
+    .post-modal {
+        padding: 0;
+    }
+
+    .modal-content,
+    .page-modal-content {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .modal-header-inner,
+    .page-modal-header,
+    .post-modal-header {
+        padding: 12px;
+    }
+
+    .modal-header-inner h2,
+    .page-modal-header h2,
+    .post-modal-header h2 {
+        font-size: 1rem;
+    }
+
+    .modal-body,
+    .page-modal-body,
+    .post-modal-body {
+        padding: 12px;
+    }
+
+    .settings-item,
+    .config-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .settings-item-action,
+    .config-item-action {
+        display: none;
+    }
+}
+
+/* ============================================
+   13. ANIMAÇÕES ADICIONAIS
+   ============================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.modal-content.fade-in-up {
+    animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-item.slide-in-left {
+    animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}

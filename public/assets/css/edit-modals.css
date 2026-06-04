@@ -1,0 +1,204 @@
+/* Edit Modals System - Consistent with Publication Modals */
+
+.edit-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000; /* Mesmo z-index dos modais de publicação */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+}
+
+.edit-modal.show {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.edit-modal-content {
+    background-color: var(--bg-surface, #121212);
+    margin: 5vh auto;
+    padding: 0;
+    border: 1px solid var(--border, #333);
+    width: 90%;
+    max-width: 650px; /* Mesmo max-width dos modais de publicação */
+    border-radius: 16px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.edit-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border, #333);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg-surface, #121212);
+    z-index: 10;
+}
+
+.edit-modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-main, #fff);
+}
+
+.edit-modal-header h2 i {
+    color: var(--primary, #4f46e5);
+}
+
+.edit-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-light, #888);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.edit-modal-close:hover {
+    color: var(--danger, #ff4444);
+}
+
+.edit-modal-body {
+    padding: 24px;
+}
+
+/* Form Styling - Reusing project patterns */
+.edit-form .form-section { margin-bottom: 24px; }
+.edit-form .form-group { margin-bottom: 16px; }
+.edit-form .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-main); font-size: 0.9rem; }
+.edit-form .form-control { 
+    width: 100%; 
+    padding: 12px 16px; 
+    font-size: 0.9rem; 
+    color: var(--text-main); 
+    background: var(--bg-surface); 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    transition: all 0.2s; 
+}
+.edit-form .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
+.edit-form textarea.form-control { min-height: 120px; resize: vertical; }
+
+/* Preview Areas */
+.current-preview {
+    margin-top: 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    background: #000;
+}
+
+.current-image-preview, 
+.current-video-preview {
+    width: 100%;
+    display: block;
+    max-height: 300px;
+    object-fit: contain;
+}
+
+.remove-overlay {
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+/* Album Photos Grid */
+.current-photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.photo-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.album-photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-item input[type="checkbox"] {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 2;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+/* File Upload Area */
+.file-upload-area { 
+    border: 2px dashed var(--border); 
+    border-radius: 12px; 
+    padding: 24px; 
+    text-align: center; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    background: rgba(255,255,255,0.02); 
+    display: block;
+}
+.file-upload-area:hover { border-color: var(--primary); background: rgba(79, 70, 229, 0.05); }
+.file-upload-area i { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; display: block; }
+.file-upload-area span { font-size: 0.85rem; color: var(--text-light); }
+
+/* Buttons */
+.btn-pub-submit { 
+    width: 100%; 
+    padding: 14px; 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    margin-top: 20px;
+}
+.btn-pub-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--primary-glow); }
+
+.btn-cancel {
+    width: 100%;
+    margin-top: 10px;
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}

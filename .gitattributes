@@ -1,0 +1,30 @@
+# Normalizar line endings para LF no repositorio
+* text=auto eol=lf
+
+# Ficheiros que devem sempre ser LF
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.py text eol=lf
+*.txt text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Ficheiros binarios - sem conversao
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.webp binary
+*.mp4 binary
+*.webm binary
+*.pdf binary
+*.phar binary
+*.pyd binary
+*.exe binary
+*.dll binary
+*.bat text eol=crlf

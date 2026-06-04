@@ -1,0 +1,2135 @@
+/**
+ * Ultra Premium Reels Lightbox System - Facebook Reels Style
+ * CSS Refactored v4.6 — Correcções estruturais + performance + acessibilidade
+ *
+ * CORRECÇÕES v4.6:
+ *  - FIX 1:  font-family hardcoded → variável CSS --reels-font
+ *  - FIX 2:  --reels-transition: variável CSS para consistência de easing
+ *  - FIX 3:  category-locked blur → aplicado a .reels-video, não ao .reel-item inteiro
+ *            (antes, as .reels-actions-sidebar ficavam borradas também)
+ *  - FIX 4:  body.lightbox-open → overflow:hidden + overscroll-behavior:none (iOS bounce)
+ *  - FIX 5:  contain:layout style no .photo-lightbox-modal (isolamento de compositing)
+ *  - FIX 6:  #feedLightbox .photo-sidebar migrada de right:-100%/right:0 para transform
+ *            (transform usa GPU sem reflow; right provoca reflow em cada frame)
+ *  - FIX 7:  will-change adicionado em elementos com transform/opacity animados
+ *  - FIX 8:  preview-video-blur: z-index -1 → 0 (dentro de stacking context, -1 tornava invisível)
+ *  - FIX 9:  photo-sidebar: 100vh → 100dvh com fallback (iOS Safari clip)
+ *  - FIX 10: focus-visible nos botões de fecho (acessibilidade teclado)
+ *  - FIX 11: @keyframes lockedOverlayPulse e lockedOverlayBlink movidos do JS para cá
+ *  - FIX 12: Classes .locked-overlay-icon e .locked-overlay-blink para substituir inline styles
+ *
+ * ARQUITECTURA:
+ *   .reel-item  ← flex-row (wrapper + actions como unidade)
+ *     .reel-video-wrapper  ← o vídeo
+ *     .reels-actions-sidebar  ← botões, colados à direita
+ */
+
+:root {
+    --reels-bg: #000;
+    --reels-sidebar-bg: #1c1e21;
+    --reels-text: #fff;
+    --reels-accent: #00f576;
+    --reels-sidebar-width: 520px;
+    --reels-nav-width: 80px;
+    --premium-gold: #ffd700;
+    --sale-gradient: linear-gradient(135deg, #00f576 0%, #00d1b2 100%);
+    --locked-blur: blur(15px);
+    --primary-gradient: linear-gradient(135deg, #00f576 0%, #00d1b2 100%);
+    /* FIX 1: Fonte como variável para facilitar personalização centralizada */
+    --reels-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* FIX: Transição padronizada para reutilização */
+    --reels-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   BODY — previne scroll do fundo quando lightbox está activo
+   ============================================ */
+
+body.lightbox-open {
+    overflow: hidden;
+    /* FIX: previne scroll bounce no iOS Safari */
+    overscroll-behavior: none;
+    /* FIX: evita layout shift causado por scrollbar desaparecendo */
+    scrollbar-gutter: stable;
+}
+
+/* ============================================
+   BASE MODAL
+   ============================================ */
+
+.photo-lightbox-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--reels-bg);
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: var(--reels-text);
+    /* FIX 1: font via variável CSS */
+    font-family: var(--reels-font);
+    isolation: isolate;
+    /* FIX 7: isolamento de layout/paint para performance de compositing */
+    contain: layout style;
+    /* FIX: subpixel rendering mais nítido */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.photo-lightbox-modal.active {
+    display: flex !important;
+}
+
+.photo-lightbox-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* ============================================
+   ÁREA CENTRAL DO VÍDEO
+   ============================================ */
+
+.photo-display-area {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    /* FIX: usar variável de transição padronizada */
+    transition: margin-right var(--reels-transition);
+    /* FIX: promover à GPU para transição suave quando sidebar abre */
+    will-change: margin-right;
+}
+
+/* Quando sidebar de comentários abre em desktop, a área encolhe para a esquerda */
+body.sidebar-open .photo-display-area {
+    margin-right: var(--reels-sidebar-width);
+}
+
+#lightboxScrollContainer {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#lightboxScrollContainer::-webkit-scrollbar {
+    display: none;
+}
+
+/* ============================================
+   REEL-ITEM — o container flex-row
+   Contém SEMPRE: [wrapper] + [actions]
+   Em mobile as actions ficam absolutas sobre o vídeo.
+   Em desktop ficam no fluxo, coladas à direita do wrapper.
+   A unidade inteira translada quando a sidebar abre.
+   ============================================ */
+
+.reel-item {
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+
+    /* Base: flex-row para que wrapper + actions andem juntos */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    /* Posicionamento relativo para as actions absolutas em mobile */
+    position: relative;
+}
+
+/* ============================================
+   VIDEO WRAPPER
+   ============================================ */
+
+.reel-video-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Em mobile ocupa toda a área */
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+/* Especificidade extra para o feedLightbox */
+#feedLightbox .reel-video-wrapper {
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+}
+
+/* Vídeos horizontais 16:9 — APENAS em desktop (≥768px).
+   Em mobile a classe is-landscape NÃO é adicionada pelo JS (v4.6+):
+   landscape em mobile usa fullscreen cover igual ao portrait. */
+.reel-video-wrapper.is-landscape {
+    aspect-ratio: 16 / 9;
+    width: min(calc(100vw - 80px), calc(90vh * 16 / 9));
+    height: min(90vh, calc((100vw - 80px) * 9 / 16));
+    max-width: calc(100vw - 80px);
+    max-height: 90vh;
+    flex-shrink: 0;
+}
+
+#feedLightbox .reel-video-wrapper.is-landscape {
+    aspect-ratio: 16 / 9 !important;
+    width: min(calc(100vw - 80px), calc(90vh * 16 / 9)) !important;
+    height: min(90vh, calc((100vw - 80px) * 9 / 16)) !important;
+    max-width: calc(100vw - 80px) !important;
+    flex-shrink: 0 !important;
+}
+
+/* Garantia: se por algum motivo is-landscape aparecer em mobile, revertê-la para fullscreen */
+@media (max-width: 767px) {
+
+    .reel-video-wrapper.is-landscape,
+    #feedLightbox .reel-video-wrapper.is-landscape {
+        aspect-ratio: unset !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100svh !important;
+        height: 100dvh !important;
+        max-height: 100svh !important;
+        flex-shrink: unset !important;
+        border-radius: 0 !important;
+    }
+}
+
+/* Vídeo em si */
+.reels-video {
+    max-width: 100%;
+    max-height: 90vh;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    z-index: 500;
+    display: block;
+    background: #000;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    transform: none;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+#feedLightbox .reels-video {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    border-radius: 12px !important;
+    z-index: 500 !important;
+    display: block !important;
+    background: #000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: filter 0.3s ease, opacity 0.3s ease !important;
+}
+
+.reel-video-wrapper.is-landscape .reels-video,
+#feedLightbox .reel-video-wrapper.is-landscape .reels-video {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* ============================================
+   ACTIONS SIDEBAR
+   Fora do wrapper para não ser cortada pelo overflow:hidden.
+   Mobile-first: absolutas sobre o vídeo (canto inferior direito).
+   Desktop (≥768px): estáticas no fluxo flex-row do reel-item.
+   ============================================ */
+
+.reels-actions-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+
+    /* Mobile: sobrepõe o vídeo */
+    position: absolute;
+    right: 12px;
+    bottom: 80px;
+    z-index: 600;
+}
+
+/* Cada item: botão + contador */
+.reels-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+}
+
+/* Botão circular */
+.reels-action-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    line-height: 1;
+    /* FIX: promover à GPU para hover transform sem jank */
+    will-change: transform;
+    /* FIX: cursor explícito para acessibilidade */
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reels-action-btn:hover,
+.reels-action-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.reels-action-btn:active {
+    transform: scale(0.95);
+}
+
+.reels-action-btn.active {
+    background: var(--primary-gradient, linear-gradient(135deg, #00f576, #00d1b2));
+    color: #000;
+}
+
+.reels-action-btn.active i {
+    color: #000;
+}
+
+.reels-action-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    line-height: 1;
+    min-width: 20px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container do share com dropdown */
+.reels-share-item {
+    position: relative;
+}
+
+/* Dropdown de partilha */
+.reels-share-dropdown {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    background: #242526;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    z-index: 10010;
+    min-width: 190px;
+    padding: 6px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transform-origin: bottom right;
+    animation: reelsDropdownIn 0.18s ease;
+}
+
+.reels-share-dropdown.is-open {
+    display: block;
+}
+
+@keyframes reelsDropdownIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.reels-share-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 14px;
+    background: none;
+    border: none;
+    border-radius: 9px;
+    color: #e4e6eb;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+    margin: 0;
+    box-sizing: border-box;
+    line-height: 1.4;
+    outline: none;
+}
+
+.reels-share-option:hover,
+.reels-share-option:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.reels-share-option i {
+    color: var(--reels-accent, #00f576);
+    width: 18px;
+    text-align: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   DESKTOP (≥ 768px)
+   Actions saem do posicionamento absoluto e
+   entram no fluxo flex-row do reel-item.
+   A unidade (wrapper + actions) centra-se junta
+   e translada junta quando a sidebar abre.
+   ============================================ */
+
+@media (min-width: 768px) {
+
+    /* reel-item: flex-row, unidade centrada */
+    .reel-item {
+        justify-content: center;
+        gap: 0;
+    }
+
+    /* wrapper: limitar largura para deixar espaço às actions e sidebar */
+    .reel-video-wrapper {
+        flex-shrink: 0;
+        width: auto;
+        height: auto;
+        max-width: calc(100vw - 220px);
+        /* espaço para actions (~60px) + margens */
+        max-height: 95vh;
+        /* overflow: hidden já está definido na base */
+    }
+
+    #feedLightbox .reel-video-wrapper {
+        max-width: calc(100vw - 220px) !important;
+        max-height: 95vh !important;
+        width: auto !important;
+        height: auto !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Landscape desktop */
+    .reel-video-wrapper.is-landscape,
+    #feedLightbox .reel-video-wrapper.is-landscape {
+        width: min(calc(100vw - 220px), calc(90vh * 16 / 9)) !important;
+        height: min(90vh, calc((100vw - 220px) * 9 / 16)) !important;
+        max-width: calc(100vw - 220px) !important;
+        max-height: 90vh !important;
+        aspect-ratio: 16 / 9 !important;
+    }
+
+    /* Actions: saem do absoluto e entram no fluxo */
+    .reels-actions-sidebar {
+        position: relative;
+        /* ← sai do absoluto */
+        right: auto;
+        bottom: auto;
+        z-index: 600;
+        margin-left: 14px;
+        /* separador entre vídeo e actions */
+        align-self: flex-end;
+        padding-bottom: 20px;
+    }
+
+    /* Dropdown abre para a esquerda para não sair do ecrã */
+    .reels-share-dropdown {
+        right: 0;
+        left: auto;
+    }
+
+    /* ── Quando a sidebar de comentários abre ──
+       O .photo-display-area já encolhe com margin-right (definido acima).
+       O reel-item recentra automaticamente porque o pai encolheu.
+       A unidade (wrapper + actions) translada junta — não fazemos nada extra.
+    */
+
+    /* Ajuste do wrapper quando sidebar está aberta (opcional — espaço para o wrapper landscape) */
+    body.sidebar-open .reel-video-wrapper,
+    body.sidebar-open #feedLightbox .reel-video-wrapper {
+        max-width: calc(100vw - var(--reels-sidebar-width) - 220px) !important;
+    }
+
+    body.sidebar-open .reel-video-wrapper.is-landscape,
+    body.sidebar-open #feedLightbox .reel-video-wrapper.is-landscape {
+        width: min(calc(100vw - var(--reels-sidebar-width) - 220px), calc(90vh * 16 / 9)) !important;
+        height: min(90vh, calc((100vw - var(--reels-sidebar-width) - 220px) * 9 / 16)) !important;
+        max-width: calc(100vw - var(--reels-sidebar-width) - 220px) !important;
+        aspect-ratio: 16 / 9 !important;
+    }
+}
+
+/* ============================================
+   TABLET/MOBILE (< 768px)
+   Actions absolutas sobre o vídeo.
+   ============================================ */
+
+/* ============================================
+   REELS-AUTHOR-DETAILS
+   ============================================ */
+
+.reels-author-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 201;
+}
+
+.reels-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 200;
+}
+
+.avatar-container {
+    position: relative;
+    flex-shrink: 0;
+    display: block;
+}
+
+.reels-user-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    object-fit: cover;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.reels-author-details .author-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    margin-bottom: 2px;
+    width: 100%;
+}
+
+.reels-author-details .reels-user-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    display: inline-block;
+}
+
+.reels-author-details .follow-btn-mini {
+    flex-shrink: 0;
+    margin-left: 4px;
+    background: var(--primary-gradient, linear-gradient(135deg, #e91e63, #f44336));
+    color: white;
+    border: none;
+    padding: 3px 12px;
+    border-radius: 14px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.reels-author-details .follow-btn-mini.following {
+    background: #555;
+    box-shadow: none;
+}
+
+.reels-author-details .follow-btn-mini.pending {
+    background: #888;
+    box-shadow: none;
+}
+
+.reels-author-details .reels-repost-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #ccc;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.reels-author-details .reels-repost-info i {
+    color: #00f576;
+    flex-shrink: 0;
+}
+
+.reels-author-details .reels-repost-info a {
+    color: #ccc;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 200px;
+}
+
+.reels-author-details .reels-date {
+    font-size: 0.75rem;
+    color: #aaa;
+    display: block;
+    margin-top: 2px;
+}
+
+.profile-thumb-secondary {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    cursor: pointer;
+    object-fit: cover;
+    z-index: 10;
+}
+
+/* ============================================
+   INFO OVERLAY
+   ============================================ */
+
+.reels-info-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 60px 20px 20px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+    pointer-events: none;
+    z-index: 550;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.reels-caption {
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 85%;
+    pointer-events: auto;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    margin-top: 8px;
+}
+
+/* ============================================
+   BLOQUEIO POR CATEGORIA
+   ============================================ */
+
+.reel-item.category-locked .reel-video-wrapper,
+.reel-item.adult-content .reel-video-wrapper,
+.reel-item.restricted .reel-video-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+/* FIX 3: blur aplicado apenas ao wrapper do vídeo, NÃO ao reel-item inteiro.
+   Anteriormente, filter:blur no reel-item causava borrão nas actions sidebar também. */
+.reel-item.category-locked .reels-video {
+    filter: blur(8px);
+}
+
+.category-lock-overlay,
+.adult-content-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    animation: fadeInOverlay 0.3s ease;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.category-lock-icon,
+.adult-content-icon {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    animation: pulseLock 2s infinite;
+}
+
+@keyframes pulseLock {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px 10px rgba(233, 30, 99, 0.2);
+    }
+}
+
+.category-lock-icon i,
+.adult-content-icon i {
+    font-size: 36px;
+    color: var(--reels-accent);
+}
+
+.category-lock-title,
+.adult-content-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--reels-text);
+    margin-bottom: 12px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.category-lock-message,
+.adult-content-message {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 24px;
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+.category-lock-btn,
+.adult-content-btn,
+.verify-age-btn {
+    background: var(--reels-accent);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);
+}
+
+.category-lock-btn:hover,
+.adult-content-btn:hover,
+.verify-age-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.6);
+}
+
+.category-lock-secondary,
+.adult-content-secondary {
+    margin-top: 12px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-lock-secondary:hover,
+.adult-content-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================
+   REELS À VENDA
+   ============================================ */
+
+.reel-item.for-sale .reel-video-wrapper {
+    position: relative;
+    color: #4caf50;
+}
+
+.sale-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: var(--sale-gradient);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 50;
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    animation: slideInBadge 0.4s ease;
+}
+
+@keyframes slideInBadge {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.sale-status {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 50;
+}
+
+.sale-status-badge {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(40px);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sale-status-badge.pending {
+    background: rgba(255, 193, 7, 0.25);
+    border-color: rgba(255, 193, 7, 0.5);
+    color: #ffc107;
+}
+
+.sale-status-badge.approved {
+    background: rgba(76, 175, 80, 0.25);
+    border-color: rgba(76, 175, 80, 0.5);
+    color: #4caf50;
+}
+
+.sale-price-tag {
+    position: absolute;
+    bottom: 200px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    color: var(--premium-gold);
+    padding: 12px 24px;
+    border-radius: 15px;
+    font-size: 22px;
+    font-weight: 900;
+    z-index: 60;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    animation: bouncePrice 2s infinite;
+}
+
+@keyframes bouncePrice {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+.sale-buy-button {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--sale-gradient);
+    color: white;
+    border: none;
+    padding: 16px 36px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 60;
+    box-shadow: 0 8px 30px rgba(233, 30, 99, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sale-buy-button:hover {
+    transform: translateX(-50%) scale(1.08);
+    box-shadow: 0 12px 40px rgba(233, 30, 99, 0.7);
+}
+
+.paid-content-indicator {
+    position: absolute;
+    top: 20px;
+    left: 16px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    color: var(--premium-gold);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 50;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* ============================================
+   CONTROLES DO VÍDEO
+   ============================================ */
+
+.reels-video-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 551;
+}
+
+.reel-item.category-locked .reels-video-controls,
+.reel-item.adult-content .reels-video-controls,
+.reel-item.restricted .reels-video-controls {
+    display: none;
+}
+
+.control-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    background: rgba(0, 0, 0, 0.85);
+    transform: scale(1.15);
+}
+
+/* ============================================
+   SCROLL NAV (cima/baixo)
+   ============================================ */
+
+.reels-scroll-nav {
+    position: fixed;
+    left: 15px;
+    bottom: 50%;
+    transform: translateY(50%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 551;
+    padding-right: 20px;
+}
+
+.scroll-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.scroll-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.reels-progress-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: 1000;
+}
+
+.reels-progress-bar {
+    height: 100%;
+    background: var(--primary-gradient);
+    width: 0;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+    /* FIX: GPU compositing para actualização contínua de progresso */
+    will-change: width;
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+
+.close-lightbox,
+.lightbox-close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 700;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    /* FIX: acessibilidade — área mínima de toque 44x44 (já respeitada) */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* FIX: estado de foco visível para navegação por teclado */
+.close-lightbox:focus-visible,
+.lightbox-close-btn:focus-visible {
+    outline: 2px solid var(--reels-accent);
+    outline-offset: 2px;
+}
+
+.lightbox-close-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+/* ============================================
+   RIGHT SIDEBAR (COMENTÁRIOS)
+   ============================================ */
+
+.photo-sidebar {
+    width: var(--reels-sidebar-width);
+    /* FIX 9: 100dvh para iOS Safari — 100vh inclui a barra de endereço nativa */
+    height: 100dvh;
+    height: 100vh;
+    /* fallback para browsers sem suporte a dvh */
+    background: var(--reels-sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 600;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateX(100%);
+    /* FIX: usar variável de transição */
+    transition: transform var(--reels-transition);
+    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.5);
+    /* FIX: GPU compositing para animação suave */
+    will-change: transform;
+}
+
+.photo-sidebar.sidebar-open {
+    transform: translateX(0);
+}
+
+#feedLightbox .photo-sidebar {
+    border-left: 1px solid #333 !important;
+    display: flex;
+    flex-direction: column;
+    /* FIX 6: consistência — usar transform em vez de right para animar.
+       right:auto/-100% provoca reflows; transform usa GPU sem reflow. */
+    height: 100%;
+    width: var(--reels-sidebar-width);
+    position: absolute;
+    right: 0;
+    top: 0;
+    transform: translateX(100%);
+    transition: transform var(--reels-transition);
+    z-index: 1000;
+    will-change: transform;
+}
+
+#feedLightbox .photo-sidebar.sidebar-open {
+    transform: translateX(0) !important;
+}
+
+/* Sidebar Header */
+.photo-sidebar-header,
+.sidebar-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.photo-sidebar-header h3,
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--reels-text);
+}
+
+.sidebar-close-btn {
+    background: none;
+    border: none;
+    color: var(--reels-text);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.sidebar-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0.8;
+}
+
+/* Sidebar Body */
+.photo-sidebar-body,
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.photo-sidebar-body::-webkit-scrollbar,
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.photo-sidebar-body::-webkit-scrollbar-track,
+.sidebar-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.photo-sidebar-body::-webkit-scrollbar-thumb,
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.photo-sidebar-body::-webkit-scrollbar-thumb:hover,
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== REELS SIDEBAR HEADER ===== */
+.fb-reels-sidebar-header {
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.repost-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #b0b3b8;
+}
+
+.repost-badge i {
+    color: #b0b3b8;
+}
+
+.original-author-section,
+.post-author-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.original-author-section {
+    padding: 12px;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+}
+
+.author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.original-author-section .author-avatar {
+    width: 40px;
+    height: 40px;
+}
+
+.author-info {
+    flex: 1;
+}
+
+.author-username {
+    font-weight: 600;
+    color: #e4e6eb;
+    text-decoration: none;
+    display: block;
+    font-size: 15px;
+}
+
+.btn-follow,
+.btn-unfollow {
+    margin-top: 6px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-follow {
+    background-color: #0a66c2;
+    color: #fff;
+}
+
+.btn-unfollow {
+    background-color: #262626;
+    color: #e4e6eb;
+    border: 1px solid #404040;
+}
+
+.post-description {
+    color: #e4e6eb;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+}
+
+/* ============================================
+   COMENTÁRIOS NO LIGHTBOX
+   ============================================ */
+
+#feedLightbox .photo-sidebar,
+#feedLightbox .photo-sidebar * {
+    box-sizing: border-box;
+}
+
+#feedLightbox .photo-sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#feedLightbox .photo-sidebar-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #fff;
+}
+
+#feedLightbox .photo-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #1c1e21;
+}
+
+#feedLightbox .comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#feedLightbox .comment-item {
+    display: flex;
+    gap: 12px;
+    position: relative;
+}
+
+#feedLightbox .comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+#feedLightbox .comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+#feedLightbox .comment-text-wrapper {
+    background: #3a3b3c;
+    padding: 8px 12px;
+    border-radius: 18px;
+    display: inline-block;
+    max-width: 100%;
+}
+
+#feedLightbox .comment-author {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e4e6eb;
+    margin-bottom: 2px;
+}
+
+#feedLightbox .comment-text p {
+    margin: 0;
+    font-size: 14px;
+    color: #e4e6eb;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+#feedLightbox .comment-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+    padding-left: 4px;
+    align-items: center;
+}
+
+#feedLightbox .comment-time {
+    font-size: 12px;
+    color: #b0b3b8;
+}
+
+#feedLightbox .comment-actions button {
+    background: none;
+    border: none;
+    color: #b0b3b8;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
+#feedLightbox .comment-actions button:hover {
+    text-decoration: underline;
+}
+
+#feedLightbox .comment-actions button.active {
+    color: var(--reels-accent);
+}
+
+#feedLightbox .comment-replies {
+    margin-top: 12px;
+    padding-left: 12px;
+    border-left: 2px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#feedLightbox .photo-comment-form-area {
+    padding: 16px;
+    border-top: 1px solid #333;
+    background: #1c1e21;
+}
+
+#feedLightbox .comment-input-wrapper {
+    display: flex;
+    gap: 8px;
+    background: #3a3b3c;
+    border-radius: 20px;
+    padding: 4px 4px 4px 12px;
+    align-items: center;
+}
+
+#feedLightbox #lightboxCommentInput {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 8px 0;
+    font-size: 14px;
+    outline: none;
+}
+
+#feedLightbox .comment-input-wrapper button {
+    background: var(--reels-accent);
+    color: #fff;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+#feedLightbox .comment-input-wrapper button:hover {
+    opacity: 0.9;
+}
+
+#feedLightbox .no-comments {
+    text-align: center;
+    color: #b0b3b8;
+    padding: 20px;
+    font-size: 14px;
+}
+
+#feedLightbox .comment-actions-dropdown {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+#feedLightbox .dropdown-toggle {
+    background: none;
+    border: none;
+    color: #b0b3b8;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+}
+
+#feedLightbox .dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#feedLightbox .dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #242526;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    min-width: 120px;
+    display: none;
+}
+
+#feedLightbox .dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #e4e6eb;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#feedLightbox .dropdown-menu button:hover {
+    background: #3a3b3c;
+}
+
+/* ============================================
+   VÍDEOS À VENDA — z-index dos overlays
+   ============================================ */
+
+.reel-item.for-sale .reels-info-overlay,
+.reel-item.sale-locked .reels-info-overlay,
+.reel-item.for-sale .reels-user-info,
+.reel-item.sale-locked .reels-user-info {
+    z-index: 200;
+    pointer-events: auto;
+}
+
+.reel-item.for-sale .reels-user-thumb,
+.reel-item.sale-locked .reels-user-thumb,
+.reel-item.for-sale .reels-user-name,
+.reel-item.sale-locked .reels-user-name,
+.reel-item.for-sale .reels-author-details,
+.reel-item.sale-locked .reels-author-details {
+    position: relative;
+    z-index: 201;
+}
+
+.reel-item.for-sale .reels-video-controls,
+.reel-item.sale-locked .reels-video-controls {
+    background: transparent;
+    z-index: 202;
+}
+
+.reel-item.for-sale .control-btn,
+.reel-item.sale-locked .control-btn {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    backdrop-filter: blur(10px);
+}
+
+.reel-item.for-sale .control-btn:hover,
+.reel-item.sale-locked .control-btn:hover {
+    transform: scale(1.15);
+}
+
+.reel-item.for-sale .reels-info-overlay,
+.reel-item.sale-locked .reels-info-overlay {
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+}
+
+.reel-item.for-sale .video-locked-overlay,
+.reel-item.sale-locked .video-locked-overlay {
+    z-index: 100;
+}
+
+.reel-item.for-sale .reels-video-controls .control-btn i,
+.reel-item.sale-locked .reels-video-controls .control-btn i {
+    color: #fff;
+}
+
+/* ============================================
+   PREVIEW DE VÍDEO BLOQUEADO (5 segundos)
+   ============================================ */
+
+/* FIX 12: keyframes 'pulse' e 'blink' movidos do JS para cá.
+   Antes eram injectados via <style> tag a cada renderização de reel,
+   criando N cópias idênticas no DOM. Agora vivem uma única vez no CSS. */
+@keyframes lockedOverlayPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 245, 118, 0.3);
+    }
+
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px 10px rgba(0, 245, 118, 0.15);
+    }
+}
+
+@keyframes lockedOverlayBlink {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+}
+
+/* Ícones do overlay de conteúdo bloqueado — movidos de inline style para classes */
+.locked-overlay-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.locked-overlay-icon--play {
+    background: linear-gradient(135deg, rgba(0, 245, 118, 0.3), rgba(0, 212, 170, 0.1));
+    border: 2px solid rgba(0, 245, 118, 0.5);
+    box-shadow: 0 0 30px rgba(0, 245, 118, 0.3);
+    animation: lockedOverlayPulse 2s infinite;
+}
+
+.locked-overlay-icon--lock {
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.4), rgba(255, 71, 87, 0.1));
+    border: 2px solid rgba(255, 71, 87, 0.5);
+}
+
+/* Indicador pulsante "preview gratuito" */
+.locked-overlay-blink {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #00f576;
+    border-radius: 50%;
+    animation: lockedOverlayBlink 1.5s infinite;
+    box-shadow: 0 0 10px #00f576;
+    flex-shrink: 0;
+}
+
+.preview-video-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(25px) brightness(0.3);
+    /* FIX 8: z-index: 0 em vez de -1 — dentro de um stacking context criado pelo overlay
+       (position:absolute + z-index), z-index negativo tornava o elemento invisível em
+       todos os browsers. z-index:0 coloca o preview abaixo do conteúdo de z-index:1+. */
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    /* FIX: will-change para transição GPU da opacidade */
+    will-change: opacity;
+}
+
+@keyframes previewPulse {
+
+    0%,
+    100% {
+        filter: blur(15px) brightness(0.4);
+    }
+
+    50% {
+        filter: blur(15px) brightness(0.5);
+    }
+}
+
+.preview-video-blur.playing {
+    animation: previewPulse 2s infinite;
+}
+
+.preview-video-blur.ended {
+    opacity: 0.3;
+    transition: opacity 1s ease;
+}
+
+.video-duration-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+}
+
+.video-duration-display i {
+    color: #ffd700;
+}
+
+.preview-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.preview-timer .preview-progress {
+    transition: transform 1s linear;
+}
+
+/* ============================================
+   RESPONSIVE — TABLET LARGO (≤ 1024px)
+   ============================================ */
+
+@media (max-width: 1024px) {
+
+    .photo-sidebar,
+    #feedLightbox .photo-sidebar {
+        width: 100%;
+        z-index: 1000;
+    }
+
+    body.sidebar-open .photo-display-area {
+        margin-right: 0;
+    }
+
+    .reels-scroll-nav {
+        display: none;
+    }
+
+    body.sidebar-open .reel-video-wrapper,
+    body.sidebar-open #feedLightbox .reel-video-wrapper {
+        max-width: 100% !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .sale-badge {
+        top: 12px;
+        left: 12px;
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .sale-status {
+        top: 12px;
+        right: 12px;
+    }
+
+    .sale-buy-button {
+        padding: 14px 28px;
+        font-size: 15px;
+        bottom: 100px;
+    }
+
+    .sale-price-tag {
+        font-size: 20px;
+        padding: 10px 20px;
+        bottom: 150px;
+    }
+
+    .category-lock-icon,
+    .adult-content-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .category-lock-icon i,
+    .adult-content-icon i {
+        font-size: 28px;
+    }
+
+    .category-lock-title,
+    .adult-content-title {
+        font-size: 18px;
+    }
+
+    .category-lock-message,
+    .adult-content-message {
+        font-size: 13px;
+        max-width: 260px;
+    }
+}
+
+/* ============================================
+   RESPONSIVE — TABLET/MOBILE (≤ 767px)
+   ============================================ */
+
+@media (max-width: 767px) {
+
+    /* FIX 1: reel-item define a altura da janela — o wrapper herda com height:100%.
+       Colocar 100dvh no ITEM (não no wrapper) evita que o wrapper infle o reel-item
+       além do scroll-snap, o que causava a área preta e o overlay fora de posição. */
+    .reel-item {
+        width: 100%;
+        flex-direction: column;
+        height: 100svh;
+        height: 100dvh;
+    }
+
+    /* FIX 2: wrapper preenche o item com height:100% — NÃO define 100dvh directamente.
+       reel-video-inner fica position:relative para ancorar overlay e progress-bar. */
+    .reel-video-wrapper {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        overflow: hidden;
+    }
+
+    /* reel-video-inner: apenas contexto de posicionamento para os filhos absolutos.
+       SEM overflow:hidden — preserva o backdrop-filter do sensitive-overlay
+       e garante que o reels-info-overlay é visível. */
+    .reel-video-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* FIX 4: object-fit cover em mobile — preenche o ecrã sem barras laterais pretas.
+       FIX 5: remover max-height: 90vh — cortava o vídeo em iOS.
+              height: 100% garante que o vídeo preenche o wrapper por inteiro. */
+    .reels-video {
+        height: 100%;
+        max-height: none;
+        object-fit: cover;
+    }
+
+    .photo-sidebar,
+    #feedLightbox .photo-sidebar {
+        width: 100%;
+    }
+
+    .close-lightbox,
+    .lightbox-close-btn {
+        top: max(10px, env(safe-area-inset-top));
+        left: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+
+    .reels-info-overlay {
+        /* FIX 6 (parcial): padding inferior tem em conta o safe-area-inset-bottom */
+        padding: 50px 12px calc(16px + env(safe-area-inset-bottom));
+    }
+
+    .reels-author-details .reels-user-name {
+        max-width: 120px;
+        font-size: 0.85rem;
+    }
+
+    .reels-author-details .follow-btn-mini {
+        padding: 2px 8px;
+        font-size: 0.65rem;
+    }
+
+    .reels-author-details .reels-repost-info a {
+        max-width: 120px;
+    }
+
+    /* FIX 7: reels-caption reserva espaço para as actions (≈60px de botão + 10px margem)
+       usando calc em vez de max-width arbitrário em percentagem. */
+    .reels-caption {
+        font-size: 13px;
+        max-width: calc(100% - 80px);
+        padding-right: 8px;
+    }
+
+    .reels-video-controls {
+        position: absolute;
+        top: max(14px, env(safe-area-inset-top));
+        right: 14px;
+        gap: 8px;
+    }
+
+    .control-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+
+    .video-locked-overlay>div,
+    .adult-overlay>div,
+    .sensitive-overlay {
+        padding: 20px 16px;
+    }
+
+    .sale-price-tag {
+        font-size: 18px;
+        bottom: 130px;
+    }
+
+    .sale-buy-button {
+        font-size: 14px;
+        padding: 12px 22px;
+        bottom: 80px;
+    }
+
+    .reels-progress-container {
+        height: 3px;
+    }
+
+    body.sidebar-open .reels-video-controls,
+    body.sidebar-open .reel-video-wrapper {
+        transform: none;
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    /* FIX 6: actions bottom considera env(safe-area-inset-bottom) —
+       no iPhone com home indicator, 80px sozinhos ficam tapados.
+       max() garante pelo menos 80px mesmo em dispositivos sem safe area. */
+    .reels-actions-sidebar {
+        position: absolute;
+        right: 10px;
+        bottom: max(80px, calc(60px + env(safe-area-inset-bottom)));
+        margin-left: 0;
+    }
+
+    .reels-action-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .reels-action-count {
+        font-size: 11px;
+    }
+
+    .reels-share-dropdown {
+        right: 0;
+        left: auto;
+        min-width: 170px;
+    }
+
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE PEQUENO (≤ 480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+
+    .reels-user-thumb {
+        width: 36px;
+        height: 36px;
+    }
+
+    .reels-author-details .reels-user-name {
+        max-width: 85px;
+        font-size: 0.8rem;
+    }
+
+    .reels-author-details .follow-btn-mini {
+        padding: 2px 6px;
+        font-size: 0.6rem;
+    }
+
+    .reels-caption {
+        font-size: 12px;
+        max-width: 70%;
+    }
+
+    .control-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .reels-video-controls {
+        top: 10px;
+        right: 10px;
+        gap: 6px;
+    }
+
+    .category-lock-icon,
+    .adult-content-icon {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 14px;
+    }
+
+    .category-lock-icon i,
+    .adult-content-icon i {
+        font-size: 22px;
+    }
+
+    .category-lock-title,
+    .adult-content-title {
+        font-size: 16px;
+    }
+
+    .category-lock-message,
+    .adult-content-message {
+        font-size: 12px;
+        max-width: 220px;
+    }
+
+    .category-lock-btn,
+    .adult-content-btn,
+    .verify-age-btn {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+
+    .sale-price-tag {
+        font-size: 16px;
+        padding: 8px 16px;
+        bottom: 120px;
+    }
+
+    .sale-buy-button {
+        font-size: 13px;
+        padding: 10px 18px;
+        bottom: 70px;
+    }
+
+    .close-lightbox,
+    .lightbox-close-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+        top: 8px;
+        left: 8px;
+    }
+
+    #feedLightbox #lightboxCommentInput {
+        font-size: 16px;
+    }
+
+    /* FIX 6: safe-area nas actions */
+    .reels-actions-sidebar {
+        right: 8px;
+        bottom: max(70px, calc(50px + env(safe-area-inset-bottom)));
+        gap: 16px;
+    }
+
+    /* FIX 7: caption com espaço para actions */
+    .reels-caption {
+        max-width: calc(100% - 72px);
+    }
+
+    /* FIX 5: garantir sem max-height neste breakpoint */
+    .reels-video {
+        max-height: none;
+    }
+
+    .reels-action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE MUITO PEQUENO (≤ 360px)
+   ============================================ */
+
+@media (max-width: 360px) {
+
+    .reels-author-details .reels-user-name {
+        max-width: 70px;
+        font-size: 0.75rem;
+    }
+
+    /* FIX 6: safe-area nas actions */
+    .reels-actions-sidebar {
+        right: 4px;
+        bottom: max(10px, calc(6px + env(safe-area-inset-bottom)));
+        gap: 6px;
+    }
+
+    /* FIX 7: caption com espaço para actions */
+    .reels-caption {
+        max-width: calc(100% - 64px);
+    }
+
+    .reels-action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .reels-action-count {
+        font-size: 8px;
+    }
+
+    .sale-price-tag {
+        font-size: 14px;
+        padding: 6px 12px;
+        bottom: 110px;
+    }
+
+    .sale-buy-button {
+        font-size: 12px;
+        padding: 8px 14px;
+        bottom: 64px;
+    }
+}

@@ -1,0 +1,219 @@
+<?php
+
+namespace Massango\Services;
+
+use PDO;
+use PDOException;
+use Exception;
+use Massango\Models\Comment;
+use Massango\Models\User;
+use Massango\Models\FeedItem;
+use Massango\Models\Notification;
+
+/**
+ * CommentService
+ * 
+ * Centraliza a lógica de negócio para comentários:
+ * - Criação de comentários/respostas
+ * - Votação (like/dislike)
+ * - Notificações automáticas
+ */
+class CommentService
+{
+    private PDO $pdo;
+    private int $currentUserId;
+    private string $currentUsername;
+
+    public function __construct(PDO $pdo, int $currentUserId)
+    {
+        $this->pdo = $pdo;
+        $this->currentUserId = $currentUserId;
+
+        $userData = User::getUserById($pdo, $currentUserId);
+        $this->currentUsername = $userData['username'] ?? 'Utilizador Desconhecido';
+    }
+
+    /**
+     * Adiciona um comentário ou resposta e envia notificações.
+     */
+    public function addComment(int $feedItemId, string $content, ?int $parentCommentId = null): array
+    {
+        if (empty($content)) {
+            return ['success' => false, 'message' => 'Conteúdo do comentário vazio.'];
+        }
+
+        try {
+            $commentId = Comment::addComment($this->pdo, $this->currentUserId, $feedItemId, $content, $parentCommentId);
+
+            if (!$commentId) {
+                return ['success' => false, 'message' => 'Falha ao criar comentário.'];
+            }
+
+            // Obter dados do comentário criado
+            $newComment = Comment::getCommentById($this->pdo, $commentId);
+            $commentCount = Comment::getCommentCountForFeedItem($this->pdo, $feedItemId);
+
+            // Enviar notificações
+            $this->notifyOnNewComment($feedItemId, $commentId, $parentCommentId, $content);
+
+            return [
+                'success' => true,
+                'comment_id' => $commentId,
+                'comment' => $this->formatComment($newComment),
+                'comment_count' => $commentCount,
+                'message' => 'Comentário adicionado com sucesso.'
+            ];
+        } catch (Exception $e) {
+            error_log("Erro em CommentService::addComment: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao processar comentário.'];
+        }
+    }
+
+    /**
+     * Processa voto em comentário e notifica o autor.
+     */
+    public function voteComment(int $commentId, string $voteType): array
+    {
+        if (!in_array($voteType, ['like', 'dislike'])) {
+            return ['success' => false, 'message' => 'Tipo de voto inválido.'];
+        }
+
+        try {
+            // TODO: Implementar votação quando CommentVote model estiver disponível
+            // Por agora retorna estrutura para compatibilidade
+            return [
+                'success' => true,
+                'message' => 'Voto registado.',
+                'likes' => 0,
+                'dislikes' => 0,
+                'user_vote' => $voteType
+            ];
+        } catch (Exception $e) {
+            error_log("Erro em CommentService::voteComment: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao registar voto.'];
+        }
+    }
+
+    /**
+     * Apaga um comentário se o utilizador tiver permissão.
+     */
+    public function deleteComment(int $commentId, bool $isPostOwner): array
+    {
+        try {
+            $success = Comment::deleteComment($this->pdo, $commentId, $this->currentUserId, $isPostOwner);
+
+            return [
+                'success' => $success,
+                'message' => $success ? 'Comentário apagado.' : 'Permissão negada ou comentário não encontrado.'
+            ];
+        } catch (Exception $e) {
+            error_log("Erro em CommentService::deleteComment: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Erro ao apagar comentário.'];
+        }
+    }
+
+    /**
+     * Formata um comentário para resposta JSON.
+     */
+    private function formatComment(?array $comment): array
+    {
+        if (!$comment) {
+            return [];
+        }
+
+        $userInfo = User::getUserById($this->pdo, $comment['user_id']);
+
+        return [
+            'id' => $comment['id'],
+            'user_id' => $comment['user_id'],
+            'username' => $userInfo['username'] ?? 'Utilizador Desconhecido',
+            'user_profile_picture' => UPLOAD_URL . ($userInfo['profile_picture'] ?? 'profiles/default_profile.png'),
+            'content' => $comment['content'],
+            'created_at' => $comment['created_at'],
+            'formatted_created_at' => format_datetime_ago($comment['created_at']),
+            'likes' => 0,
+            'dislikes' => 0,
+            'user_vote' => null
+        ];
+    }
+
+    /**
+     * Envia notificações quando um comentário/resposta é criado.
+     */
+    private function notifyOnNewComment(int $feedItemId, int $commentId, ?int $parentCommentId, string $content): void
+    {
+        // 1. Notificar autor do post
+        $feedItem = FeedItem::getFeedItemById($this->pdo, $feedItemId);
+        if ($feedItem && $feedItem['user_id'] != $this->currentUserId) {
+            $message = "O utilizador " . htmlspecialchars($this->currentUsername) . " comentou no seu post.";
+            $link = BASE_URL . 'post.php?id=' . $feedItem['id'] . '#comment-' . $commentId;
+
+            Notification::createNotification(
+                $this->pdo,
+                $feedItem['user_id'],
+                $message,
+                $link,
+                $this->currentUserId,
+                'new_comment',
+                $feedItemId
+            );
+        }
+
+        // 2. Notificar autor do comentário pai (se for resposta)
+        if ($parentCommentId) {
+            $parentComment = Comment::getCommentById($this->pdo, $parentCommentId);
+            if ($parentComment && $parentComment['user_id'] != $this->currentUserId) {
+                $message = "O utilizador " . htmlspecialchars($this->currentUsername) . " respondeu ao seu comentário.";
+                $link = BASE_URL . 'post.php?id=' . $feedItemId . '#comment-' . $commentId;
+
+                Notification::createNotification(
+                    $this->pdo,
+                    $parentComment['user_id'],
+                    $message,
+                    $link,
+                    $this->currentUserId,
+                    'comment_reply',
+                    $commentId
+                );
+            }
+        }
+
+        // 3. Notificar utilizadores mencionados (@username)
+        $this->notifyMentions($content, $feedItemId, $commentId);
+    }
+
+    /**
+     * Notifica utilizadores mencionados no conteúdo.
+     */
+    private function notifyMentions(string $content, int $feedItemId, int $commentId): void
+    {
+        preg_match_all('/@(\w+)/', $content, $mentions);
+
+        if (empty($mentions[1])) {
+            return;
+        }
+
+        $mentionedUsernames = array_unique($mentions[1]);
+
+        foreach ($mentionedUsernames as $username) {
+            $stmt = $this->pdo->prepare("SELECT id FROM users WHERE username = :username");
+            $stmt->execute([':username' => $username]);
+            $mentionedUser = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($mentionedUser && $mentionedUser['id'] != $this->currentUserId) {
+                $message = "O utilizador " . htmlspecialchars($this->currentUsername) . " mencionou-te num comentário.";
+                $link = BASE_URL . 'post.php?id=' . $feedItemId . '#comment-' . $commentId;
+
+                Notification::createNotification(
+                    $this->pdo,
+                    $mentionedUser['id'],
+                    $message,
+                    $link,
+                    $this->currentUserId,
+                    'mention',
+                    $commentId
+                );
+            }
+        }
+    }
+}

@@ -1,0 +1,110 @@
+/* AI Analysis Badges */
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-left: 6px;
+}
+
+.ai-badge-analyzing {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.ai-badge-safe {
+    color: #2e7d32;
+}
+
+.ai-badge-sensitive {
+    color: #ef6c00;
+}
+
+.ai-badge-high {
+    color: #c62828;
+}
+
+.media-blur-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.media-blur {
+    filter: blur(20px);
+    pointer-events: none;
+}
+
+.media-overlay-msg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    z-index: 100;
+    text-align: center;
+    padding: 20px;
+}
+
+.media-overlay-msg button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    background: white;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    z-index: 101;
+}
+
+/* [AI ALBUM FIX] Estilos adicionais para blur em álbuns */
+.album-blur-container {
+    position: relative;
+}
+
+.album-blur-container .album-cover,
+.album-blur-container .album-cover-image {
+    filter: blur(20px);
+    pointer-events: none;
+}
+
+.album-blur-container .album-overlay-msg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    z-index: 100;
+    text-align: center;
+    padding: 20px;
+}
+
+.album-blur-container .album-overlay-msg button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    background: white;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    z-index: 101;
+}

@@ -1,0 +1,23 @@
+{
+    "name": "massangos/app",
+    "description": "Uma descrição do seu projeto massangos",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "massangos\\Core\\": "core/"
+        },
+        "files": [
+            "includes/functions.php",
+            "includes/auth.php"
+        ]
+    },
+    "require": {
+        "php": ">=8.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

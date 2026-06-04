@@ -1,0 +1,63 @@
+/**
+ * massangosu - Main Stylesheet
+ * Este arquivo consolida a nova estrutura organizada do CSS.
+ */
+
+/* 1. Variáveis e Design Tokens */
+@import url('variables.css');
+
+/* 2. Módulos Base e Globais */
+@import url('modules/base.css');
+@import url('modules/layout.css');
+
+
+/**
+ * ORGANIZAÇÃO DO ARQUIVO:
+ * 
+ * 1. Variables: Define o design system (cores, espaçamentos, etc)
+ * 2. Base: Reset CSS e estilos globais de elementos HTML
+ * 3. Layout: Estrutura principal (sidebar, main content, grid)
+ * 4. Components: Elementos reutilizáveis (botões, cards, dropdowns)
+ * 5. Pages: Estilos específicos para Feed, Perfil, etc.
+ */
+
+/* Utilitários Rápidos */
+.text-center {
+    text-align: center;
+}
+
+.mt-1 {
+    margin-top: var(--space-sm);
+}
+
+.mt-2 {
+    margin-top: var(--space-md);
+}
+
+.mb-1 {
+    margin-bottom: var(--space-sm);
+}
+
+.mb-2 {
+    margin-bottom: var(--space-md);
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-1 {
+    gap: var(--space-sm);
+}
+
+.gap-2 {
+    gap: var(--space-md);
+}

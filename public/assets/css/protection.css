@@ -1,0 +1,60 @@
+/* Proteção de Conteúdo - massangos - Atualizado */
+
+/* Permitir seleção de texto em todo o site (Removido bloqueio global a pedido do usuário) */
+body {
+    -webkit-user-select: auto !important;
+    -moz-user-select: auto !important;
+    -ms-user-select: auto !important;
+    user-select: auto !important;
+    -webkit-touch-callout: default !important;
+}
+
+/* Proteção de Imagens e Vídeos via Overlay */
+.post-image-container,
+.video-container,
+.album-item,
+.media-wrapper {
+    position: relative !important;
+    display: block;
+    overflow: hidden;
+}
+
+/* Overlay transparente para impedir clique direito e "Salvar como" - DESATIVADO para permitir interações */
+.media-protection-overlay {
+    display: none !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+    background: rgba(0, 0, 0, 0);
+    cursor: default;
+}
+
+/* Marca d'água flutuante local */
+.floating-watermark-local {
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Ajuste para vídeos: permitir interação com controles mas proteger o clique direito */
+video {
+    pointer-events: auto !important;
+}
+
+/* Se houver um overlay sobre o vídeo, ele deve cobrir a área do vídeo mas não necessariamente os controles se forem externos */
+.video-protection-overlay {
+    display: none;
+    /* Desativado em favor do .media-protection-overlay unificado */
+}
+
+/* Impedir arrastar imagens protegidas */
+img.post-image,
+img.album-image {
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+}

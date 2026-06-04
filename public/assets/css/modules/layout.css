@@ -1,0 +1,214 @@
+/**
+ * massangosu — Layout System
+ * Sidebars, feed, widgets e responsividade.
+ */
+
+/* ── Base ──────────────────────────────────────────────────────────── */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--fb-font-family);
+    min-height: 100vh;
+    margin: 0;
+    padding-top: var(--header-h);
+}
+
+/* ── App Container ─────────────────────────────────────────────────── */
+.app-container {
+    display: flex;
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    min-height: calc(100vh - var(--header-h));
+}
+
+/* ── Sidebar Esquerda (Navegação) ──────────────────────────────────── */
+.sidebar {
+    width: var(--sidebar-w);
+    height: calc(100vh - var(--header-h));
+    position: fixed;
+    /* Alinha à esquerda do container centrado em ecrãs grandes */
+    left: max(0px, calc((100vw - var(--container-max)) / 2 + var(--space-md)));
+    top: var(--header-h);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    background: var(--bg-main);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, .12) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .12);
+    border-radius: 4px;
+}
+
+/* ── Main Content ──────────────────────────────────────────────────── */
+.main-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    /* Compensar sidebar fixa apenas em desktop largo */
+    margin-left: var(--sidebar-w);
+}
+
+.content-wrapper {
+    display: flex;
+    width: 100%;
+    max-width: calc(var(--feed-w) + var(--widgets-w) + var(--space-2xl));
+    justify-content: center;
+}
+
+/* ── Feed ──────────────────────────────────────────────────────────── */
+.feed-container {
+    width: 100%;
+    max-width: var(--feed-w);
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+/* ── Sidebar Direita (Widgets) ─────────────────────────────────────── */
+.widgets-container {
+    width: var(--widgets-w);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-l));
+    height: fit-content;
+    align-self: flex-start;
+}
+
+/* ── Overlay Sidebar Mobile ────────────────────────────────────────── */
+#sidebarOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+#sidebarOverlay.is-active {
+    display: block;
+    opacity: 1;
+}
+
+/* ── Mobile Header ─────────────────────────────────────────────────── */
+.mobile-header {
+    display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BREAKPOINTS
+   1280px — esconde widgets
+    992px — sidebar vira drawer mobile
+    480px — ajustes pequenos
+═══════════════════════════════════════════════════════════════════ */
+
+/* Tablets largos: esconde widgets, feed ocupa toda a largura */
+@media (max-width: 1350px) {
+    .widgets-container {
+        display: none;
+    }
+
+    .content-wrapper {
+        max-width: var(--feed-w);
+        justify-content: center;
+    }
+}
+
+/* Tablets: sidebar fica mais estreita */
+@media (max-width: 1100px) and (min-width: 993px) {
+    :root {
+        --sidebar-w: 80px;
+    }
+
+    .sidebar .nav-link span {
+        display: none;
+    }
+
+    .sidebar .nav-link {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .sidebar-section-title {
+        display: none;
+    }
+}
+
+/* Mobile/Tablet — sidebar vira drawer lateral */
+@media (max-width: 992px) {
+
+    /* Sidebar converte-se em drawer */
+    .sidebar {
+        width: 280px;
+        top: 0;
+        height: 100vh;
+        left: 0;
+        z-index: 2000;
+        background: var(--bg-card);
+        box-shadow: var(--shadow-lg);
+        transform: translateX(-100%);
+        border-right: none;
+    }
+
+    /* Aberta via JS — mobile-nav.php usa .is-open */
+    .sidebar.is-open,
+    .sidebar.active {
+        /* compatibilidade com sidebar-toggle.js */
+        transform: translateX(0);
+    }
+
+    /* Main sem margem — sidebar não ocupa espaço no fluxo */
+    .main-content {
+        margin-left: 0;
+    }
+
+    /* Mobile header visível */
+    .mobile-header {
+        display: flex;
+    }
+
+    /* Desktop topbar escondido */
+    .facebook-topbar {
+        display: none !important;
+    }
+}
+
+/* Pequenos ajustes para ecrãs muito pequenos */
+@media (max-width: 480px) {
+    .main-content {
+        padding: var(--space-s) var(--space-xs);
+    }
+
+    .feed-container {
+        max-width: 100%;
+    }
+
+    .card {
+        border-radius: 0;
+        margin-left: calc(-1 * var(--space-xs));
+        margin-right: calc(-1 * var(--space-xs));
+        border-left: none;
+        border-right: none;
+    }
+}

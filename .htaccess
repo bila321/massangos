@@ -1,0 +1,140 @@
+# Configurações de Segurança para massangos
+
+# Previne acesso direto a arquivos sensíveis
+<Files "*.php">
+    <RequireAll>
+        Require all granted
+    </RequireAll>
+</Files>
+
+<Files "config.php">
+    Require all denied
+</Files>
+
+<Files "db.php">
+    Require all denied
+</Files>
+
+<Files "security.php">
+    Require all denied
+</Files>
+
+# Previne listagem de diretórios
+Options -Indexes
+
+# Previne acesso a arquivos de backup e temporários
+<FilesMatch "\.(bak|backup|old|tmp|temp|log|sql|gz|tar|zip|rar)$">
+    Require all denied
+</FilesMatch>
+
+# Previne acesso a arquivos de configuração
+<FilesMatch "\.(ini|conf|config|htaccess|htpasswd)$">
+    Require all denied
+</FilesMatch>
+
+# Headers de segurança
+<IfModule mod_headers.c>
+    # Previne clickjacking
+    Header always append X-Frame-Options DENY
+    
+    # Previne MIME type sniffing
+    Header always set X-Content-Type-Options nosniff
+    
+    # Ativa proteção XSS
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Política de referrer
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Remove informações do servidor
+    Header unset Server
+    Header unset X-Powered-By
+    
+    # Cache control para arquivos sensíveis
+    <FilesMatch "\.(php|html)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
+</IfModule>
+
+# Configurações de upload
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Previne execução de scripts em diretórios de upload
+    RewriteCond %{REQUEST_URI} ^/uploads/.*$
+    RewriteCond %{REQUEST_FILENAME} \.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$ [NC]
+    RewriteRule .* - [F,L]
+    
+    # Redireciona HTTP para HTTPS (descomente se usar HTTPS)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    
+    # Remove trailing slash
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [R=301,L]
+    
+    # Redireciona para public se acessar raiz
+    #RewriteCond %{REQUEST_URI} ^/$
+    #RewriteRule ^(.*)$ /public/ [L,R=301]
+</IfModule>
+
+# Limita tamanho de upload
+<IfModule mod_php.c>
+    php_value upload_max_filesize 160M
+    php_value post_max_size 160M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+    php_value memory_limit 168M
+</IfModule>
+
+# Configurações de compressão
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+# Cache para recursos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/pdf "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-javascript "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
+
+# Proteção contra hotlinking
+# Proteção contra hotlinking
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_REFERER} !^$
+    RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?localhost/massangos [NC]
+    RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?localhost/massangos [NC]
+    RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?massangos\.com [NC]
+    RewriteRule \.(jpg|jpeg|png|gif)$ - [NC,F,L]
+</IfModule>
+
+# Limita métodos HTTP
+<LimitExcept GET POST HEAD>
+    Require all denied
+</LimitExcept>
+
+# Configurações de erro personalizadas
+ErrorDocument 403 /public/error.php?code=403
+ErrorDocument 404 /public/error.php?code=404
+ErrorDocument 500 /public/error.php?code=500
+

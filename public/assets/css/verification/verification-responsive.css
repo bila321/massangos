@@ -1,0 +1,560 @@
+/**
+ * Verification Page - Responsive Design
+ * Mobile-first approach with breakpoints for tablets and desktops
+ */
+
+/* ============================================
+   MOBILE FIRST (< 768px)
+   ============================================ */
+
+@media (max-width: 767px) {
+    .verification-main {
+        padding: var(--space-md);
+    }
+
+    .verification-hero {
+        margin-bottom: var(--space-2xl);
+        padding: var(--space-lg);
+    }
+
+    .hero-title {
+        font-size: var(--text-2xl);
+    }
+
+    .hero-subtitle {
+        font-size: var(--text-base);
+    }
+
+    .hero-benefits {
+        gap: var(--space-sm);
+    }
+
+    .benefit-item {
+        font-size: var(--text-sm);
+    }
+
+    .verification-progress {
+        padding: var(--space-lg);
+        margin-bottom: var(--space-2xl);
+    }
+
+    .progress-steps {
+        gap: var(--space-sm);
+    }
+
+    .progress-step {
+        gap: var(--space-xs);
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        font-size: var(--text-sm);
+    }
+
+    .step-label {
+        font-size: var(--text-xs);
+        max-width: 60px;
+        word-break: break-word;
+    }
+
+    .progress-connector {
+        height: 1px;
+        margin: 0 var(--space-xs);
+        top: -20px;
+    }
+
+    .verification-form-wrapper {
+        border-radius: var(--radius-md);
+    }
+
+    .verification-form {
+        padding: var(--space-lg);
+    }
+
+    .step-title {
+        font-size: var(--text-lg);
+        gap: var(--space-sm);
+    }
+
+    .step-title i {
+        font-size: var(--text-xl);
+    }
+
+    .step-description {
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-lg);
+    }
+
+    .form-group {
+        margin-bottom: var(--space-md);
+    }
+
+    .form-input,
+    .form-input select {
+        padding: var(--space-md);
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .document-upload-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .document-preview-area {
+        min-height: 150px;
+        padding: var(--space-md);
+    }
+
+    .upload-placeholder i {
+        font-size: 2rem;
+    }
+
+    .document-preview-img {
+        max-height: 150px;
+    }
+
+    .video-instructions {
+        padding: var(--space-md);
+    }
+
+    .video-instructions h4 {
+        font-size: var(--text-base);
+        margin-bottom: var(--space-md);
+    }
+
+    .video-instructions ul {
+        padding-left: var(--space-md);
+    }
+
+    .video-instructions li {
+        padding-left: var(--space-md);
+        font-size: var(--text-sm);
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+        gap: var(--space-md);
+        margin-top: var(--space-lg);
+        padding-top: var(--space-lg);
+    }
+
+    .form-actions .btn {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .btn-lg {
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-base);
+    }
+
+    .review-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .review-media-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .review-media-item,
+    .review-video-container {
+        aspect-ratio: 4 / 3;
+    }
+
+    .verification-status-alert {
+        flex-direction: column;
+        gap: var(--space-md);
+        padding: var(--space-md);
+    }
+
+    .status-icon {
+        font-size: 1.25rem;
+    }
+
+    .status-content h3 {
+        font-size: var(--text-base);
+    }
+
+    .status-content p {
+        font-size: var(--text-sm);
+    }
+
+    .processing-container {
+        padding: 0;
+    }
+
+    .processing-header {
+        margin-bottom: var(--space-lg);
+    }
+
+    .processing-header h2 {
+        font-size: var(--text-xl);
+    }
+
+    .processing-header p {
+        font-size: var(--text-sm);
+    }
+
+    .processing-steps-ai {
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+
+    .ai-step {
+        gap: var(--space-md);
+        padding: var(--space-md);
+    }
+
+    .ai-step-icon {
+        font-size: 1.25rem;
+        min-width: 32px;
+    }
+
+    .ai-step-content h4 {
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-xs);
+    }
+
+    .ai-step-content p {
+        font-size: var(--text-xs);
+    }
+
+    .score-card {
+        padding: var(--space-md);
+    }
+
+    .score-card h4 {
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-md);
+    }
+
+    .score-text {
+        font-size: var(--text-base);
+    }
+
+    .result-icon {
+        font-size: 3rem;
+        margin-bottom: var(--space-md);
+    }
+
+    .result-title {
+        font-size: var(--text-xl);
+        margin-bottom: var(--space-md);
+    }
+
+    .result-message {
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-md);
+    }
+
+    .result-details {
+        margin-bottom: var(--space-lg);
+        padding: var(--space-md);
+    }
+
+    .result-actions {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .result-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ============================================
+   TABLET (768px - 1024px)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .verification-main {
+        padding: var(--space-lg);
+    }
+
+    .verification-hero {
+        margin-bottom: var(--space-2xl);
+        padding: var(--space-xl);
+    }
+
+    .hero-title {
+        font-size: var(--text-2xl);
+    }
+
+    .verification-progress {
+        padding: var(--space-lg);
+    }
+
+    .progress-steps {
+        gap: var(--space-md);
+    }
+
+    .step-label {
+        font-size: var(--text-sm);
+    }
+
+    .verification-form {
+        padding: var(--space-xl);
+    }
+
+    .form-row {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
+    }
+
+    .document-upload-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
+    }
+
+    .review-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-lg);
+    }
+
+    .review-media-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
+    }
+
+    .form-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+
+    .form-actions .btn {
+        min-width: 140px;
+    }
+
+    .result-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   DESKTOP (> 1024px)
+   ============================================ */
+
+@media (min-width: 1025px) {
+    /* Default desktop styles are already defined in verification.css */
+}
+
+/* ============================================
+   LANDSCAPE MODE (Mobile)
+   ============================================ */
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .verification-hero {
+        padding: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+
+    .hero-title {
+        font-size: var(--text-xl);
+    }
+
+    .hero-subtitle {
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-md);
+    }
+
+    .hero-benefits {
+        gap: var(--space-xs);
+    }
+
+    .verification-progress {
+        padding: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+
+    .step-number {
+        width: 28px;
+        height: 28px;
+        font-size: var(--text-xs);
+    }
+
+    .step-label {
+        font-size: var(--text-xs);
+    }
+
+    .verification-form {
+        padding: var(--space-lg);
+    }
+
+    .step-title {
+        font-size: var(--text-lg);
+    }
+
+    .step-description {
+        margin-bottom: var(--space-md);
+        font-size: var(--text-sm);
+    }
+
+    .form-group {
+        margin-bottom: var(--space-md);
+    }
+
+    .form-actions {
+        margin-top: var(--space-md);
+        padding-top: var(--space-md);
+    }
+
+    .video-preview-area {
+        aspect-ratio: 16 / 9;
+        min-height: auto;
+    }
+}
+
+/* ============================================
+   EXTRA LARGE SCREENS (> 1440px)
+   ============================================ */
+
+@media (min-width: 1441px) {
+    .verification-container {
+        max-width: 1000px;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .step-title {
+        font-size: 1.75rem;
+    }
+
+    .form-input,
+    .form-input select {
+        font-size: 1.125rem;
+    }
+
+    .btn {
+        font-size: 1.125rem;
+        padding: var(--space-lg) var(--space-2xl);
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .verification-main {
+        background: white;
+    }
+
+    .verification-form-wrapper,
+    .verification-hero,
+    .verification-progress {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .form-actions,
+    .result-actions {
+        display: none;
+    }
+
+    .btn {
+        display: none;
+    }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+
+@media (prefers-contrast: more) {
+    .verification-hero {
+        border: 2px solid var(--primary);
+    }
+
+    .progress-step.active .step-number {
+        box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .form-input:focus,
+    .form-input select:focus {
+        box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .btn-primary {
+        border: 2px solid var(--primary-hover);
+    }
+
+    .btn-secondary {
+        border: 2px solid var(--text-main);
+    }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .hero-icon {
+        animation: none;
+    }
+
+    .recording-dot {
+        animation: none;
+    }
+
+    .score-fill {
+        transition: none;
+    }
+
+    .result-icon.success {
+        animation: none;
+    }
+
+    .result-icon.error {
+        animation: none;
+    }
+}
+
+/* ============================================
+   DARK MODE ADJUSTMENTS
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .document-preview-area:hover {
+        background: var(--primary-soft);
+    }
+
+    .form-input,
+    .form-input select {
+        background: var(--bg-surface);
+    }
+
+    .form-input:focus,
+    .form-input select:focus {
+        background: var(--bg-card);
+    }
+
+    .upload-placeholder i {
+        color: var(--text-light);
+    }
+
+    .video-preview-area {
+        background: #000;
+    }
+
+    .review-media-item,
+    .review-video-container {
+        background: #000;
+    }
+}

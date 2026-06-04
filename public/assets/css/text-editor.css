@@ -1,0 +1,283 @@
+/**
+ * Text Editor Styles
+ * Estilos para o editor de texto com formatação (Quill.js)
+ */
+
+.text-editor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.text-editor-toolbar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.text-editor-toolbar-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    border-right: 1px solid var(--border);
+    padding-right: 8px;
+}
+
+.text-editor-toolbar-group:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+.text-editor-toolbar button {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.text-editor-toolbar button:hover {
+    background: var(--bg-main);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.text-editor-toolbar button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.text-editor-toolbar select {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.text-editor-toolbar select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.text-editor-content {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 0 0 8px 8px;
+    min-height: 200px;
+    padding: 16px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-main);
+}
+
+.text-editor-content:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+/* Quill.js Specific Styles */
+.ql-toolbar {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 12px !important;
+}
+
+.ql-toolbar.ql-snow {
+    border-bottom: none !important;
+}
+
+.ql-container {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0 0 8px 8px !important;
+    font-size: 0.95rem !important;
+    font-family: var(--font-main) !important;
+}
+
+.ql-container.ql-snow {
+    border-top: 1px solid var(--border) !important;
+}
+
+.ql-editor {
+    color: var(--text-main) !important;
+    min-height: 200px !important;
+    padding: 16px !important;
+    line-height: 1.6 !important;
+}
+
+.ql-editor:focus {
+    outline: none !important;
+}
+
+.ql-editor.ql-blank::before {
+    color: var(--text-muted) !important;
+    font-style: italic !important;
+}
+
+.ql-toolbar.ql-snow .ql-stroke {
+    stroke: var(--text-light) !important;
+}
+
+.ql-toolbar.ql-snow .ql-fill,
+.ql-toolbar.ql-snow .ql-stroke.ql-fill {
+    fill: var(--text-light) !important;
+}
+
+.ql-toolbar.ql-snow button:hover .ql-stroke,
+.ql-toolbar.ql-snow button:focus .ql-stroke,
+.ql-toolbar.ql-snow button.ql-active .ql-stroke,
+.ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+.ql-toolbar.ql-snow.ql-focus .ql-picker-label .ql-stroke {
+    stroke: var(--primary) !important;
+}
+
+.ql-toolbar.ql-snow button:hover .ql-fill,
+.ql-toolbar.ql-snow button:focus .ql-fill,
+.ql-toolbar.ql-snow button.ql-active .ql-fill,
+.ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill,
+.ql-toolbar.ql-snow.ql-focus .ql-picker-label .ql-fill {
+    fill: var(--primary) !important;
+}
+
+.ql-toolbar.ql-snow button.ql-active .ql-stroke,
+.ql-toolbar.ql-snow .ql-picker-label.ql-active .ql-stroke {
+    stroke: var(--primary) !important;
+}
+
+.ql-toolbar.ql-snow button.ql-active .ql-fill,
+.ql-toolbar.ql-snow .ql-picker-label.ql-active .ql-fill {
+    fill: var(--primary) !important;
+}
+
+.ql-picker {
+    color: var(--text-light) !important;
+}
+
+.ql-picker-label {
+    color: var(--text-light) !important;
+}
+
+.ql-picker-options {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main) !important;
+}
+
+.ql-picker-item {
+    color: var(--text-main) !important;
+}
+
+.ql-picker-item.ql-selected,
+.ql-picker-item:hover {
+    color: var(--primary) !important;
+}
+
+/* Character counter */
+.text-editor-counter {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 8px;
+}
+
+.text-editor-counter.warning {
+    color: var(--warning);
+}
+
+.text-editor-counter.danger {
+    color: var(--danger);
+}
+
+/* Text formatting preview */
+.text-preview {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-main);
+}
+
+.text-preview h1, .text-preview h2, .text-preview h3 {
+    margin-top: 12px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.text-preview h1 { font-size: 1.8rem; }
+.text-preview h2 { font-size: 1.5rem; }
+.text-preview h3 { font-size: 1.2rem; }
+
+.text-preview strong { font-weight: 700; }
+.text-preview em { font-style: italic; }
+.text-preview u { text-decoration: underline; }
+.text-preview s { text-decoration: line-through; }
+
+.text-preview ul, .text-preview ol {
+    margin-left: 24px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.text-preview li {
+    margin-bottom: 4px;
+}
+
+.text-preview blockquote {
+    border-left: 4px solid var(--primary);
+    padding-left: 12px;
+    margin: 12px 0;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.text-preview a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.text-preview a:hover {
+    text-decoration: underline;
+}
+
+.text-preview code {
+    background: var(--bg-surface);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.text-preview pre {
+    background: var(--bg-surface);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+
+.text-preview pre code {
+    background: none;
+    padding: 0;
+}

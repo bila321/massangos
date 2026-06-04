@@ -1,0 +1,88 @@
+/* Container principal */
+.new-post-form-icons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+/* Botão + */
+.post-plus-btn {
+    width: 30px;
+    height: 30px;
+
+    border: none;
+
+    background: none;
+    padding-right: 30px;
+    padding-left: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+}
+
+.post-plus-btn i {
+    font-size: 20px;
+    color: #ffffff;
+}
+
+/* Container oval dos ícones */
+.post-icons-group {
+    display: flex;
+    align-items: center;
+    gap: 45px;
+
+    padding: 10px 46px;
+
+    background: var(--bg-main);
+
+    border-radius: 50px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.new-post-form-background {
+    display: flex;
+    align-items: center;
+    padding: 1px;
+    padding-left: 5px;
+    background: #2a2a2a;
+
+    border-radius: 50px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+/* Botões dos ícones */
+.post-icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ícones verdes */
+.post-icon-btn i {
+    font-size: 18px;
+
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    background-clip: text;
+    color: transparent;
+
+    transition: 0.2s;
+}
+
+/* Hover */
+.post-icon-btn:hover i {
+    transform: scale(1.15);
+}

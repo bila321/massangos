@@ -1,0 +1,2071 @@
+/* ═══════════════════════════════════════════════════════════
+   VIEW ALBUM — Grid + Lightbox profissional
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Wrapper geral ── */
+.va-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+}
+
+/* ── Header do álbum ── */
+.va-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--card-bg, #1a1a1a);
+    border-radius: 14px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.va-back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--hover-bg, rgba(255, 255, 255, 0.07));
+    color: var(--text, #fff);
+    text-decoration: none;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: background 0.18s;
+}
+
+.va-back-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.va-header-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.va-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.va-header-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text, #fff);
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.va-header-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.va-header-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Breadcrumb de contexto ── */
+.va-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.va-bc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted, #888);
+    text-decoration: none;
+    transition: color 0.18s;
+}
+
+.va-bc-link:hover {
+    color: var(--accent, #00f28f);
+}
+
+.va-bc-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+}
+
+.va-bc-sep {
+    font-size: 9px;
+    opacity: 0.4;
+}
+
+.va-bc-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text, #fff);
+    font-weight: 600;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Subtítulo "Álbum de @user" no header ── */
+.va-header-context {
+    font-size: 0.78rem;
+    color: var(--text-muted, #888);
+    margin-bottom: 4px;
+}
+
+.va-header-author-link {
+    color: var(--accent, #00f28f);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.va-header-author-link:hover {
+    text-decoration: underline;
+}
+
+/* ── Grid de fotos ── */
+.va-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 32px;
+}
+
+.va-thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #111;
+}
+
+.va-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.28s ease, filter 0.22s ease;
+}
+
+/* Hover visual apenas em fotos sem blur (fotos com blur não reagem ao hover) */
+.va-thumb:not([data-blur]):hover img {
+    transform: scale(1.06);
+    filter: brightness(0.72);
+}
+
+.va-thumb[data-blur]:hover img {
+    /* manter blur inalterado — scroll e hover não devem revelar nada */
+    transform: scale(1.08);
+    filter: blur(18px) saturate(0.4) !important;
+}
+
+.va-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.22s;
+    pointer-events: none;
+}
+
+.va-thumb:not([data-blur]):hover .va-thumb-overlay {
+    opacity: 1;
+}
+
+/* Overlay após 1º clique: sempre visível mesmo sem hover */
+.va-thumb-overlay.va-thumb-overlay--revealed {
+    opacity: 1;
+    pointer-events: none;
+}
+
+.va-thumb-overlay i {
+    font-size: 28px;
+    color: #fff;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+}
+
+.va-thumb-num {
+    position: absolute;
+    bottom: 7px;
+    right: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* Botão apagar (owner) */
+.va-delete-btn {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(220, 38, 38, 0.8);
+    border: none;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 5;
+}
+
+.va-thumb:hover .va-delete-btn {
+    opacity: 1;
+}
+
+.va-delete-btn:hover {
+    background: rgb(220, 38, 38);
+}
+
+/* Empty state */
+.va-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted, #888);
+    font-size: 0.95rem;
+}
+
+.va-empty i {
+    font-size: 48px;
+    margin-bottom: 14px;
+    display: block;
+    opacity: 0.4;
+}
+
+/* ── Acções do álbum (likes, comments, share, save) ── */
+.va-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 20px;
+    background: var(--card-bg, #1a1a1a);
+    border-radius: 14px;
+    margin-bottom: 16px;
+}
+
+.va-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 22px;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+    background: transparent;
+    color: var(--text, #fff);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.va-action-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.va-action-btn.active {
+    color: var(--accent, #00f28f);
+    border-color: var(--accent, #00f28f);
+}
+
+/* Like button green fill when active */
+.va-action-btn.va-btn-like.active {
+    background: var(--accent, #00f28f);
+    color: #000;
+    border-color: var(--accent, #00f28f);
+}
+
+.va-action-sep {
+    flex: 1;
+}
+
+/* ── Menu de mais opções ── */
+.va-more-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: rgba(26, 26, 26, 0.97);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 6px 0;
+    min-width: 160px;
+    z-index: 200;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.va-lb-more-menu {
+    bottom: calc(100% + 8px);
+    right: 0;
+}
+
+.va-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    text-decoration: none;
+    transition: background 0.18s;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.va-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.va-menu-danger {
+    color: #ff4757;
+}
+
+/* ── Secção de comentários inline ── */
+.va-comments {
+    background: var(--card-bg, #1a1a1a);
+    border-radius: 14px;
+    padding: 20px 20px 16px;
+    margin-bottom: 32px;
+}
+
+.va-comments-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text, #fff);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.va-comments-header i {
+    color: var(--accent, #00f28f);
+    font-size: 0.85rem;
+}
+
+.va-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.va-comment-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.va-comment-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.va-comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.va-comment-bubble {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px 14px 14px 4px;
+    padding: 9px 14px;
+}
+
+.va-comment-bubble strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text, #fff);
+    margin-bottom: 3px;
+}
+
+.va-comment-bubble p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.va-comment-meta {
+    font-size: 11px;
+    color: var(--text-muted, #666);
+    margin-top: 5px;
+    padding-left: 4px;
+}
+
+.va-no-comments {
+    text-align: center;
+    padding: 28px 0 18px;
+    color: var(--text-muted, #666);
+    font-size: 0.87rem;
+}
+
+.va-no-comments i {
+    display: block;
+    font-size: 26px;
+    margin-bottom: 8px;
+    opacity: 0.3;
+}
+
+/* ── Formulário de novo comentário (inline) ── */
+.va-comment-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.va-comment-form-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-bottom: 2px;
+}
+
+.va-comment-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 8px 14px;
+    transition: border-color 0.18s;
+}
+
+.va-comment-input-wrap:focus-within {
+    border-color: var(--accent, #00f28f);
+}
+
+.va-comment-textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text, #fff);
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.45;
+    min-height: 22px;
+    max-height: 100px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.va-comment-textarea::-webkit-scrollbar {
+    display: none;
+}
+
+.va-comment-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.va-comment-send-btn {
+    background: none;
+    border: none;
+    color: var(--accent, #00f28f);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 0 2px 4px;
+    transition: transform 0.2s, opacity 0.2s;
+    flex-shrink: 0;
+    opacity: 0.5;
+    line-height: 1;
+}
+
+.va-comment-textarea:not(:placeholder-shown)~.va-comment-send-btn,
+.va-comment-input-wrap:focus-within .va-comment-send-btn {
+    opacity: 1;
+}
+
+.va-comment-send-btn:hover {
+    transform: scale(1.2);
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIGHTBOX V3 — foto individual (layout idêntico ao post.php)
+   ══════════════════════════════════════════════════════════ */
+
+:root {
+    --v3-green: #00f28f;
+    --v3-dark-btn: rgba(255, 255, 255, 0.1);
+    --v3-text-gray: #a0a0a0;
+    --v3-sidebar-bg: #1a1a1a;
+}
+
+.va-lb-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 999999;
+    display: none;
+    flex-direction: column;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+}
+
+.va-lb-overlay.open {
+    display: flex;
+}
+
+/* ── Botão Fechar ── */
+.va-lb-close-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 100;
+    padding: 10px;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.va-lb-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+/* ── Botões de Navegação ── */
+.va-lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 250;
+    font-size: 22px;
+    transition: all 0.2s ease, right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.va-lb-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.va-lb-nav.prev {
+    left: 20px;
+}
+
+.va-lb-nav.next {
+    right: 20px;
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.va-lb-nav:disabled {
+    opacity: 0.25;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Shift nav next quando sidebar aberta */
+.va-lb-overlay.sidebar-open .va-lb-nav.next {
+    right: 380px;
+}
+
+/* ── Conteúdo principal (área da foto) ── */
+.va-lb-main-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 80px;
+    transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.va-lb-media {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Wrapper externo — faz o clipping do blur */
+#vaLbImgWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Wrapper interno — recebe o filter:blur(), NUNCA o pai.
+   transition: none garante que o blur é aplicado instantaneamente ao mudar
+   de slide — sem animação que cause o flash de "1 frame sem blur". */
+#vaLbImgInner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: none;
+}
+
+/* A imagem cresce pelo seu aspect ratio natural.
+       max-height garante que nunca ultrapassa o espaço acima da barra (≈70px). */
+.va-lb-img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 180px);
+    /* margem para os botões nav */
+    max-height: calc(100vh - 130px);
+    /* espaço para barra inferior + padding */
+    object-fit: contain;
+    border-radius: 14px;
+    user-select: none;
+    /* sem transition de opacity — evita o flash de 1 frame ao trocar de slide */
+}
+
+.va-lb-img.loading {
+    opacity: 0.3;
+}
+
+/* Contador — sobrepõe a imagem, canto inferior direito */
+.va-lb-counter {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.55);
+    padding: 3px 10px;
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ── Barra inferior: autor + acções — filho directo do overlay ── */
+.va-lb-bottom-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px 14px;
+    gap: 16px;
+    transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.va-lb-overlay.sidebar-open .va-lb-bottom-bar {
+    margin-right: 360px;
+}
+
+/* ── Informações do Autor ── */
+.va-lb-author-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.va-lb-author-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.va-lb-author-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+}
+
+.va-lb-author-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.va-lb-author-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.va-lb-author-name:hover {
+    opacity: 0.8;
+}
+
+.va-lb-sb-date {
+    font-size: 11px;
+    color: var(--v3-text-gray);
+}
+
+.va-lb-album-context {
+    font-size: 11px;
+    color: var(--v3-text-gray);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.va-lb-caption {
+    margin: 2px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+
+/* ── Barra de Ações ── */
+.va-lb-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+    border-radius: 40px;
+    padding: 6px 16px;
+    white-space: nowrap;
+}
+
+.va-lb-action-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.va-lb-action-group+.va-lb-action-group {
+    padding-left: 20px;
+}
+
+/* Shift action bar quando sidebar aberta */
+
+.va-lb-action-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.va-lb-action-btn:active {
+    transform: scale(0.9);
+}
+
+.va-lb-btn-like {
+    background: var(--v3-green);
+    color: #000;
+}
+
+.va-lb-btn-like.active {
+    background: var(--v3-green);
+    box-shadow: 0 0 16px rgba(0, 242, 143, 0.4);
+}
+
+.va-lb-btn-dark {
+    background: var(--v3-dark-btn);
+    color: #fff;
+    backdrop-filter: blur(8px);
+}
+
+.va-lb-btn-dark:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.va-lb-action-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    min-width: 16px;
+}
+
+/* ── Menu de Mais Opções ── */
+.va-lb-more-menu {
+    position: fixed;
+    bottom: 96px;
+    right: 40px;
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px 0;
+    min-width: 160px;
+    z-index: 101;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.va-lb-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    transition: background 0.2s;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.va-lb-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.va-lb-menu-danger {
+    color: #ff4757;
+}
+
+/* ── Sidebar de Comentários ── */
+.va-lb-comments-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 100%;
+    background: var(--v3-sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    z-index: 150;
+    overflow: hidden;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.6);
+}
+
+.va-lb-comments-sidebar.open {
+    width: 360px;
+}
+
+.va-lb-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.va-lb-sidebar-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.va-lb-sidebar-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 18px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    padding: 0;
+}
+
+.va-lb-sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.va-lb-comments-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    scroll-behavior: smooth;
+}
+
+.va-lb-comments-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.va-lb-comments-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.va-lb-comments-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 2px;
+}
+
+.va-lb-comment-form-area {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--v3-sidebar-bg);
+    flex-shrink: 0;
+}
+
+.va-lb-comment-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.va-lb-comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.va-lb-comment-input-wrap {
+    flex: 1;
+    display: flex;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 6px 14px;
+    align-items: center;
+}
+
+.va-lb-comment-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.4;
+    min-height: 22px;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.va-lb-comment-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.va-lb-comment-send {
+    background: none;
+    border: none;
+    color: var(--v3-green);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.va-lb-comment-send:hover {
+    transform: scale(1.15);
+}
+
+/* ── Badge de score explícito no header ── */
+.va-explicit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.va-explicit-badge.risk-low {
+    background: rgba(34, 197, 94, 0.18);
+    color: #22c55e;
+}
+
+.va-explicit-badge.risk-medium {
+    background: rgba(234, 179, 8, 0.18);
+    color: #eab308;
+}
+
+.va-explicit-badge.risk-high {
+    background: rgba(239, 68, 68, 0.18);
+    color: #ef4444;
+}
+
+/* Badge de origem — não clicável, apenas informativo */
+.va-photo-origin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #2a3a4a;
+    color: #7eb8f7;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #3a5068;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Botão "Ver Foto" — clicável */
+.va-photo-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    color: #7eb8f7;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    border: 1px solid #3a5068;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    margin-left: 4px;
+}
+
+.va-photo-view-btn:hover {
+    background: #3a5068;
+    color: #fff;
+}
+
+/* Fundo levemente diferente para distinguir comentários de foto */
+.va-comment--photo-linked {
+    border-left: 3px solid #3a6ea5;
+    padding-left: 10px;
+    background: rgba(58, 110, 165, 0.06);
+    border-radius: 0 8px 8px 0;
+}
+
+/* Barra de percentagem explícita */
+.va-explicit-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+}
+
+.va-explicit-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 140px;
+}
+
+.va-explicit-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.va-explicit-bar-fill.risk-low {
+    background: #22c55e;
+}
+
+.va-explicit-bar-fill.risk-medium {
+    background: #eab308;
+}
+
+.va-explicit-bar-fill.risk-high {
+    background: #ef4444;
+}
+
+/* ── Blur no grid de thumbnails ── */
+.va-thumb-blur img {
+    filter: blur(18px) saturate(0.4) !important;
+    transition: filter 0.3s ease;
+    transform: scale(1.08);
+    /* esconde bordas do blur */
+}
+
+/* Sem hover que remova blur — o blur só é retirado por clique */
+
+.va-thumb-blur-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.42);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    gap: 4px;
+    z-index: 4;
+    pointer-events: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+}
+
+.va-thumb-blur-overlay i {
+    font-size: 1.1rem;
+    opacity: 0.85;
+}
+
+/* Overlay temporário após 1º clique (foto revelada, aguarda 2º clique) */
+.va-thumb-overlay--revealed {
+    opacity: 1 !important;
+    background: rgba(0, 242, 143, 0.12);
+}
+
+.va-thumb-overlay--revealed i {
+    color: #00f28f;
+}
+
+/* ── Blur no lightbox ── */
+.va-lb-blur-shield {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 90;
+    gap: 10px;
+    text-align: center;
+    padding: 20px;
+}
+
+.va-lb-blur-shield i {
+    font-size: 2rem;
+    color: #fff;
+    opacity: 0.8;
+}
+
+.va-lb-blur-shield p {
+    margin: 0;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    max-width: 260px;
+}
+
+.va-lb-blur-shield small {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+}
+
+.va-lb-reveal-btn {
+    margin-top: 6px;
+    padding: 8px 22px;
+    border-radius: 20px;
+    border: none;
+    background: #fff;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.83rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.va-lb-reveal-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Modal de upload de fotos ── */
+.va-upload-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.va-upload-modal.open {
+    display: flex;
+}
+
+.va-upload-modal-box {
+    background: var(--card-bg, #1a1a1a);
+    padding: 28px;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 90%;
+    position: relative;
+}
+
+.va-upload-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: var(--text, #fff);
+    line-height: 1;
+    padding: 4px;
+}
+
+.va-upload-modal-title {
+    margin: 0 0 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text, #fff);
+}
+
+.va-upload-field {
+    margin-bottom: 16px;
+}
+
+.va-upload-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+    color: var(--text-muted, #aaa);
+}
+
+.va-upload-file-input,
+.va-upload-text-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+    border-radius: 8px;
+    color: var(--text, #fff);
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.va-upload-file-input {
+    padding: 8px;
+}
+
+.va-upload-text-input {
+    padding: 9px 12px;
+}
+
+.va-upload-submit {
+    width: 100%;
+    padding: 11px;
+    background: var(--accent, #00f28f);
+    color: #000;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* ── Tablet: 769px–1200px ── */
+@media (min-width: 769px) and (max-width: 1200px) {
+    .va-lb-overlay.sidebar-open .va-lb-main-content {
+        margin-right: 320px;
+    }
+
+    .va-lb-comments-sidebar.open {
+        width: 320px;
+    }
+
+    .va-lb-overlay.sidebar-open .va-lb-nav.next {
+        right: 340px;
+    }
+
+    .va-lb-overlay.sidebar-open .va-lb-bottom-bar {
+        margin-right: 320px;
+    }
+}
+
+/* ── Desktop grande ── */
+@media (min-width: 1201px) {
+    .va-lb-overlay.sidebar-open .va-lb-main-content {
+        margin-right: 360px;
+    }
+
+    .va-lb-overlay.sidebar-open .va-lb-bottom-bar {
+        margin-right: 360px;
+    }
+}
+
+/* Touch: botão apagar sempre visível; desativar efeitos hover que não funcionam em touch */
+@media (hover: none) {
+    .va-delete-btn {
+        opacity: 1;
+    }
+
+    .va-thumb:hover img {
+        transform: none;
+        filter: none;
+    }
+
+    .va-thumb:hover .va-thumb-overlay {
+        opacity: 0;
+    }
+}
+
+/* ════════════════════════════════════════════════════════
+       RESPONSIVIDADE — mobile-first, breakpoints:
+       xs  ≤ 480px  (telefones pequenos)
+       sm  ≤ 640px  (telefones grandes / landscape)
+       md  ≤ 768px  (tablets portrait e tudo mobile)
+       lg  769–1200px (tablets landscape / desktop médio)
+       xl  ≥ 1201px  (desktop grande — regras já definidas acima)
+    ════════════════════════════════════════════════════════ */
+
+/* ── md: ≤ 768px ─────────────────────────────────────── */
+@media (max-width: 768px) {
+
+    /* Página */
+    .va-page {
+        padding: 12px 10px 80px;
+        /* fundo extra para nav bar nativa */
+    }
+
+    /* Breadcrumb — esconder separadores intermédios, manter compacto */
+    .va-breadcrumb {
+        font-size: 0.75rem;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .va-bc-avatar {
+        display: none;
+    }
+
+    /* Header do álbum */
+    .va-header {
+        padding: 14px 14px;
+        gap: 10px;
+        border-radius: 12px;
+        margin-bottom: 14px;
+    }
+
+    .va-header-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    .va-header-title {
+        font-size: 0.95rem;
+    }
+
+    .va-header-context {
+        font-size: 0.72rem;
+    }
+
+    .va-header-meta {
+        font-size: 0.75rem;
+        gap: 10px;
+    }
+
+    /* Grid — 3 colunas no mobile, compactas */
+    .va-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .va-thumb {
+        border-radius: 8px;
+    }
+
+    /* Botão apagar: sempre visível no touch (sem hover) */
+    .va-delete-btn {
+        opacity: 1;
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+
+    .va-thumb-num {
+        font-size: 10px;
+        bottom: 5px;
+        right: 6px;
+    }
+
+    /* Barra de acções */
+    .va-actions {
+        padding: 10px 12px;
+        gap: 4px;
+        border-radius: 12px;
+        flex-wrap: wrap;
+    }
+
+    .va-action-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+        gap: 5px;
+    }
+
+    /* Esconder labels de texto nos botões secundários para ganhar espaço */
+    .va-action-btn[data-action="save"] span,
+    .va-action-btn[data-action="share"] span {
+        display: none;
+    }
+
+    .va-action-btn[data-action="save"],
+    .va-action-btn[data-action="share"] {
+        padding: 7px 11px;
+    }
+
+    .va-action-sep {
+        display: none;
+    }
+
+    /* Menu de mais opções: abre para cima e para a esquerda */
+    .va-more-menu {
+        right: auto;
+        left: 0;
+    }
+
+    /* Comentários inline */
+    .va-comments {
+        padding: 14px 12px 12px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .va-comments-header {
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .va-comment-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .va-comment-bubble {
+        padding: 7px 11px;
+    }
+
+    .va-comment-bubble strong {
+        font-size: 11px;
+    }
+
+    .va-comment-bubble p {
+        font-size: 12px;
+    }
+
+    .va-comment-form-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .va-comment-textarea {
+        font-size: 12px;
+    }
+
+    /* Modal de upload */
+    .va-upload-modal-box {
+        padding: 20px 16px;
+        border-radius: 14px;
+    }
+
+    .va-upload-modal-title {
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+
+    /* ── Lightbox ── */
+
+    /* O overlay vira apenas contentor de posicionamento —
+           a imagem cresce para 100dvh e os controlos sobrepõem-se */
+    .va-lb-overlay {
+        position: fixed;
+        /* manter flex mas sem dividir altura com a bottom-bar */
+    }
+
+    .va-lb-close-btn {
+        top: 12px;
+        left: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        z-index: 300;
+        /* acima da imagem */
+    }
+
+    .va-lb-nav {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+        z-index: 300;
+    }
+
+    .va-lb-nav.prev {
+        left: 6px;
+    }
+
+    .va-lb-nav.next {
+        right: 6px;
+    }
+
+    /* Imagem: ocupa TODO o ecrã — borda a borda, sem limites */
+    .va-lb-main-content {
+        position: absolute;
+        inset: 0;
+        padding: 0;
+        margin: 0;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+    #vaLbImgWrap {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    #vaLbImgInner {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+    }
+
+    .va-lb-img {
+        max-width: 100%;
+        max-height: 100%;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        object-fit: contain;
+    }
+
+    /* Bottom bar: flutuante sobre a imagem, fundo com blur */
+    .va-lb-bottom-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 10px 14px 14px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.4) 70%, transparent 100%);
+        /* sem margin-right — sidebar é bottom sheet, não lateral */
+        margin-right: 0 !important;
+    }
+
+    .va-lb-author-info {
+        width: 100%;
+    }
+
+    .va-lb-caption {
+        max-width: 100%;
+    }
+
+    .va-lb-action-bar {
+        width: 100%;
+        padding: 2px 0;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .va-lb-action-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .va-lb-action-group+.va-lb-action-group {
+        padding-left: 8px;
+    }
+
+    .va-lb-action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .va-lb-action-label {
+        font-size: 11px;
+    }
+
+    /* Sidebar: bottom sheet */
+    .va-lb-comments-sidebar {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100% !important;
+        height: 0;
+        border-radius: 18px 18px 0 0;
+        transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 400;
+        /* acima de tudo no mobile */
+    }
+
+    .va-lb-comments-sidebar.open {
+        height: 72dvh;
+    }
+
+    .va-lb-overlay.sidebar-open .va-lb-main-content,
+    .va-lb-overlay.sidebar-open .va-lb-bottom-bar {
+        margin-right: 0;
+    }
+
+    .va-lb-overlay.sidebar-open .va-lb-nav.next {
+        right: 6px;
+    }
+
+    .va-lb-more-menu {
+        bottom: auto;
+        top: auto;
+        /* âncora ao bottom bar absoluto */
+        bottom: 120px;
+        right: 14px;
+        z-index: 300;
+    }
+
+    /* Blur shield compacto */
+    .va-lb-blur-shield p {
+        font-size: 0.82rem;
+    }
+
+    .va-lb-blur-shield small {
+        font-size: 0.7rem;
+    }
+}
+
+/* ── sm: ≤ 640px — ajustes adicionais para telefones grandes ─ */
+@media (max-width: 640px) {
+    .va-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+    }
+
+    /* Header mais compacto: esconder avatar do header, manter back-btn */
+    .va-header-avatar {
+        display: none;
+    }
+
+    .va-header {
+        gap: 8px;
+        padding: 12px 12px;
+    }
+}
+
+/* ── xs: ≤ 480px — telefones pequenos ────────────────── */
+@media (max-width: 480px) {
+    .va-page {
+        padding: 8px 8px 80px;
+    }
+
+    /* Breadcrumb minimalista */
+    .va-breadcrumb {
+        display: none;
+    }
+
+    /* Grid 3 colunas apertadas */
+    .va-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3px;
+    }
+
+    .va-thumb {
+        border-radius: 6px;
+    }
+
+    /* Header: apenas back-btn + título + meta */
+    .va-header {
+        padding: 10px 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    .va-header-title {
+        font-size: 0.9rem;
+    }
+
+    .va-back-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
+
+    /* Acções: apenas ícones */
+    .va-action-btn {
+        padding: 7px 10px;
+        font-size: 12px;
+    }
+
+    .va-action-btn[data-action="scroll-comments"] span {
+        display: none;
+    }
+
+    .va-action-btn[data-action="like"] span {
+        /* manter contagem de likes visível */
+        display: inline-block;
+    }
+
+    /* Comentários: padding mínimo */
+    .va-comments {
+        padding: 12px 10px 10px;
+        border-radius: 10px;
+    }
+
+    .va-comment-item {
+        gap: 7px;
+    }
+
+    .va-comment-avatar {
+        width: 26px;
+        height: 26px;
+    }
+
+    /* Modal upload: full-width na parte inferior */
+    .va-upload-modal {
+        align-items: flex-end;
+    }
+
+    .va-upload-modal-box {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 18px 18px 0 0;
+        padding: 20px 16px 28px;
+    }
+
+    /* Lightbox: nav buttons ainda mais pequenos */
+    .va-lb-nav {
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .va-lb-nav.prev {
+        left: 4px;
+    }
+
+    .va-lb-nav.next {
+        right: 4px;
+    }
+
+    /* main-content e imagem já são inset:0 / 100% — sem override necessário */
+
+    /* Bottom bar ainda mais compacta */
+    .va-lb-bottom-bar {
+        padding: 6px 10px 8px;
+        gap: 4px;
+    }
+
+    .va-lb-author-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .va-lb-author-name {
+        font-size: 12px;
+    }
+
+    .va-lb-album-context {
+        display: none;
+    }
+
+    .va-lb-action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+}
+/* Comentarios de fotos na area geral */
+.va-comment-from-photo { border-left: 2px solid var(--accent,#00f28f); padding-left: 8px; margin-left: -8px; border-radius: 0 10px 10px 0; cursor: pointer; transition: background 0.18s; }
+.va-comment-from-photo:hover { background: rgba(0,242,143,0.05); }
+.va-photo-comment-tag { display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; font-weight:700; color:var(--accent,#00f28f); background:rgba(0,242,143,0.1); border:1px solid rgba(0,242,143,0.2); border-radius:20px; padding:2px 10px; margin-bottom:5px; cursor:pointer; }
+.va-photo-comment-tag i { font-size:0.68rem; }
+/* ═══════════════════════════════════════════════════════════════
+   PHOTO COMMENTS — Lightbox sidebar (likes + respostas)
+   Adicionar ao final de public/assets/css/view_album.css
+   ═══════════════════════════════════════════════════════════════ */
+
+.va-pc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Item de comentário */
+.va-pc-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.va-pc-reply {
+    padding-left: 4px;
+    border-left: 2px solid rgba(255,255,255,0.08);
+}
+
+.va-pc-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background: rgba(255,255,255,0.06);
+}
+
+.va-pc-body {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Bolha de texto */
+.va-pc-bubble {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px 16px 16px 4px;
+    padding: 9px 14px;
+    margin-bottom: 5px;
+}
+
+.va-pc-username {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #e4e6eb;
+    margin-bottom: 3px;
+}
+
+.va-pc-text {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+/* Linha de acções */
+.va-pc-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 4px;
+}
+
+.va-pc-date {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+}
+
+/* Botão like no comentário */
+.va-pc-like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: color 0.18s, transform 0.15s;
+    line-height: 1;
+}
+
+.va-pc-like-btn:hover {
+    color: #ff6b8a;
+}
+
+.va-pc-like-btn.active {
+    color: #ff6b8a;
+}
+
+.va-pc-like-btn.active i {
+    animation: va-like-pop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes va-like-pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.va-pc-like-count {
+    font-size: 11px;
+    min-width: 8px;
+}
+
+/* Botão responder */
+.va-pc-reply-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: color 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.va-pc-reply-btn:hover {
+    color: var(--accent, #00f28f);
+}
+
+/* Input de resposta */
+.va-pc-reply-form {
+    margin-top: 8px;
+}
+
+.va-pc-reply-input-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 7px 12px;
+    transition: border-color 0.18s;
+}
+
+.va-pc-reply-input-wrap:focus-within {
+    border-color: var(--accent, #00f28f);
+}
+
+.va-pc-reply-textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.4;
+    min-height: 20px;
+    max-height: 80px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.va-pc-reply-textarea::placeholder {
+    color: rgba(255,255,255,0.3);
+}
+
+.va-pc-reply-send {
+    background: none;
+    border: none;
+    color: var(--accent, #00f28f);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.va-pc-reply-send:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+/* Resposta indentada */
+.va-pc-item.va-pc-reply .va-pc-bubble {
+    border-radius: 14px 14px 14px 4px;
+    background: rgba(255,255,255,0.05);
+}
+
+.va-pc-item.va-pc-reply .va-pc-avatar {
+    width: 28px;
+    height: 28px;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .va-pc-avatar { width: 30px; height: 30px; }
+    .va-pc-bubble { padding: 8px 12px; }
+    .va-pc-text   { font-size: 12px; }
+}

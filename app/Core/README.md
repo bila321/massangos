@@ -1,0 +1,1 @@
+Classes base: Auth, Database, Router, Security.

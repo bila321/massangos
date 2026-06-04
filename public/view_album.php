@@ -1,0 +1,781 @@
+<?php
+define('SECURE_ACCESS', true);
+define('ENVIRONMENT', 'development');
+
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/security.php';
+require_once __DIR__ . '/../includes/adult-content-helper.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Massango\Models\User;
+use Massango\Models\Photo;
+use Massango\Models\Album;
+use Massango\Models\Comment;
+use Massango\Models\FeedItem;
+use Massango\Models\Like;
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+if (!is_logged_in()) {
+    if (isset($_GET['ajax'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Não autorizado']);
+        exit;
+    }
+    set_message("Precisa estar logado para ver este álbum.", "danger");
+    redirect(BASE_URL . 'login.php');
+}
+
+// ── Album ID ──────────────────────────────────────────────────────────────
+$album_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+if (!$album_id) {
+    if (isset($_GET['ajax'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'ID inválido']);
+        exit;
+    }
+    redirect(BASE_URL . 'index.php');
+}
+
+// ── Fetch album row ───────────────────────────────────────────────────────
+$stmt = $pdo->prepare("SELECT user_id, views_count FROM albums WHERE id = ?");
+$stmt->execute([$album_id]);
+$album_row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$album_row) {
+    if (isset($_GET['ajax'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Álbum não encontrado']);
+        exit;
+    }
+    redirect(BASE_URL . 'index.php');
+}
+
+$current_user_id  = get_current_user_id();
+$is_owner         = ($album_row['user_id'] == $current_user_id);
+
+// ── Views ─────────────────────────────────────────────────────────────────
+if (!$is_owner) {
+    $key = 'last_view_album_' . $album_id;
+    $now = time();
+    if (!isset($_SESSION[$key]) || ($now - $_SESSION[$key]) > 3600) {
+        $pdo->prepare("UPDATE albums SET views_count = views_count + 1 WHERE id = ?")->execute([$album_id]);
+        $_SESSION[$key] = $now;
+        $album_row['views_count']++;
+    }
+}
+
+// ── FeedItem ──────────────────────────────────────────────────────────────
+$feed_item    = FeedItem::getFeedItemByContentId($pdo, $album_id, 'album');
+$feed_item_id = $feed_item['id'] ?? null;
+
+// ── Author & content ──────────────────────────────────────────────────────
+$author       = User::getUserById($pdo, $feed_item['user_id'] ?? $album_row['user_id']);
+$content_data = Album::getAlbumById($pdo, $album_id);
+$content_data['views_count'] = $album_row['views_count'];
+
+// Se o álbum não tiver feed_item, cria-o automaticamente para que
+// comentários e reações funcionem sempre (mesmo em álbuns antigos)
+if (!$feed_item_id) {
+    try {
+        $ins = $pdo->prepare(
+            "INSERT INTO feed_items (user_id, item_type, item_id, created_at, show_in_feed)
+             VALUES (?, 'album', ?, ?, 0)"
+        );
+        $ins->execute([
+            $album_row['user_id'],
+            $album_id,
+            $content_data['created_at'] ?? date('Y-m-d H:i:s')
+        ]);
+        $feed_item_id = (int)$pdo->lastInsertId();
+        $feed_item = [
+            'id'         => $feed_item_id,
+            'user_id'    => $album_row['user_id'],
+            'item_type'  => 'album',
+            'item_id'    => $album_id,
+            'created_at' => $content_data['created_at'] ?? date('Y-m-d H:i:s'),
+        ];
+    } catch (\Exception $e) {
+        // Se falhar (ex: race condition), tenta ler de novo
+        $feed_item    = FeedItem::getFeedItemByContentId($pdo, $album_id, 'album');
+        $feed_item_id = $feed_item['id'] ?? null;
+    }
+}
+
+// ── Privacy ───────────────────────────────────────────────────────────────
+$owner_privacy = $author['profile_privacy'] ?? 'public';
+if ($owner_privacy === 'followers' && !$is_owner && !isset($_SESSION['admin_id'])) {
+    $ok = User::isFollowing($pdo, $current_user_id, $content_data['user_id'])
+        || User::isMutualFollower($pdo, $current_user_id, $content_data['user_id']);
+    if (!$ok) {
+        if (isset($_GET['ajax'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Conteúdo privado']);
+            exit;
+        }
+        set_message("Conteúdo privado.", "danger");
+        redirect(BASE_URL . 'index.php');
+    }
+}
+
+// ── Access ────────────────────────────────────────────────────────────────
+$paymentService = new \Massango\Services\PaymentService($pdo);
+$hasAccess = isset($_SESSION['admin_id']) ? true : $paymentService->hasAccess($current_user_id ?? 0, 'album', $album_id);
+
+$is_approved = $content_data['is_approved'] ?? 1;
+if (!$is_approved && !$is_owner && !isset($_SESSION['admin_id'])) {
+    if (isset($_GET['ajax'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Aguardando aprovação']);
+        exit;
+    }
+    set_message("Álbum aguardando aprovação.", "warning");
+    redirect(BASE_URL . 'index.php');
+}
+if (!$hasAccess) {
+    if (isset($_GET['ajax'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Sem acesso', 'redirect' => BASE_URL . 'checkout.php?type=album&id=' . $album_id]);
+        exit;
+    }
+    redirect(BASE_URL . 'checkout.php?type=album&id=' . $album_id);
+}
+
+// ── AI Analysis do álbum (blur + percentagem explícita) ─────────────────
+// Carregado ANTES das fotos para servir de fallback no bloco de análise individual.
+$ai_analysis = null;
+$stmt_ai = $pdo->prepare(
+    "SELECT is_sensitive, score,
+            COALESCE(explicit_percentage, score, 0) AS explicit_percentage,
+            risk_level, triggered_by, status
+     FROM media_analysis
+     WHERE post_id = ? AND type = 'album'
+     ORDER BY id DESC LIMIT 1"
+);
+$stmt_ai->execute([$album_id]);
+$ai_analysis = $stmt_ai->fetch(PDO::FETCH_ASSOC) ?: null;
+
+// ── Photos ────────────────────────────────────────────────────────────────
+$photos = Photo::getPhotosByAlbumId($pdo, $album_id);
+
+// ── Análise individual por foto ───────────────────────────────────────────
+// Buscar o score de cada foto (post_id = album_photos.id, type = 'image').
+// O worker agora grava análise por foto — mas para álbuns analisados antes
+// desta correcção, usamos o resultado do álbum como fallback conservador:
+// se o álbum é medium/high E a foto ainda não tem análise própria, aplicamos
+// blur provisório até o worker re-analisar e gravar por foto.
+if (!empty($photos)) {
+    $photo_ids = array_column($photos, 'id');
+    $placeholders = implode(',', array_fill(0, count($photo_ids), '?'));
+    $stmt_photo_ai = $pdo->prepare(
+        "SELECT post_id, is_sensitive,
+                COALESCE(explicit_percentage, score, 0) AS explicit_percentage,
+                risk_level, status
+         FROM media_analysis
+         WHERE post_id IN ($placeholders) AND type IN ('image', 'photo', 'album_photo', 'album') AND status = 'done'
+         ORDER BY id DESC"
+    );
+    $stmt_photo_ai->execute($photo_ids);
+    $photo_analysis_map = [];
+    foreach ($stmt_photo_ai->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (!isset($photo_analysis_map[$row['post_id']])) {
+            $photo_analysis_map[$row['post_id']] = $row;
+        }
+    }
+
+    // Fallback: dados do álbum para fotos sem análise individual
+    // Só activo se a análise do álbum estiver concluída e for medium/high
+    $album_done_and_risky = $ai_analysis
+        && $ai_analysis['status'] === 'done'
+        && in_array($ai_analysis['risk_level'] ?? 'low', ['medium', 'high']);
+    $album_fallback_pct   = $album_done_and_risky
+        ? (float)($ai_analysis['explicit_percentage'] ?? $ai_analysis['score'] ?? 0)
+        : 0.0;
+    $album_fallback_risk  = $album_done_and_risky ? ($ai_analysis['risk_level'] ?? 'low') : 'low';
+
+    foreach ($photos as &$photo) {
+        $pa = $photo_analysis_map[$photo['id']] ?? null;
+
+        if ($pa) {
+            // Análise individual disponível — usar directamente
+            $photo['ai_risk_level']   = $pa['risk_level'] ?? 'low';
+            $photo['ai_explicit_pct'] = (float)$pa['explicit_percentage'];
+            $photo['ai_is_sensitive'] = (bool)$pa['is_sensitive'];
+            $photo['show_blur']       = in_array($pa['risk_level'], ['medium', 'high'])
+                && !isset($_SESSION['admin_id']);
+        } elseif ($album_done_and_risky) {
+            // Sem análise individual mas álbum é arriscado — blur provisório
+            $photo['ai_risk_level']   = $album_fallback_risk;
+            $photo['ai_explicit_pct'] = $album_fallback_pct;
+            $photo['ai_is_sensitive'] = (bool)($ai_analysis['is_sensitive'] ?? false);
+            $photo['show_blur']       = !isset($_SESSION['admin_id']);
+        } else {
+            // Sem análise alguma ou álbum limpo — sem blur
+            $photo['ai_risk_level']   = null;
+            $photo['ai_explicit_pct'] = 0.0;
+            $photo['ai_is_sensitive'] = false;
+            $photo['show_blur']       = false;
+        }
+    }
+    unset($photo);
+}
+
+// ── AI Analysis carregado antes das fotos (ver acima) ────────────────────
+
+// Enfileirar para análise se:
+//   - Nunca foi analisado ($ai_analysis === null), OU
+//   - A análise anterior falhou (status = 'failed')
+// NÃO re-enfileirar análises 'done' com score=0 — isso é conteúdo limpo legítimo.
+$needs_queue = !$ai_analysis || ($ai_analysis['status'] === 'failed');
+$is_ghost_analysis = false; // apenas para compatibilidade com o bloco DELETE abaixo
+
+if ($needs_queue) {
+    // Verificar se já está na fila (pending ou processing) para não duplicar
+    $stmt_queue_check = $pdo->prepare(
+        "SELECT id FROM media_queue
+         WHERE post_id = ? AND item_type = 'album' AND status IN ('pending','processing')
+         LIMIT 1"
+    );
+    $stmt_queue_check->execute([$album_id]);
+    $already_queued = $stmt_queue_check->fetchColumn();
+
+    if (!$already_queued) {
+        // O worker usa o post_id (album_id) para ir buscar as fotos directamente —
+        // o file_path serve apenas como referência, não precisa ser a capa real.
+        // Usar a capa se disponível, senão usar um placeholder reconhecível pelo worker.
+        $cover_for_queue = $content_data['thumbnail_path']
+            ?? $content_data['cover_photo_url'] ?? null
+            ?? $content_data['cover_photo_url']
+            ?? 'album_placeholder';
+
+        try {
+            // Limpar registo anterior se era failed ou fantasma (score=0 done)
+            // para que o worker escreva o resultado correto sem conflito de DUPLICATE KEY
+            if ($ai_analysis && ($ai_analysis['status'] === 'failed' || $is_ghost_analysis)) {
+                $pdo->prepare(
+                    "DELETE FROM media_analysis WHERE post_id = ? AND type = 'album'"
+                )->execute([$album_id]);
+            }
+
+            $pdo->prepare(
+                "INSERT INTO media_queue (post_id, file_path, item_type, status, created_at)
+                 VALUES (?, ?, 'album', 'pending', NOW())"
+            )->execute([$album_id, $cover_for_queue]);
+        } catch (\Exception $e) {
+            // Falha silenciosa — não bloquear o carregamento da página
+            error_log("[view_album] Falha ao enfileirar album {$album_id}: " . $e->getMessage());
+        }
+    }
+}
+
+// Flags de conveniência
+$album_is_sensitive = $ai_analysis && (bool)$ai_analysis['is_sensitive'];
+$album_explicit_pct = $ai_analysis
+    ? (float)($ai_analysis['explicit_percentage'] ?? $ai_analysis['score'] ?? 0)
+    : 0;
+$album_risk_level = $ai_analysis['risk_level'] ?? 'low';
+
+// Blur apenas quando a análise está concluída — igual ao index.php.
+// Enquanto status = 'pending' ou 'processing', não borrar (dados ainda não fiáveis).
+$analysis_done  = $ai_analysis && $ai_analysis['status'] === 'done';
+$is_high_risk   = $analysis_done && $album_risk_level === 'high';
+$is_medium_risk = $analysis_done && $album_risk_level === 'medium';
+
+// Blur aplica-se a todos incluindo o dono — apenas o admin está isento.
+// Critério idêntico ao index.php: risk_level medium ou high, análise concluída.
+$should_blur = ($is_high_risk || $is_medium_risk) && !isset($_SESSION['admin_id']);
+
+// ── Album-level reactions & comments ─────────────────────────────────────
+$has_feed = !empty($feed_item_id) && is_numeric($feed_item_id);
+$comment_tree  = $has_feed ? Comment::getCommentsForFeedItem($pdo, $feed_item_id, $current_user_id) : [];
+$like_info     = $has_feed ? Like::getFeedItemLikesDislikesCount($pdo, $feed_item_id) : ['likes' => 0, 'dislikes' => 0];
+$user_vote     = $has_feed ? Like::getUserFeedItemVote($pdo, $feed_item_id, $current_user_id) : null;
+
+// ── Comentários de fotos individuais para área geral ─────────────────────
+// Busca todos os photo_comments do álbum com o número sequencial da foto
+// photo_index = posição da foto na lista (1-based), para navegação no lightbox
+$photo_comments_for_album = [];
+if (!empty($photos)) {
+    // Mapear photo_id → índice visual (1-based)
+    $photo_index_map = [];
+    foreach ($photos as $idx => $p) {
+        $photo_index_map[$p['id']] = $idx + 1;
+    }
+
+    $photo_ids_list = array_column($photos, 'id');
+    $ph = implode(',', array_fill(0, count($photo_ids_list), '?'));
+
+    $stmt_pc_all = $pdo->prepare("
+        SELECT pc.id, pc.photo_id, pc.user_id, pc.content, pc.created_at,
+               u.username, u.profile_picture
+        FROM photo_comments pc
+        JOIN users u ON u.id = pc.user_id
+        WHERE pc.photo_id IN ($ph)
+        ORDER BY pc.created_at ASC
+    ");
+    $stmt_pc_all->execute($photo_ids_list);
+    $raw_pc = $stmt_pc_all->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($raw_pc as $pc) {
+        $pc['photo_index'] = $photo_index_map[$pc['photo_id']] ?? null;
+        // Índice JS 0-based para abrir o lightbox na foto correcta
+        $pc['photo_js_idx'] = ($pc['photo_index'] !== null) ? $pc['photo_index'] - 1 : null;
+        $photo_comments_for_album[] = $pc;
+    }
+}
+
+// Contagem total = comentários do álbum + comentários de fotos
+$comment_count_album = $has_feed ? Comment::getCommentCountForFeedItem($pdo, $feed_item_id) : 0;
+$comment_count_photos = count($photo_comments_for_album);
+$comment_count = $comment_count_album + $comment_count_photos;
+
+// ── Logged-in user pic ────────────────────────────────────────────────────
+$me_pic = 'profiles/default_profile.png';
+if (is_logged_in()) {
+    $me_data = User::getUserById($pdo, $current_user_id);
+    if ($me_data && !empty($me_data['profile_picture'])) $me_pic = $me_data['profile_picture'];
+}
+
+
+require_once __DIR__ . '/../includes/header.php';
+
+
+
+
+?>
+
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/post.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/comments_modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/local_icons.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/view_album.css">
+<script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
+
+
+
+
+<!-- ══════════════ PÁGINA ══════════════ -->
+<div class="va-page">
+
+    <!-- Breadcrumb de contexto -->
+    <nav class="va-breadcrumb" aria-label="Localização">
+        <a href="<?= BASE_URL ?>index.php" class="va-bc-link">
+            <i class="fa-solid fa-house"></i> Início
+        </a>
+        <i class="fa-solid fa-chevron-right va-bc-sep"></i>
+        <a href="<?= BASE_URL ?>profile.php?id=<?= (int)$author['id'] ?>" class="va-bc-link">
+            <img src="<?= UPLOAD_URL . htmlspecialchars($author['profile_picture'] ?? 'profiles/default_profile.png') ?>"
+                class="va-bc-avatar" alt="">
+            <?= htmlspecialchars($author['username']) ?>
+        </a>
+        <i class="fa-solid fa-chevron-right va-bc-sep"></i>
+        <span class="va-bc-current">
+            <i class="fa-solid fa-images"></i>
+            <?= htmlspecialchars($content_data['album_name'] ?? 'Álbum') ?>
+        </span>
+    </nav>
+
+    <!-- Header do álbum -->
+    <div class="va-header">
+        <a href="javascript:history.back()" class="va-back-btn" title="Voltar">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <img src="<?= UPLOAD_URL . htmlspecialchars($author['profile_picture'] ?? 'profiles/default_profile.png') ?>"
+            class="va-header-avatar" alt="<?= htmlspecialchars($author['username']) ?>">
+        <div class="va-header-info">
+            <h1 class="va-header-title"><?= htmlspecialchars($content_data['album_name'] ?? 'Álbum') ?></h1>
+            <div class="va-header-context">
+                Álbum de&nbsp;<a href="<?= BASE_URL ?>profile.php?id=<?= (int)$author['id'] ?>"
+                    class="va-header-author-link">@<?= htmlspecialchars($author['username']) ?></a>
+            </div>
+            <div class="va-header-meta">
+                <span><i class="fa-solid fa-image"></i> <?= count($photos) ?> foto<?= count($photos) !== 1 ? 's' : '' ?></span>
+                <span><i class="fa-solid fa-eye"></i> <?= (int)$content_data['views_count'] ?></span>
+                <?php if ($is_owner): ?>
+                    <button onclick="document.getElementById('addPhotoModal').classList.add('open')"
+                        style="background:none;border:none;color:var(--accent,#00f28f);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px;padding:0;">
+                        <i class="fa-solid fa-plus"></i> Adicionar foto
+                    </button>
+                <?php endif; ?>
+            </div>
+            <?php if ($ai_analysis && $ai_analysis['status'] === 'done' && in_array($album_risk_level, ['medium', 'high'])): ?>
+                <?php
+                $risk     = $album_risk_level;
+                $pct      = round($album_explicit_pct);
+                $risk_label = $risk === 'high' ? 'Alto' : 'Médio';
+                $risk_icon  = $risk === 'high' ? 'fa-triangle-exclamation' : 'fa-circle-exclamation';
+                ?>
+                <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span class="va-explicit-badge risk-<?= $risk ?>">
+                        <i class="fa-solid <?= $risk_icon ?>"></i>
+                        Conteúdo <?= $risk_label ?> &mdash; <?= $pct ?>%
+                    </span>
+                </div>
+            <?php elseif ($ai_analysis && in_array($ai_analysis['status'], ['pending', 'processing'])): ?>
+                <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted,#888);display:flex;align-items:center;gap:5px;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size:0.7rem;"></i>
+                    A analisar conteúdo…
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Grid de fotos -->
+    <?php if (!empty($photos)): ?>
+        <div class="va-grid" id="vaGrid">
+            <?php foreach ($photos as $idx => $photo): ?>
+                <?php $this_blur = !empty($photo['show_blur']); ?>
+                <div class="va-thumb"
+                    data-index="<?= $idx ?>"
+                    <?= $this_blur ? 'data-blur="1"' : '' ?>
+                    onclick="vaThumbClick(<?= $idx ?>, this)">
+                    <img src="<?= get_protected_media_url('albums/' . basename($photo['photo_path'])) ?>"
+                        alt="<?= htmlspecialchars($photo['caption'] ?? 'Foto ' . ($idx + 1)) ?>"
+                        class="<?= $this_blur ? 'va-explicit-blur' : '' ?>"
+                        loading="lazy">
+                    <?php if ($this_blur): ?>
+                        <div class="va-thumb-blur-overlay">
+                            <i class="fa-solid fa-eye-slash"></i>
+                            <span>Clique para ver</span>
+                        </div>
+                    <?php else: ?>
+                        <div class="va-thumb-overlay"><i class="fa-solid fa-expand"></i></div>
+                    <?php endif; ?>
+                    <span class="va-thumb-num"><?= $idx + 1 ?></span>
+                    <?php if ($is_owner): ?>
+                        <button class="va-delete-btn" title="Apagar foto"
+                            onclick="event.stopPropagation(); vaDeletePhoto(<?= (int)$photo['id'] ?>, this)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="va-empty">
+            <i class="fa-solid fa-images"></i>
+            Este álbum ainda não tem fotos.
+        </div>
+    <?php endif; ?>
+
+    <!-- Acções do álbum -->
+    <div class="va-actions" id="vaPageActions">
+        <!-- Like -->
+        <button class="va-action-btn va-btn-like <?= ($user_vote === 'like') ? 'active' : '' ?>"
+            data-action="like" data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>" title="Curtir">
+            <i class="fa-regular fa-star"></i>
+            <span id="vaPageLikeCount"><?= (int)$like_info['likes'] ?></span>
+        </button>
+
+        <!-- Comentários -->
+        <button class="va-action-btn" data-action="scroll-comments" title="Comentários">
+            <i class="fa-regular fa-message"></i>
+            <span><?= (int)$comment_count ?> comentário<?= $comment_count !== 1 ? 's' : '' ?></span>
+        </button>
+
+        <div class="va-action-sep"></div>
+
+        <!-- Guardar -->
+        <button class="va-action-btn" data-action="save" title="Guardar">
+            <i class="fa-regular fa-bookmark"></i>
+            <span>Guardar</span>
+        </button>
+
+        <!-- Partilhar -->
+        <button class="va-action-btn" data-action="share" title="Partilhar">
+            <i class="fa-regular fa-paper-plane"></i>
+            <span>Partilhar</span>
+        </button>
+
+        <!-- Mais opções (dono / admin) -->
+        <?php if ($is_owner || isset($_SESSION['admin_id'])): ?>
+            <div style="position:relative;">
+                <button class="va-action-btn" data-action="more-page" title="Mais opções">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <div class="va-more-menu" id="vaPageMoreMenu" style="display:none;">
+                    <a href="<?= BASE_URL ?>edit_album.php?id=<?= (int)$album_id ?>" class="va-menu-item">
+                        <i class="fa-solid fa-pen"></i> Editar álbum
+                    </a>
+                    <button class="va-menu-item va-menu-danger" data-action="delete-album"
+                        data-album-id="<?= (int)$album_id ?>">
+                        <i class="fa-solid fa-trash"></i> Apagar álbum
+                    </button>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Comentários inline -->
+    <div class="va-comments" id="vaCommentsSection" data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>">
+
+        <div class="va-comments-header">
+            <i class="fa-regular fa-message"></i>
+            Comentários
+            <span style="color:var(--text-muted,#666);font-weight:400;font-size:0.82rem;" id="vaPageCommentCountLabel">
+                (<?= (int)$comment_count ?>)
+            </span>
+        </div>
+
+        <div class="va-comments-list" id="vaCommentsListInline">
+            <?php
+            // Misturar comentários do álbum e de fotos, ordenados por data
+            $all_comments_merged = [];
+
+            foreach ($comment_tree as $c) {
+                $type = !empty($c['source_photo_id']) ? 'photo' : 'album';
+                $all_comments_merged[] = [
+                    'type'       => $type,
+                    'created_at' => $c['created_at'],
+                    'data'       => $c,
+                ];
+            }
+
+            // Ordenar por data
+            usort($all_comments_merged, fn($a, $b) => strcmp($a['created_at'], $b['created_at']));
+
+            if (!empty($all_comments_merged)):
+                foreach ($all_comments_merged as $item):
+                    if ($item['type'] === 'album'):
+                        // Comentário normal do álbum
+                        display_comments([$item['data']], $current_user_id, $is_owner, $pdo);
+                    else:
+                        // Comentário de foto — com marcador clicável
+                        $pc  = $item['data'];
+                        $idx = (int)($pc['photo_js_idx'] ?? 0);
+                        $num = (int)($pc['photo_index'] ?? $pc['photo_position'] ?? 0);
+                        $pic = htmlspecialchars($pc['profile_picture'] ?? 'profiles/default_profile.png');
+                        $uname = htmlspecialchars($pc['username'] ?? '');
+                        $content = htmlspecialchars(preg_replace('/^\[Foto #\d+\]\s*/', '', $pc['content'] ?? ''));
+                        $date = htmlspecialchars($pc['created_at'] ?? '');
+            ?>
+                        <div class="va-comment-item va-comment-from-photo"
+                            data-photo-idx="<?= $idx ?>"
+                            onclick="vaOpenLightbox(<?= $idx ?>)"
+                            title="Clique para abrir a Foto #<?= $num ?>"
+                            style="cursor:pointer;">
+                            <img src="<?= UPLOAD_URL . $pic ?>"
+                                alt="<?= $uname ?>"
+                                class="va-comment-avatar"
+                                onerror="this.src='<?= UPLOAD_URL ?>profiles/default_profile.png'">
+                            <div class="va-comment-body">
+                                <!-- Marcador da foto -->
+                                <div class="va-photo-comment-tag">
+                                    <i class="fa-solid fa-image"></i>
+                                    Foto #<?= $num ?>
+                                    <i class="fa-solid fa-arrow-up-right-from-square"
+                                        style="font-size:9px;opacity:0.6;"></i>
+                                </div>
+                                <div class="va-comment-bubble">
+                                    <strong><?= $uname ?></strong>
+                                    <p><?= $content ?></p>
+                                </div>
+                                <div class="va-comment-meta"><?= $date ?></div>
+                            </div>
+                        </div>
+                <?php
+                    endif;
+                endforeach;
+            else: ?>
+                <div class="va-no-comments">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    Sem comentários. Sê o primeiro!
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="va-comment-form">
+            <img src="<?= UPLOAD_URL . htmlspecialchars($me_pic) ?>"
+                alt="Tu" class="va-comment-form-avatar">
+            <div class="va-comment-input-wrap">
+                <textarea
+                    id="vaCommentInput"
+                    class="va-comment-textarea"
+                    placeholder="Escreve um comentário no álbum…"
+                    rows="1"
+                    data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>"></textarea>
+                <button class="va-comment-send-btn" onclick="vaSubmitComment('vaCommentInput')" title="Enviar">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</div><!-- /.va-page -->
+
+<!-- Modal de Upload -->
+<?php if ($is_owner): ?>
+    <div id="addPhotoModal" class="va-upload-modal">
+        <div class="va-upload-modal-box">
+            <button class="va-upload-modal-close"
+                onclick="document.getElementById('addPhotoModal').classList.remove('open')"
+                title="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="va-upload-modal-title">Adicionar Foto ao Álbum</h2>
+            <form action="" method="POST" enctype="multipart/form-data">
+                <div class="va-upload-field">
+                    <label class="va-upload-label">Foto</label>
+                    <input type="file" name="new_photo" accept="image/*" required
+                        class="va-upload-file-input">
+                </div>
+                <div class="va-upload-field">
+                    <label class="va-upload-label">Legenda (opcional)</label>
+                    <input type="text" name="photo_caption" placeholder="Escreve uma legenda…"
+                        class="va-upload-text-input">
+                </div>
+                <button type="submit" class="va-upload-submit">Adicionar Foto</button>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+
+<script>
+    const BASE_URL = "<?= BASE_URL ?>";
+    const UPLOAD_URL = "<?= UPLOAD_URL ?>";
+    const CURRENT_USER_ID = <?= is_logged_in() ? (int)get_current_user_id() : 'null' ?>;
+    const FEED_ITEM_ID = <?= $has_feed ? (int)$feed_item_id : 'null' ?>;
+    const ALBUM_ID = <?= (int)$album_id ?>;
+
+    // ── Blur / conteúdo explícito ──────────────────────────────────────────
+    const VA_SHOW_BLUR = <?= $should_blur ? 'true' : 'false' ?>;
+    const VA_EXPLICIT_PCT = <?= round($album_explicit_pct) ?>;
+    const VA_RISK_LEVEL = <?= json_encode($album_risk_level) ?>;
+    var vaLbBlurRevealed = false;
+
+    // Índice da foto atualmente revelada no grid (apenas uma de cada vez)
+    // Declarado com var para ser acessível pelo ficheiro JS externo
+    var vaRevealedThumbIdx = null;
+
+    // Sistema de dois cliques:
+    // 1º clique numa foto com blur → remove blur temporariamente (só essa foto)
+    // 2º clique → abre o lightbox
+    // Qualquer outra foto permanece sempre com blur
+    function vaThumbClick(idx, thumbEl) {
+        const hasBlur = VA_PHOTOS[idx] && VA_PHOTOS[idx].show_blur;
+        if (hasBlur && vaRevealedThumbIdx !== idx) {
+            // 1º clique: revelar apenas esta foto, recolocar blur em qualquer outra revelada
+            vaRestoreAllThumbs();
+            vaRevealThumb(idx, thumbEl);
+        } else {
+            // 2º clique (ou foto sem blur): abrir lightbox
+            vaOpenLightbox(idx);
+        }
+    }
+
+    // Revela visualmente um thumb (remove blur, troca overlay)
+    function vaRevealThumb(idx, thumbEl) {
+        vaRevealedThumbIdx = idx;
+        thumbEl.removeAttribute('data-blur');
+        const img = thumbEl.querySelector('img');
+        if (img) img.classList.remove('va-explicit-blur');
+        const bo = thumbEl.querySelector('.va-thumb-blur-overlay');
+        if (bo) bo.remove();
+        // Overlay de "clique para expandir"
+        const ov = document.createElement('div');
+        ov.className = 'va-thumb-overlay va-thumb-overlay--revealed';
+        ov.innerHTML = '<i class="fa-solid fa-expand"></i>';
+        thumbEl.appendChild(ov);
+    }
+
+    // Restaura o blur em todos os thumbs que o deveriam ter
+    function vaRestoreAllThumbs() {
+        VA_PHOTOS.forEach(function(photo, i) {
+            if (!photo.show_blur) return;
+            const thumb = document.querySelector('.va-thumb[data-index="' + i + '"]');
+            if (!thumb) return;
+            // Remover overlay temporário de reveal
+            const tempOv = thumb.querySelector('.va-thumb-overlay--revealed');
+            if (tempOv) tempOv.remove();
+            // Restaurar blur
+            thumb.setAttribute('data-blur', '1');
+            const img = thumb.querySelector('img');
+            if (img) img.classList.add('va-explicit-blur');
+            // Restaurar overlay de blur se não existir
+            if (!thumb.querySelector('.va-thumb-blur-overlay')) {
+                const bo = document.createElement('div');
+                bo.className = 'va-thumb-blur-overlay';
+                bo.innerHTML = '<i class="fa-solid fa-eye-slash"></i><span>Clique para ver</span>';
+                thumb.appendChild(bo);
+            }
+        });
+        vaRevealedThumbIdx = null;
+    }
+
+    <?php
+    // Buscar likes individuais de todas as fotos do álbum para o utilizador actual
+    $photo_ids = array_column($photos, 'id');
+    $photo_likes_map = [];
+    if (!empty($photo_ids)) {
+        $placeholders = implode(',', array_fill(0, count($photo_ids), '?'));
+        $params = array_merge([$current_user_id], $photo_ids);
+
+        // Total de likes por foto
+        $lk = $pdo->prepare("
+        SELECT photo_id,
+               COUNT(*) AS likes_count,
+               MAX(CASE WHEN user_id = ? THEN 1 ELSE 0 END) AS user_liked
+        FROM photo_likes
+        WHERE photo_id IN ($placeholders) AND type = 'like'
+        GROUP BY photo_id
+    ");
+        $lk->execute($params);
+        foreach ($lk->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $photo_likes_map[$row['photo_id']] = [
+                'likes_count' => (int)$row['likes_count'],
+                'user_liked'  => (bool)$row['user_liked'],
+            ];
+        }
+    }
+    ?>
+    // Título da aba com contexto do álbum
+    document.title = <?= json_encode(
+                            htmlspecialchars($content_data['album_name'] ?? 'Álbum')
+                                . ' · Álbum de @'
+                                . htmlspecialchars($author['username'])
+                        ) ?>;
+
+    // Dados de todas as fotos para o lightbox
+    const VA_PHOTOS = <?= json_encode(array_map(function ($p) use ($photo_likes_map) {
+                            $lk = $photo_likes_map[$p['id']] ?? ['likes_count' => 0, 'user_liked' => false];
+                            return [
+                                'id'           => $p['id'],
+                                'src'          => get_protected_media_url($p['photo_path']),
+                                'thumb'        => get_protected_media_url('albums/thumbnails/' . basename($p['photo_path'])),
+                                'caption'      => $p['caption'] ?? '',
+                                'show_blur'    => !empty($p['show_blur']),
+                                'explicit_pct' => (int)round($p['ai_explicit_pct'] ?? 0),
+                                'risk_level'   => $p['ai_risk_level'] ?? 'low',
+                                'likes_count'  => $lk['likes_count'],   // ← NOVO
+                                'user_liked'   => $lk['user_liked'],    // ← NOVO
+                            ];
+                        }, $photos)) ?>;
+
+
+    // ════════════════════════════════════════════════════
+    // LIGHTBOX — construído via JS directamente no body
+    // (nunca herda stacking contexts do layout da página)
+    // ════════════════════════════════════════════════════
+    const VA_LB_HAS_FEED = <?= $has_feed ? 'true' : 'false' ?>;
+    const VA_LB_USER_VOTE = <?= json_encode($user_vote) ?>;
+    const VA_LB_LIKES = <?= (int)$like_info['likes'] ?>;
+    const VA_LB_AUTHOR_AVATAR = <?= json_encode(UPLOAD_URL . ($author['profile_picture'] ?? 'profiles/default_profile.png')) ?>;
+    const VA_LB_AUTHOR_NAME = <?= json_encode($author['username']) ?>;
+    const VA_LB_AUTHOR_URL = <?= json_encode(BASE_URL . 'profile.php?id=' . (int)$author['id']) ?>;
+    const VA_LB_DATE = <?= json_encode(format_datetime_ago($feed_item['created_at'] ?? date('Y-m-d H:i:s'))) ?>;
+    const VA_LB_ALBUM_TITLE = <?= json_encode($content_data['album_name'] ?? 'Álbum') ?>;
+    const VA_LB_ME_PIC = <?= json_encode(UPLOAD_URL . $me_pic) ?>;
+    const VA_LB_IS_OWNER = <?= ($is_owner || isset($_SESSION['admin_id'])) ? 'true' : 'false' ?>;
+    const VA_LB_EDIT_URL = <?= json_encode(BASE_URL . 'edit_album.php?id=' . (int)$album_id) ?>;
+    const VA_LB_COMMENTS = <?= json_encode($has_feed ? ($comment_tree ? 'has_comments' : 'empty') : 'unavailable') ?>;
+</script>
+
+<script src="<?= BASE_URL ?>assets/js/pages/view_album.js"></script>
+<script src="<?= BASE_URL ?>assets/js/core/common_notifications.js"></script>
+<script src="<?= BASE_URL ?>assets/js/components/likes.js"></script>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
