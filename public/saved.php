@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 define('SECURE_ACCESS', true);
 define('ENVIRONMENT', 'development');
@@ -67,6 +67,11 @@ $sql = "
         a.name                  AS album_name,
         a.price                 AS album_price,
         a.is_for_sale           AS album_for_sale,
+        -- Photo (album_photos)
+        ap.thumbnail_path       AS photo_thumb,
+        ap.photo_path           AS photo_path,
+        ap.caption              AS photo_caption,
+        ap.album_id             AS photo_album_id,
 
         -- Autor
         u.username,
@@ -77,12 +82,14 @@ $sql = "
     LEFT JOIN posts  p ON sp.item_type IN ('post','reel') AND sp.item_id = p.id
     LEFT JOIN videos v ON sp.item_type = 'video'          AND sp.item_id = v.id
     LEFT JOIN albums a ON sp.item_type = 'album'          AND sp.item_id = a.id
+    LEFT JOIN album_photos ap ON sp.item_type = 'photo' AND sp.item_id = ap.id
     LEFT JOIN users  u ON (
         CASE sp.item_type
             WHEN 'post'  THEN p.user_id
             WHEN 'reel'  THEN p.user_id
             WHEN 'video' THEN v.user_id
             WHEN 'album' THEN a.user_id
+            WHEN 'photo' THEN ap.user_id
         END
     ) = u.id
     WHERE sp.user_id = :uid
@@ -119,25 +126,47 @@ $total_pages = (int)ceil($total / $per_page);
 
 // ── Análise de IA por item ────────────────────────────────────────────────
 // Pré-carrega a análise de IA para todos os itens guardados de uma vez (evita N+1 queries)
+$get_analysis_type = static function(array $item): string {
+    return match ($item['item_type']) {
+        'album' => 'album',
+        'video' => 'video',
+        'photo' => 'image',
+        'reel'  => 'video',
+        'post'  => (!empty($item['post_video_thumb']) || (($item['post_type'] ?? '') === 'reel'))
+            ? 'video'
+            : 'image',
+        default => '',
+    };
+};
+
 $ai_analysis_map = [];
 if (!empty($items)) {
-    // Agrupa por tipo para fazer queries eficientes
-    $ids_by_type = [];
+    $ids_by_analysis_type = [];
+
     foreach ($items as $it) {
-        $ids_by_type[$it['item_type']][] = (int)$it['item_id'];
+        $analysis_type = $get_analysis_type($it);
+        if ($analysis_type === '') {
+            continue;
+        }
+
+        $ids_by_analysis_type[$analysis_type][] = (int)$it['item_id'];
     }
-    foreach ($ids_by_type as $type => $ids) {
+
+    foreach ($ids_by_analysis_type as $analysis_type => $ids) {
+        $ids = array_values(array_unique($ids));
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
         $q = $pdo->prepare(
             "SELECT post_id, risk_level, status, explicit_percentage
              FROM media_analysis
              WHERE post_id IN ($placeholders) AND type = ?
              ORDER BY id DESC"
         );
-        $q->execute([...$ids, $type]);
+
+        $q->execute([...$ids, $analysis_type]);
+
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            // Guarda apenas a primeira ocorrência (mais recente) por post_id
-            $key = $type . '_' . $row['post_id'];
+            $key = $analysis_type . '_' . $row['post_id'];
             if (!isset($ai_analysis_map[$key])) {
                 $ai_analysis_map[$key] = $row;
             }
@@ -157,6 +186,7 @@ if (!function_exists('get_item_thumb')) {
             'reel'  => $item['post_video_thumb'] ?: $item['post_thumb'] ?: '',
             'video' => $item['video_thumb'] ?: '',
             'album' => $item['album_thumb'] ?: $item['album_cover'] ?: '',
+            'photo' => $item['photo_thumb'] ?: $item['photo_path'] ?: '',
             default => '',
         };
     }
@@ -170,6 +200,7 @@ if (!function_exists('get_item_url')) {
             'reel'  => BASE_URL . 'reels.php?id='      . $item['item_id'],
             'video' => BASE_URL . 'post.php?id='       . $item['item_id'],
             'album' => BASE_URL . 'view_album.php?id=' . $item['item_id'],
+            'photo' => BASE_URL . 'view_album.php?id=' . $item['photo_album_id'] . '#photo-' . $item['item_id'],
             default => '#',
         };
     }
@@ -183,6 +214,7 @@ if (!function_exists('get_type_icon')) {
             'reel'  => 'fa-clapperboard',
             'video' => 'fa-play',
             'album' => 'fa-images',
+            'photo' => 'fa-image',
             default => 'fa-bookmark',
         };
     }
@@ -347,6 +379,7 @@ $csrf_token = $_SESSION['csrf_token'];
         display: flex;
         align-items: flex-end;
         padding: 8px;
+        pointer-events: none;
     }
 
     .saved-item-meta {
@@ -365,6 +398,7 @@ $csrf_token = $_SESSION['csrf_token'];
     }
 
     .saved-unsave-btn {
+        pointer-events: auto;
         position: absolute;
         top: 4px;
         right: 4px;
@@ -508,6 +542,7 @@ $csrf_token = $_SESSION['csrf_token'];
             'post'  => ['icon' => 'fa-image',        'label' => 'Posts'],
             'video' => ['icon' => 'fa-play',         'label' => 'Vídeos'],
             'album' => ['icon' => 'fa-images',       'label' => 'Álbuns'],
+        'photo' => ['icon' => 'fa-image',        'label' => 'Fotos'],
             'reel'  => ['icon' => 'fa-clapperboard', 'label' => 'Reels'],
         ];
         foreach ($filters as $key => $f):
@@ -535,12 +570,14 @@ $csrf_token = $_SESSION['csrf_token'];
                     'post', 'reel' => (bool)($item['post_for_sale'] ?? false),
                     'video'        => (bool)($item['video_for_sale'] ?? false),
                     'album'        => (bool)($item['album_for_sale'] ?? false),
+                    'photo'        => false,
                     default        => false,
                 };
                 $price = match ($item['item_type']) {
                     'post', 'reel' => $item['post_price'] ?? 0,
                     'video'        => $item['video_price'] ?? 0,
                     'album'        => $item['album_price'] ?? 0,
+                    'photo'        => 0,
                     default        => 0,
                 };
                 $avatar = !empty($item['profile_picture'])
@@ -548,7 +585,8 @@ $csrf_token = $_SESSION['csrf_token'];
                     : BASE_URL . 'assets/images/default_profile.png';
 
                 // ── Lógica de blur (conteúdo sensível detetado pela IA) ──
-                $ai_key      = $item['item_type'] . '_' . $item['item_id'];
+                $analysis_type = $get_analysis_type($item);
+                $ai_key      = $analysis_type . '_' . $item['item_id'];
                 $ai_analysis = $ai_analysis_map[$ai_key] ?? null;
                 $is_high_risk   = ($ai_analysis && $ai_analysis['status'] === 'done' && $ai_analysis['risk_level'] === 'high');
                 $is_medium_risk = ($ai_analysis && $ai_analysis['status'] === 'done' && $ai_analysis['risk_level'] === 'medium');
@@ -631,3 +669,8 @@ $csrf_token = $_SESSION['csrf_token'];
 <script src="<?= BASE_URL ?>assets/js/pages/saved.js"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+
+
+
+
+

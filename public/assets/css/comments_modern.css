@@ -6,9 +6,9 @@
  */
 
 :root {
-    --comment-bg: #f0f2f5;
-    --comment-bg-hover: #e4e6e9;
-    --comment-text: #050505;
+    --comment-bg: #2a2a2a;
+    --comment-bg-hover: #333333;
+    --comment-text: #e4e6eb;
     --comment-text-muted: #65676b;
     --comment-primary: #0866ff;
     --comment-border: #e5e5e5;
@@ -36,7 +36,7 @@
    CONTAINER PRINCIPAL
    ======================================== */
 
-.comments-container, 
+.comments-container,
 .comment-section-full,
 .comments-area {
     display: flex;
@@ -63,7 +63,7 @@
    LISTA DE COMENTÁRIOS
    ======================================== */
 
-.comments-list, 
+.comments-list,
 .comment-list {
     list-style: none;
     padding: 0;
@@ -275,6 +275,7 @@
 }
 
 @media (max-width: 768px) {
+
     .comment-reply-form,
     .reply-form-container {
         margin-left: 20px;
@@ -383,7 +384,7 @@
     background: var(--comment-white);
     border: 1px solid var(--comment-border);
     border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     z-index: 100;
     min-width: 120px;
     overflow: hidden;
@@ -445,18 +446,20 @@
    ======================================== */
 
 @media (max-width: 768px) {
-    .comments-container, 
+
+    .comments-container,
     .comment-section-full {
         padding: 8px;
     }
-    
+
     .comment-text,
     .comment-text-content p {
         font-size: 0.875rem;
     }
 
     .comment-actions-dropdown {
-        opacity: 1; /* Sempre visível no mobile */
+        opacity: 1;
+        /* Sempre visível no mobile */
         right: 0;
     }
 
@@ -472,7 +475,8 @@
 }
 
 @media (max-width: 480px) {
-    .comments-container, 
+
+    .comments-container,
     .comment-section-full {
         padding: 4px 8px;
     }

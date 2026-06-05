@@ -651,6 +651,28 @@ function vaPerformSave(btn) {
         .catch(console.error);
 }
 
+// ─────────────────────────────────────────────
+// Abrir automaticamente uma foto quando a URL
+// contém #photo-123
+// ─────────────────────────────────────────────
+window.addEventListener('load', function () {
+    const hash = window.location.hash || '';
+
+    const m = hash.match(/^#photo-(\d+)$/);
+    if (!m) return;
+
+    const photoId = parseInt(m[1], 10);
+
+    const idx = VA_PHOTOS.findIndex(
+        p => parseInt(p.id, 10) === photoId
+    );
+
+    if (idx >= 0) {
+        setTimeout(() => {
+            vaOpenLightbox(idx);
+        }, 300);
+    }
+});
 
 // …
 // SAVE da FOTO individual no lightbox — usa toggle_save.php com item_type=photo

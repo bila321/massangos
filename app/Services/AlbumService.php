@@ -63,7 +63,12 @@ class AlbumService
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
             // Processar upload de fotos
+            // Processar upload de fotos
             if (isset($uploadedPhotos['tmp_name']) && is_array($uploadedPhotos['tmp_name'])) {
+                // Criar pasta de thumbnails se não existir
+                $thumbsDir = $uploadDir . 'thumbnails/';
+                if (!is_dir($thumbsDir)) mkdir($thumbsDir, 0755, true);
+
                 foreach ($uploadedPhotos['tmp_name'] as $key => $tmpName) {
                     if ($uploadedPhotos['error'][$key] === UPLOAD_ERR_OK) {
                         $fileMock = [
@@ -85,19 +90,24 @@ class AlbumService
                         }
 
                         $uploadedFilesPaths[] = $filePath;
-                        $photosToDb[] = 'albums/' . $uniqueFileName;
 
-                        // Gerar thumbnail para a foto de capa
+                        // Caminho para BD: albums/foto.jpg
+                        $dbPhotoPath = 'albums/' . $uniqueFileName;
+                        $photosToDb[] = $dbPhotoPath;
+
+                        // ── Gerar thumbnail para TODAS as fotos ──
+                        $thumbFileName = 'thumbnails/' . $uniqueFileName;
+                        $thumbPath = $uploadDir . $thumbFileName;
+
+                        $thumbResult = MediaProcessor::generateImageThumbnail($filePath, $thumbPath, 400, 400, 85);
+
+                        // Guardar caminho do thumbnail para BD (mesmo que falhe, continua)
+                        $dbThumbPath = $thumbResult ? 'albums/thumbnails/' . $uniqueFileName : null;
+
+                        // Definir capa e thumbnail do álbum
                         if ($key === $coverIndex || ($coverIndex === 0 && $key === 0)) {
-                            $thumbFileName = 'thumbnails/' . $uniqueFileName;
-                            $thumbPath = $uploadDir . $thumbFileName;
-
-                            $thumbResult = MediaProcessor::generateImageThumbnail($filePath, $thumbPath, 800, 800, 85);
-
-                            if ($thumbResult) {
-                                $coverPhotoUrl = 'albums/' . $uniqueFileName;
-                                $thumbnailPath = 'albums/' . $thumbFileName;
-                            }
+                            $coverPhotoUrl = $dbPhotoPath;
+                            $thumbnailPath = $dbThumbPath;
                         }
                     }
                 }
@@ -140,9 +150,17 @@ class AlbumService
                 throw new Exception("Erro ao criar o álbum no banco de dados.");
             }
 
-            // Adicionar fotos ao álbum
-            foreach ($photosToDb as $path) {
-                if (!Photo::addPhotoToAlbum($this->pdo, $albumId, $this->currentUserId, $path)) {
+            // Adicionar fotos ao álbum (com thumbnail)
+            foreach ($photosToDb as $idx => $path) {
+                $thumbForDb = 'albums/thumbnails/' . basename($path);
+
+                // Verificar se o thumbnail foi realmente criado
+                $thumbFullPath = UPLOAD_DIR . $thumbForDb;
+                if (!file_exists($thumbFullPath)) {
+                    $thumbForDb = null;
+                }
+
+                if (!Photo::addPhotoToAlbum($this->pdo, $albumId, $this->currentUserId, $path, $thumbForDb)) {
                     throw new Exception("Erro ao adicionar uma foto ao álbum.");
                 }
             }

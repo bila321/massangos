@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // public/api/handle_photo_comment.php
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/functions.php'; // Adicionado para ter is_logged_in() e outras funções
@@ -107,44 +107,74 @@ try {
 
 echo json_encode($response);
 
-// Helper function to render comments HTML (mantém-se igual)
+// Helper function to render comments HTML — classes comments_modern.css
 function display_comments_html($comments, $current_user_id, $level = 0) {
-    // ... código da função display_comments_html (no arquivo handle_photo_comment.php)
-    // Pequena correção aqui para usar 'photo_id' no formulário de resposta se for o caso
-    // Antes: value="<?= $comment['post_id'] "
-    // Mude para: value="<?= $comment['photo_id'] "
     foreach ($comments as $comment) {
-        $margin_left = $level * 20;
         $is_owner = ($comment['user_id'] == $current_user_id);
+        $pic = UPLOAD_URL . htmlspecialchars($comment['profile_picture'] ?? 'profiles/default_profile.png');
+        $uname = htmlspecialchars($comment['username'] ?? 'Utilizador');
+        $content = nl2br(htmlspecialchars($comment['content'] ?? ''));
+        $date = date('d/m/Y H:i', strtotime($comment['created_at']));
+        $indent = $level > 0 ? 'comment-replies' : '';
         ?>
-        <div class="comment-item" data-comment-id="<?= $comment['id'] ?>" style="margin-left: <?= $margin_left ?>px;">
-            <div class="comment-header">
-                <img src="<?= UPLOAD_URL . htmlspecialchars($comment['profile_picture'] ?? 'default_profile.png') ?>" alt="Foto de perfil" class="profile-thumb-small">
-                <strong><?= htmlspecialchars($comment['username'] ?? 'Usuário Desconhecido') ?>:</strong>
-                <span class="comment-date"><?= date('d/m/Y H:i', strtotime($comment['created_at'])) ?></span>
-            </div>
-            <p class="comment-content-text"><?= nl2br(htmlspecialchars($comment['content'])) ?></p>
-            <?php if (is_logged_in()): ?>
+        <div class="comment-item <?= $indent ?>"
+            data-comment-id="<?= (int)$comment['id'] ?>">
+
+            <img src="<?= $pic ?>"
+                alt="<?= $uname ?>"
+                class="comment-avatar">
+
+            <div class="comment-body">
+                <div class="comment-text-wrapper">
+                    <div class="comment-header">
+                        <span class="comment-author"><?= $uname ?></span>
+                    </div>
+                    <div class="comment-text">
+                        <p><?= $content ?></p>
+                    </div>
+                </div>
+
                 <div class="comment-actions">
-                    <button class="btn-reply-comment" data-comment-id="<?= $comment['id'] ?>">Responder</button>
-                    <?php if ($is_owner): ?>
-                        <button class="btn-edit-comment" data-comment-id="<?= $comment['id'] ?>" data-comment-content="<?= htmlspecialchars($comment['content']) ?>">Editar</button>
-                        <button class="btn-delete-comment" data-comment-id="<?= $comment['id'] ?>">Apagar</button>
+                    <span class="comment-time"><?= $date ?></span>
+                    <?php if (is_logged_in()): ?>
+                        <button class="btn-reply-comment"
+                            data-comment-id="<?= (int)$comment['id'] ?>">Responder</button>
+                        <?php if ($is_owner): ?>
+                            <button class="btn-edit-comment btn-comment-edit"
+                                data-comment-id="<?= (int)$comment['id'] ?>"
+                                data-content="<?= htmlspecialchars($comment['content']) ?>">Editar</button>
+                            <button class="btn-delete-comment btn-comment-delete"
+                                data-comment-id="<?= (int)$comment['id'] ?>">Apagar</button>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
-                <form action="" method="POST" class="reply-form" id="reply-form-<?= $comment['id'] ?>" style="display: none;">
-                    <input type="hidden" name="photo_id" value="<?= $comment['photo_id'] ?>"> <input type="hidden" name="parent_comment_id" value="<?= $comment['id'] ?>">
-                    <textarea name="comment_content" placeholder="Responder a <?= htmlspecialchars($comment['username']) ?>..." rows="2" required></textarea>
-                    <button type="submit" class="btn btn-secondary">Responder</button>
-                </form>
-            <?php endif; ?>
-            <?php
-            if (isset($comment['replies']) && !empty($comment['replies'])) {
-                display_comments_html($comment['replies'], $current_user_id, $level + 1);
-            }
-            ?>
+
+                <?php if (is_logged_in()): ?>
+                    <div class="comment-reply-form" id="reply-form-<?= (int)$comment['id'] ?>" style="display:none;">
+                        <form class="reply-form-container reply-form">
+                            <input type="hidden" name="photo_id" value="<?= (int)($comment['photo_id'] ?? 0) ?>">
+                            <input type="hidden" name="parent_comment_id" value="<?= (int)$comment['id'] ?>">
+                            <div class="comment-input-container">
+                                <textarea name="comment_content"
+                                    placeholder="Responder a <?= $uname ?>…"
+                                    rows="1"></textarea>
+                                <button type="submit" class="btn-send-comment">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($comment['replies'])): ?>
+                    <ul class="comment-list comment-replies">
+                        <?php display_comments_html($comment['replies'], $current_user_id, $level + 1); ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
         </div>
         <?php
     }
 }
 ?>
+

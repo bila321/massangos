@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 define('SECURE_ACCESS', true);
 define('ENVIRONMENT', 'development');
 
@@ -432,7 +432,7 @@ require_once __DIR__ . '/../includes/header.php';
                     data-index="<?= $idx ?>"
                     <?= $this_blur ? 'data-blur="1"' : '' ?>
                     onclick="vaThumbClick(<?= $idx ?>, this)">
-                    <img src="<?= get_protected_media_url('albums/' . basename($photo['photo_path'])) ?>"
+                    <img src="<?= get_protected_media_url('albums/thumbnails/' . basename($photo['photo_path'])) ?>"
                         alt="<?= htmlspecialchars($photo['caption'] ?? 'Foto ' . ($idx + 1)) ?>"
                         class="<?= $this_blur ? 'va-explicit-blur' : '' ?>"
                         loading="lazy">
@@ -510,9 +510,9 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- Comentários inline -->
-    <div class="va-comments" id="vaCommentsSection" data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>">
+    <div class="comments-area comment-section-full va-album-comments" id="vaCommentsSection" data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>">
 
-        <div class="va-comments-header">
+        <div class="comments-header">
             <i class="fa-regular fa-message"></i>
             Comentários
             <span style="color:var(--text-muted,#666);font-weight:400;font-size:0.82rem;" id="vaPageCommentCountLabel">
@@ -520,7 +520,7 @@ require_once __DIR__ . '/../includes/header.php';
             </span>
         </div>
 
-        <div class="va-comments-list" id="vaCommentsListInline">
+        <div class="comments-list" id="vaCommentsListInline">
             <?php
             // Misturar comentários do álbum e de fotos, ordenados por data
             $all_comments_merged = [];
@@ -549,55 +549,95 @@ require_once __DIR__ . '/../includes/header.php';
                         $num = (int)($pc['photo_index'] ?? $pc['photo_position'] ?? 0);
                         $pic = htmlspecialchars($pc['profile_picture'] ?? 'profiles/default_profile.png');
                         $uname = htmlspecialchars($pc['username'] ?? '');
-                        $content = htmlspecialchars(preg_replace('/^\[Foto #\d+\]\s*/', '', $pc['content'] ?? ''));
-                        $date = htmlspecialchars($pc['created_at'] ?? '');
+                        $raw_content = $pc['content'] ?? '';
+                        $raw_content = preg_replace('/^\s*(?:\[(?:Foto|Photo)\s*#?\d+\]|\b(?:Foto|Photo)\s*#?\d+\b)\s*[:\-–—]?\s*/iu', '', $raw_content);
+                        $content = htmlspecialchars($raw_content);
             ?>
-                        <div class="va-comment-item va-comment-from-photo"
-                            data-photo-idx="<?= $idx ?>"
-                            onclick="vaOpenLightbox(<?= $idx ?>)"
-                            title="Clique para abrir a Foto #<?= $num ?>"
-                            style="cursor:pointer;">
+                        <?php
+                            $likes_pc = (int)($pc['likes_count'] ?? 0);
+                            $user_liked_pc = !empty($pc['user_liked']);
+                            $pc_id = (int)($pc['id'] ?? 0);
+                            $pc_photo_id = (int)($pc['photo_id'] ?? 0);
+                        ?>
+                        <div class="comment-item va-comment-from-photo"
+                            data-comment-id="<?= $pc_id ?>"
+                            data-photo-id="<?= $pc_photo_id ?>"
+                            data-photo-idx="<?= $idx ?>">
+
                             <img src="<?= UPLOAD_URL . $pic ?>"
                                 alt="<?= $uname ?>"
-                                class="va-comment-avatar"
+                                class="comment-avatar"
+                                onclick="vaOpenLightbox(<?= $idx ?>)"
+                                style="cursor:pointer;"
                                 onerror="this.src='<?= UPLOAD_URL ?>profiles/default_profile.png'">
-                            <div class="va-comment-body">
-                                <!-- Marcador da foto -->
-                                <div class="va-photo-comment-tag">
-                                    <i class="fa-solid fa-image"></i>
-                                    Foto #<?= $num ?>
-                                    <i class="fa-solid fa-arrow-up-right-from-square"
-                                        style="font-size:9px;opacity:0.6;"></i>
+
+                            <div class="comment-body">
+                                <div class="comment-text-wrapper">
+                                    <div class="comment-header">
+                                        <span class="comment-author"><?= $uname ?></span>
+                                        <span class="va-photo-comment-tag"
+                                            onclick="vaOpenLightbox(<?= $idx ?>)"
+                                            title="Abrir Foto #<?= $num ?>"
+                                            style="cursor:pointer;">
+                                            <i class="fa-solid fa-image"></i>
+                                            Foto #<?= $num ?>
+                                            <i class="fa-solid fa-arrow-up-right-from-square"
+                                                style="font-size:9px;opacity:0.6;"></i>
+                                        </span>
+                                    </div>
+                                    <div class="comment-text">
+                                        <p><?= $content ?></p>
+                                    </div>
                                 </div>
-                                <div class="va-comment-bubble">
-                                    <strong><?= $uname ?></strong>
-                                    <p><?= $content ?></p>
+
+                                <div class="comment-actions">
+                                    <span class="comment-time"><?= format_datetime_ago($pc['created_at']) ?></span>
+                                    <button class="btn-comment-like va-pc-like-btn <?= $user_liked_pc ? 'active' : '' ?>"
+                                        data-comment-id="<?= $pc_id ?>"
+                                        data-photo-id="<?= $pc_photo_id ?>"
+                                        onclick="vaTogglePhotoCommentLike(this); event.stopPropagation();">
+                                        Gosto <span class="comment-likes-count"><?= $likes_pc ?></span>
+                                    </button>
+                                    <button class="btn-comment-dislike" disabled
+                                        title="Indisponível para comentários de fotos">
+                                        Não gosto
+                                    </button>
+                                    <?php if ($current_user_id): ?>
+                                        <button class="btn-reply-comment va-pc-reply-btn"
+                                            data-comment-id="<?= $pc_id ?>"
+                                            data-photo-id="<?= $pc_photo_id ?>"
+                                            data-photo-idx="<?= $idx ?>"
+                                            data-author="<?= $uname ?>"
+                                            onclick="vaOpenLightbox(<?= $idx ?>); event.stopPropagation();">
+                                            Responder
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
-                                <div class="va-comment-meta"><?= $date ?></div>
                             </div>
                         </div>
+
                 <?php
                     endif;
                 endforeach;
             else: ?>
-                <div class="va-no-comments">
+                <div class="no-comments">
                     <i class="fa-regular fa-comment-dots"></i>
                     Sem comentários. Sê o primeiro!
                 </div>
             <?php endif; ?>
         </div>
 
-        <div class="va-comment-form">
+        <div class="comment-form-with-avatar">
             <img src="<?= UPLOAD_URL . htmlspecialchars($me_pic) ?>"
-                alt="Tu" class="va-comment-form-avatar">
-            <div class="va-comment-input-wrap">
+                alt="Tu" class="comment-avatar">
+            <div class="comment-input-container">
                 <textarea
                     id="vaCommentInput"
-                    class="va-comment-textarea"
+                    class="comment-input-container__textarea"
                     placeholder="Escreve um comentário no álbum…"
                     rows="1"
                     data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>"></textarea>
-                <button class="va-comment-send-btn" onclick="vaSubmitComment('vaCommentInput')" title="Enviar">
+                <button class="btn-send-comment" onclick="vaSubmitComment('vaCommentInput')" title="Enviar">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>
@@ -823,6 +863,99 @@ require_once __DIR__ . '/../includes/header.php';
 </script>
 
 <script src="<?= BASE_URL ?>assets/js/pages/view_album.js"></script>
+<script>
+    (function() {
+        function getTargetPhotoId() {
+            const params = new URLSearchParams(window.location.search);
+            const qPhotoId = parseInt(params.get('photo_id'), 10);
+            if (!Number.isNaN(qPhotoId) && qPhotoId > 0) {
+                return qPhotoId;
+            }
+
+            const m = window.location.hash.match(/^#photo-(\d+)$/);
+            if (m) {
+                return parseInt(m[1], 10);
+            }
+
+            return 0;
+        }
+
+        function tryOpenTargetPhoto() {
+            const photoId = getTargetPhotoId();
+            if (!photoId) return true; // nada para abrir
+
+            if (typeof VA_PHOTOS === 'undefined' || !Array.isArray(VA_PHOTOS)) {
+                return false;
+            }
+
+            if (typeof vaOpenLightbox !== 'function') {
+                return false;
+            }
+
+            const idx = VA_PHOTOS.findIndex(function(p) {
+                return parseInt(p.id, 10) === photoId;
+            });
+
+            if (idx < 0) {
+                return true; // foto não encontrada, não insistir
+            }
+
+            vaOpenLightbox(idx);
+            return true;
+        }
+
+        let tries = 0;
+
+        function bootOpenPhoto() {
+            if (tryOpenTargetPhoto()) return;
+            tries++;
+            if (tries < 20) {
+                setTimeout(bootOpenPhoto, 250);
+            }
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(bootOpenPhoto, 150);
+        });
+    })();
+</script>
 <script src="<?= BASE_URL ?>assets/js/core/common_notifications.js"></script>
 <script src="<?= BASE_URL ?>assets/js/components/likes.js"></script>
+
+<script>
+function vaTogglePhotoCommentLike(btn) {
+    if (!btn || btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
+
+    const commentId = parseInt(btn.dataset.commentId, 10);
+    const photoId   = parseInt(btn.dataset.photoId, 10);
+
+    const fd = new FormData();
+    fd.append('action', 'like_comment');
+    fd.append('comment_id', commentId);
+    fd.append('photo_id', photoId);
+    if (window.CSRF_TOKEN) fd.append('csrf_token', window.CSRF_TOKEN);
+
+    fetch((window.BASE_URL || '/') + 'api/photo_interactions.php', {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data && data.success) {
+            const countEl = btn.querySelector('.comment-likes-count');
+            if (countEl) countEl.textContent = data.likes_count ?? 0;
+            btn.classList.toggle('active', !!data.user_liked);
+        }
+    })
+    .catch(err => console.error('Erro like comentario foto:', err))
+    .finally(() => { btn.dataset.busy = '0'; });
+}
+</script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+
+
+
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 /**
  * massangosu — Notifications (v3)
@@ -82,7 +82,7 @@ $sql = "
                     ELSE NULL
                 END
 
-            /* ── LIKE / COMMENT em feed_item ── */
+                     /* ── LIKE / COMMENT em feed_item ── */
             WHEN fi.id IS NOT NULL THEN
                 CASE fi.item_type
                     WHEN 'post'  THEN fi_post.thumbnail_path
@@ -90,6 +90,14 @@ $sql = "
                     WHEN 'album' THEN fi_album.thumbnail_path
                     ELSE NULL
                 END
+
+            /* ── PHOTO: thumbnail da foto individual ── */
+            WHEN n.type = 'photo_liked' THEN
+                photo_direct.thumbnail_path
+
+            /* ── PHOTO_COMMENT: thumbnail via comment → foto ── */
+            WHEN n.type IN ('photo_commented', 'photo_comment_reply', 'photo_comment_liked') THEN
+                photo_via_comment.thumbnail_path
 
             ELSE NULL
         END AS post_thumbnail,
@@ -103,15 +111,37 @@ $sql = "
                     WHEN 'album' THEN orig_album.name
                     ELSE NULL
                 END
-            WHEN fi.id IS NOT NULL THEN
+                             WHEN fi.id IS NOT NULL THEN
                 CASE fi.item_type
                     WHEN 'post'  THEN LEFT(fi_post.content, 80)
                     WHEN 'video' THEN fi_video.caption
                     WHEN 'album' THEN fi_album.name
                     ELSE NULL
                 END
+            WHEN n.type = 'photo_liked' THEN
+                COALESCE(photo_direct.caption, 'Foto do álbum')
+            WHEN n.type IN ('photo_commented', 'photo_comment_reply', 'photo_comment_liked') THEN
+                COALESCE(photo_via_comment.caption, 'Foto do álbum')
             ELSE NULL
-        END AS post_title
+        END AS post_title,
+
+        /* ── album_id e photo_id para abrir lightbox directamente ── */
+        CASE
+            WHEN n.type = 'photo_liked' THEN
+                photo_direct.album_id
+            WHEN n.type IN ('photo_commented', 'photo_comment_reply', 'photo_comment_liked') THEN
+                photo_via_comment.album_id
+            ELSE NULL
+        END AS photo_album_id,
+
+        CASE
+            WHEN n.type = 'photo_liked' THEN
+                photo_direct.id
+            WHEN n.type IN ('photo_commented', 'photo_comment_reply', 'photo_comment_liked') THEN
+                photo_via_comment.id
+            ELSE NULL
+        END AS photo_id_target
+
 
     FROM notifications n
 
@@ -161,10 +191,29 @@ $sql = "
         ON orig_video.id = repost_post.shared_post_id
         AND repost_post.shared_item_type = 'video'
 
-    /* Conteúdo original do repost — álbum */
+        /* Conteúdo original do repost — álbum */
     LEFT JOIN albums orig_album
         ON orig_album.id = repost_post.shared_post_id
         AND repost_post.shared_item_type = 'album'
+
+    /* ╔══════════════════════════════════════════════════════════
+     * RAMO C — photo_liked / photo_commented
+     *   entity_id = album_photos.id (foto individual)
+     * ╚══════════════════════════════════════════════════════════ */
+    LEFT JOIN album_photos photo_direct
+        ON photo_direct.id = n.entity_id
+        AND n.type = 'photo_liked'
+
+    /* ╔══════════════════════════════════════════════════════════
+     * RAMO D — photo_comment_reply / photo_comment_liked
+     *   entity_id = photo_comments.id → buscar a foto
+     * ╚══════════════════════════════════════════════════════════ */
+    LEFT JOIN photo_comments pc_target
+        ON pc_target.id = n.entity_id
+        AND n.type IN ('photo_commented', 'photo_comment_reply', 'photo_comment_liked')
+
+    LEFT JOIN album_photos photo_via_comment
+        ON photo_via_comment.id = pc_target.photo_id
 
     WHERE n.recipient_id = :recipient_id
 
@@ -265,12 +314,27 @@ function notif_group(string $created_at): string
                 $sender_username = htmlspecialchars($n['sender_username'] ?? 'Utilizador');
 
                 /* ── Thumbnail da publicação ── */
-                $post_thumb     = !empty($n['post_thumbnail'])
-                    ? UPLOAD_URL . htmlspecialchars($n['post_thumbnail'])
-                    : null;
-                $post_thumb_alt = htmlspecialchars(
-                    mb_strimwidth($n['post_title'] ?? 'Publicação', 0, 60, '…')
-                );
+                // Thumbnail: para fotos individuais, usar a foto directa; para outros, usar normal
+                $is_photo_notif = in_array($n['type'], ['photo_liked', 'photo_commented', 'photo_comment_reply', 'photo_comment_liked'], true);
+
+                if ($is_photo_notif && !empty($n['post_thumbnail'])) {
+                    // Foto individual de álbum — caminho directo
+                    $post_thumb = UPLOAD_URL . 'albums/thumbnails/' . basename($n['post_thumbnail']);
+                } elseif (!empty($n['post_thumbnail'])) {
+                    $post_thumb = UPLOAD_URL . htmlspecialchars($n['post_thumbnail']);
+                } else {
+                    $post_thumb = '';
+                }
+
+                $post_thumb_alt = htmlspecialchars($n['post_title'] ?? '');
+
+                // Link da notificação: para fotos, construir URL com hash para abrir lightbox
+                if ($is_photo_notif && !empty($n['photo_album_id']) && !empty($n['photo_id_target'])) {
+                    $notif_link = BASE_URL . 'view_album.php?id=' . (int)$n['photo_album_id']
+                        . '#photo-' . (int)$n['photo_id_target'];
+                } else {
+                    $notif_link = !empty($n['link']) ? BASE_URL . $n['link'] : '#';
+                }
             ?>
 
                 <?php
@@ -413,3 +477,4 @@ function notif_group(string $created_at): string
 </script>
 <script src="<?= BASE_URL ?>assets/js/core/notifications.js" defer></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+

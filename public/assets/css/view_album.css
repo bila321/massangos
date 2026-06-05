@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    VIEW ALBUM — Grid + Lightbox profissional
    ═══════════════════════════════════════════════════════════ */
 
@@ -2068,4 +2068,83 @@
     .va-pc-avatar { width: 30px; height: 30px; }
     .va-pc-bubble { padding: 8px 12px; }
     .va-pc-text   { font-size: 12px; }
+}
+
+/* ==========================================================
+   VA ALBUM COMMENTS MODERN ADAPTER
+   Usa comments_modern.css com tema adaptado ao view_album.php
+   ========================================================== */
+
+.va-album-comments {
+    --comment-bg: rgba(255, 255, 255, 0.06);
+    --comment-bg-hover: rgba(255, 255, 255, 0.09);
+    --comment-text: var(--text, #f5f5f5);
+    --comment-text-muted: var(--text-muted, rgba(255, 255, 255, 0.55));
+    --comment-primary: var(--accent, #00f28f);
+    --comment-border: rgba(255, 255, 255, 0.08);
+    --comment-white: var(--card-bg, #1a1a1a);
+
+    border-radius: 14px;
+    margin-bottom: 32px;
+}
+
+.va-album-comments .comments-header {
+    color: var(--comment-text);
+    border-bottom: 1px solid var(--comment-border);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.va-album-comments .comments-header i {
+    color: var(--comment-primary);
+}
+
+.va-album-comments .comment-list,
+.va-album-comments .comments-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.va-album-comments .comment-form-with-avatar {
+    border-top: 1px solid var(--comment-border);
+    padding-top: 14px;
+    margin-top: 8px;
+}
+
+.va-album-comments .comment-input-container {
+    border: 1px solid var(--comment-border);
+}
+
+.va-album-comments .btn-send-comment {
+    color: var(--comment-primary);
+}
+
+/* Comentários vindos de fotos dentro da lista geral do álbum */
+.va-album-comments .va-comment-from-photo {
+    border-left: 2px solid var(--comment-primary);
+    padding-left: 8px;
+    margin-left: -8px;
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    transition: background 0.18s;
+}
+
+.va-album-comments .va-comment-from-photo:hover {
+    background: rgba(0, 242, 143, 0.05);
+}
+
+.va-album-comments .va-photo-comment-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--comment-primary);
+    background: rgba(0, 242, 143, 0.1);
+    border: 1px solid rgba(0, 242, 143, 0.2);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-bottom: 5px;
 }
