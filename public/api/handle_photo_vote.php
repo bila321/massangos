@@ -1,4 +1,8 @@
 <?php
+/**
+ * DEPRECATED - Usa public/api/photo_interactions.php
+ * Data: 20260606_175439
+ */
 // public/api/handle_photo_vote.php
 require_once __DIR__ . '/../../includes/db.php';
 

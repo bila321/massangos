@@ -1,105 +1,221 @@
-/* 
- * comments_modern.css
- * Modern, Responsive Comment System CSS
- * Style: Facebook / Instagram inspired
- * Fully flexible for both full-width pages and sidebar layouts
+/*
+ * comments_modern.css  —  v2 (compacto, Instagram-tight)
+ * Sistema unificado de comentários do projecto Massangos.
+ * Depende de variables.css (--primary, --bg-card, --text-main, --border, etc.)
+ *
+ * Convenção: textarea SEMPRE no topo do .comments-area
+ * (basta colocar o .comment-form-with-avatar antes da .comments-list no HTML).
  */
 
+/* ========================================================================
+   1. TOKENS (mapeados ao design system; com fallback para light/dark)
+   ======================================================================== */
 :root {
-    --comment-bg: #2a2a2a;
-    --comment-bg-hover: #333333;
-    --comment-text: #e4e6eb;
-    --comment-text-muted: #65676b;
-    --comment-primary: #0866ff;
-    --comment-border: #e5e5e5;
-    --comment-white: #ffffff;
-    --comment-radius: 18px;
-    --comment-font-size: 0.9375rem;
-    --comment-avatar-size: 36px;
-    --comment-avatar-size-small: 32px;
+    --c-bg:           var(--bg-card,    #ffffff);
+    --c-bubble:       var(--bg-surface, #f1f5f9);
+    --c-bubble-hover: rgba(0, 0, 0, 0.04);
+    --c-text:         var(--text-main,  #0f172a);
+    --c-text-muted:   var(--text-muted, #64748b);
+    --c-primary:      var(--primary,    #07c95b);
+    --c-border:       var(--border,     #e2e8f0);
+
+    --c-radius:       18px;
+    --c-radius-input: 22px;
+    --c-font:         13px;
+    --c-font-meta:    11px;
+    --c-avatar:       30px;
+    --c-avatar-sm:    26px;
+    --c-gap:          8px;
+    --c-pad-bubble:   6px 10px;
 }
 
-/* ========================================
-   MODO DARK (Para Sidebar do Lightbox)
-   ======================================== */
-.photo-sidebar {
-    --comment-bg: #2a2a2a;
-    --comment-bg-hover: #333333;
-    --comment-text: #e4e6eb;
-    --comment-text-muted: #b0b3b8;
-    --comment-primary: #00f576;
-    --comment-border: #3a3a3a;
-    --comment-white: #1c1e21;
+@media (prefers-color-scheme: dark) {
+    :root {
+        --c-bubble:       #262626;
+        --c-bubble-hover: rgba(255, 255, 255, 0.06);
+    }
 }
 
-/* ========================================
-   CONTAINER PRINCIPAL
-   ======================================== */
+/* Adapter dark para o sidebar do lightbox (forçado, independente do SO) */
+.photo-sidebar,
+.va-album-comments[data-theme="dark"] {
+    --c-bg:           #1a1a1a;
+    --c-bubble:       #2a2a2a;
+    --c-bubble-hover: #333333;
+    --c-text:         #e4e6eb;
+    --c-text-muted:   #a8abb0;
+    --c-border:       #3a3a3a;
+    --c-primary:      var(--primary-glow, #00f576);
+}
 
+/* ========================================================================
+   2. CONTAINER PRINCIPAL
+   ======================================================================== */
 .comments-container,
 .comment-section-full,
 .comments-area {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 12px 16px;
-    background-color: var(--comment-white);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    gap: 10px;
+    padding: 10px 12px;
+    background-color: var(--c-bg);
+    color: var(--c-text);
+    font-family: var(--fb-font-family, 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
     width: 100%;
-    max-width: 100%;
     box-sizing: border-box;
 }
 
-/* Sidebar específico */
+/* No sidebar do lightbox: preencher altura e fazer scroll só na lista */
 .photo-sidebar .comments-area {
     padding: 0;
     height: 100%;
-    overflow-y: auto;
-    background-color: var(--comment-white);
+    min-height: 0;
     gap: 0;
+    overflow: hidden; /* scroll fica na .comments-list */
 }
 
-/* ========================================
-   LISTA DE COMENTÁRIOS
-   ======================================== */
-
-.comments-list,
-.comment-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+/* ========================================================================
+   3. FORM "ON TOP" — sempre primeiro na ordem visual e DOM
+   ======================================================================== */
+.comment-form-with-avatar,
+.comment-input-area {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    gap: var(--c-gap);
+    align-items: flex-end;
     width: 100%;
+    padding: 8px 10px;
+    background-color: var(--c-bg);
+    border-bottom: 1px solid var(--c-border);
+    box-sizing: border-box;
 }
 
-.photo-sidebar .comments-list,
-.photo-sidebar .comment-list {
-    gap: 8px;
+/* Filho directo da .comments-area = form principal => fica sticky.
+   Forms dentro de .comment-replies não são filhos directos, logo não ficam sticky. */
+.comments-area > .comment-form-with-avatar,
+.comments-area > .comment-input-area {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    background-color: color-mix(in srgb, var(--c-bg) 92%, transparent);
 }
 
-/* ========================================
-   ITEM DE COMENTÁRIO INDIVIDUAL
-   ======================================== */
-
-.comment-item {
+/* Header (título + contador) por cima do form sticky */
+.comments-header {
     display: flex;
+    align-items: center;
     gap: 8px;
-    position: relative;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-text);
+    border-bottom: 1px solid var(--c-border);
+    background-color: var(--c-bg);
+}
+.comments-header i { color: var(--c-text-muted); }
+
+.comment-input-container,
+.comment-form-with-avatar .input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--c-bubble);
+    border-radius: var(--c-radius-input);
+    padding: 2px 4px 2px 12px;
+    min-height: 36px;
+    box-sizing: border-box;
+}
+
+.comment-input-container textarea,
+.comment-input-area textarea {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 7px 0;
+    font-size: var(--c-font);
+    font-family: inherit;
+    color: var(--c-text);
+    line-height: 1.35;
+    resize: none;
+    outline: none;
+    min-height: 20px;
+    max-height: 120px;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* ========================================
-   AVATAR
-   ======================================== */
+.comment-input-container textarea::placeholder {
+    color: var(--c-text-muted);
+}
+
+/* Botão enviar */
+.btn-send-comment,
+.form-buttons button[type="submit"] {
+    background: none;
+    border: none;
+    color: var(--c-primary);
+    cursor: pointer;
+    padding: 6px;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.btn-send-comment:hover {
+    transform: scale(1.08);
+    background-color: var(--c-bubble-hover);
+}
+
+.btn-send-comment:disabled {
+    color: var(--c-text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ========================================================================
+   4. LISTA DE COMENTÁRIOS
+   ======================================================================== */
+.comments-list,
+.comment-list {
+    list-style: none;
+    padding: 4px 0 8px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.photo-sidebar .comments-list {
+    padding: 8px 12px 12px;
+    overflow-y: auto;
+}
+
+/* ========================================================================
+   5. ITEM
+   ======================================================================== */
+.comment-item {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
 
 .comment-avatar,
 .comment-profile-picture,
 .author-avatar {
-    width: var(--comment-avatar-size);
-    height: var(--comment-avatar-size);
+    width: var(--c-avatar);
+    height: var(--c-avatar);
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -107,99 +223,93 @@
 
 .comment-replies .comment-avatar,
 .comment-replies .comment-profile-picture {
-    width: var(--comment-avatar-size-small);
-    height: var(--comment-avatar-size-small);
+    width: var(--c-avatar-sm);
+    height: var(--c-avatar-sm);
 }
-
-/* ========================================
-   CORPO DO COMENTÁRIO (Bolha)
-   ======================================== */
 
 .comment-body,
 .comment-content-area {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
+    min-width: 0;
+    flex: 1;
 }
 
+/* Bolha */
 .comment-text-wrapper,
 .comment-text-content {
-    background-color: var(--comment-bg);
-    padding: 8px 12px;
-    border-radius: var(--comment-radius);
-    display: inline-block;
-    position: relative;
+    background-color: var(--c-bubble);
+    padding: var(--c-pad-bubble);
+    border-radius: var(--c-radius);
+    align-self: flex-start;
     max-width: 100%;
     word-wrap: break-word;
     word-break: break-word;
 }
 
-/* ========================================
-   HEADER DO COMENTÁRIO
-   ======================================== */
-
 .comment-header {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 2px;
+    gap: 6px;
+    margin-bottom: 1px;
 }
 
 .comment-author,
 .comment-author-name,
 .author-details strong {
     font-weight: 600;
-    font-size: 0.8125rem;
-    color: var(--comment-text);
+    font-size: var(--c-font-meta);
+    color: var(--c-text);
     text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 180px;
 }
 
 .comment-author:hover,
-.comment-author-name:hover {
-    text-decoration: underline;
-}
-
-/* ========================================
-   TEXTO DO COMENTÁRIO
-   ======================================== */
+.comment-author-name:hover { text-decoration: underline; }
 
 .comment-text,
 .comment-text-content p {
     margin: 0;
-    font-size: var(--comment-font-size);
-    line-height: 1.3333;
-    color: var(--comment-text);
+    font-size: var(--c-font);
+    line-height: 1.35;
+    color: var(--c-text);
     word-break: break-word;
-    word-wrap: break-word;
     overflow-wrap: break-word;
 }
 
-/* ========================================
-   AÇÕES (Like, Responder, Tempo)
-   ======================================== */
+/* Tag "Foto #N" (usada no view_album) */
+.va-photo-comment-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    background-color: var(--c-primary);
+    color: #fff;
+    margin-right: 4px;
+    text-decoration: none;
+}
 
+/* ========================================================================
+   6. ACÇÕES (Like / Não gosto / Responder / Tempo)
+   ======================================================================== */
 .comment-actions,
 .comment-footer-actions {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 4px;
-    padding-left: 12px;
+    margin-top: 3px;
+    padding-left: 10px;
     flex-wrap: wrap;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .comment-time,
 .comment-timestamp {
-    font-size: 0.75rem;
-    color: var(--comment-text-muted);
+    font-size: var(--c-font-meta);
+    color: var(--c-text-muted);
     white-space: nowrap;
 }
 
@@ -207,186 +317,102 @@
 .comment-footer-actions button,
 .btn-reply-comment,
 .btn-comment-like,
-.btn-comment-dislike {
+.btn-comment-dislike,
+.btn-edit-comment,
+.btn-delete-comment {
     background: none;
     border: none;
     padding: 0;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--comment-text-muted);
+    font-size: var(--c-font-meta);
+    font-weight: 600;
+    color: var(--c-text-muted);
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color 0.15s ease;
     white-space: nowrap;
+    line-height: 1;
 }
 
 .comment-actions button:hover,
-.comment-footer-actions button:hover {
-    text-decoration: underline;
-}
+.comment-footer-actions button:hover,
+.btn-reply-comment:hover { color: var(--c-text); }
 
-.btn-comment-like.active {
-    color: var(--comment-primary);
-}
+.btn-comment-like.active,
+.btn-comment-like.liked { color: var(--c-primary); }
 
-/* ========================================
-   CONTADOR DE LIKES
-   ======================================== */
+.btn-comment-dislike[disabled] { opacity: 0.45; cursor: not-allowed; }
 
 .comment-likes-count,
 .comment-dislikes-count {
-    font-weight: normal;
-    margin-left: 2px;
+    font-weight: 500;
+    margin-left: 3px;
 }
 
-/* ========================================
-   RESPOSTAS (Nível secundário)
-   ======================================== */
-
+/* ========================================================================
+   7. RESPOSTAS (subnível)
+   ======================================================================== */
 .comment-replies {
-    margin-left: 44px;
-    margin-top: 8px;
+    margin: 6px 0 0 calc(var(--c-avatar) + 8px);
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    border-left: 2px solid var(--comment-border);
-    padding-left: 12px;
-    width: calc(100% - 44px);
-    box-sizing: border-box;
+    gap: 6px;
+    border-left: 2px solid var(--c-border);
+    padding-left: 10px;
+}
+
+.comment-reply-form,
+.reply-form-container {
+    margin: 6px 0 0 calc(var(--c-avatar) + 8px);
 }
 
 @media (max-width: 768px) {
-    .comment-replies {
-        margin-left: 20px;
-        width: calc(100% - 20px);
+    .comment-replies,
+    .comment-reply-form,
+    .reply-form-container {
+        margin-left: 18px;
         padding-left: 8px;
     }
 }
 
-/* ========================================
-   FORMULÁRIO DE RESPOSTA
-   ======================================== */
-
-.comment-reply-form,
-.reply-form-container {
-    margin-top: 8px;
-    margin-left: 44px;
-    width: calc(100% - 44px);
-    box-sizing: border-box;
-}
-
-@media (max-width: 768px) {
-
-    .comment-reply-form,
-    .reply-form-container {
-        margin-left: 20px;
-        width: calc(100% - 20px);
-    }
-}
-
-.comment-form-with-avatar,
-.comment-input-area {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.comment-input-container,
-.comment-input-area {
-    flex-grow: 1;
-    background-color: var(--comment-bg);
-    border-radius: 20px;
-    padding: 4px 12px;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.comment-input-container textarea,
-.comment-input-area textarea {
-    flex-grow: 1;
-    background: none;
-    border: none;
-    padding: 8px 0;
-    font-size: var(--comment-font-size);
-    font-family: inherit;
-    resize: none;
-    outline: none;
-    min-height: 20px;
-    max-height: 150px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* ========================================
-   BOTÃO DE ENVIAR
-   ======================================== */
-
-.btn-send-comment,
-.form-buttons button[type="submit"] {
-    background: none;
-    border: none;
-    color: var(--comment-primary);
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-    flex-shrink: 0;
-}
-
-.btn-send-comment:hover {
-    transform: scale(1.1);
-}
-
-/* ========================================
-   DROPDOWN DE OPÇÕES (Três pontos)
-   ======================================== */
-
+/* ========================================================================
+   8. DROPDOWN "…"
+   ======================================================================== */
 .comment-actions-dropdown {
     position: absolute;
-    right: -20px;
+    right: -18px;
     top: 50%;
     transform: translateY(-50%);
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.15s ease;
 }
 
-.comment-item:hover .comment-actions-dropdown {
-    opacity: 1;
-}
+.comment-item { position: relative; }
+.comment-item:hover .comment-actions-dropdown { opacity: 1; }
 
 .dropdown-toggle {
     background: none;
     border: none;
-    color: var(--comment-text-muted);
+    color: var(--c-text-muted);
     cursor: pointer;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
 }
 
-.dropdown-toggle:hover {
-    background-color: var(--comment-bg-hover);
-}
+.dropdown-toggle:hover { background-color: var(--c-bubble-hover); }
 
 .dropdown-menu {
     position: absolute;
     right: 0;
     top: 100%;
-    background: var(--comment-white);
-    border: 1px solid var(--comment-border);
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg, 0 6px 18px rgba(0, 0, 0, 0.18));
     z-index: 100;
-    min-width: 120px;
+    min-width: 130px;
     overflow: hidden;
 }
 
@@ -396,175 +422,66 @@
     text-align: left;
     background: none;
     border: none;
-    font-size: 0.8125rem;
+    font-size: var(--c-font-meta);
+    color: var(--c-text);
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.dropdown-menu button:hover {
-    background-color: var(--comment-bg);
-}
+.dropdown-menu button:hover { background-color: var(--c-bubble); }
 
-/* ========================================
-   HEADER DO POST (Sidebar)
-   ======================================== */
-
-.comments-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--comment-border);
-    background-color: var(--comment-white);
-    flex-shrink: 0;
-}
-
-.post-author-info {
-    display: flex;
-    gap: 12px;
-}
-
-.post-content {
-    margin-top: 8px;
-    font-size: 0.9375rem;
-    color: var(--comment-text);
-}
-
-/* ========================================
-   SEM COMENTÁRIOS
-   ======================================== */
-
+/* ========================================================================
+   9. ESTADO VAZIO
+   ======================================================================== */
 .no-comments {
     text-align: center;
-    color: var(--comment-text-muted);
-    padding: 40px 20px;
-    width: 100%;
-    box-sizing: border-box;
+    color: var(--c-text-muted);
+    padding: 24px 12px;
+    font-size: var(--c-font);
 }
 
-/* ========================================
-   RESPONSIVIDADE
-   ======================================== */
-
+/* ========================================================================
+   10. RESPONSIVO
+   ======================================================================== */
 @media (max-width: 768px) {
-
+    :root {
+        --c-avatar: 28px;
+        --c-avatar-sm: 24px;
+    }
     .comments-container,
-    .comment-section-full {
-        padding: 8px;
-    }
-
-    .comment-text,
-    .comment-text-content p {
-        font-size: 0.875rem;
-    }
-
-    .comment-actions-dropdown {
-        opacity: 1;
-        /* Sempre visível no mobile */
-        right: 0;
-    }
-
-    .comment-item {
-        gap: 6px;
-    }
-
-    .comment-avatar,
-    .comment-profile-picture {
-        width: 32px;
-        height: 32px;
-    }
+    .comment-section-full,
+    .comments-area { padding: 8px; }
+    .comment-actions-dropdown { opacity: 1; right: 0; }
 }
 
 @media (max-width: 480px) {
-
-    .comments-container,
-    .comment-section-full {
-        padding: 4px 8px;
-    }
-
     .comment-text-wrapper,
-    .comment-text-content {
-        padding: 6px 10px;
-        font-size: 0.875rem;
-    }
-
+    .comment-text-content { padding: 5px 9px; }
     .comment-actions,
-    .comment-footer-actions {
-        gap: 8px;
-        padding-left: 8px;
-    }
-
-    .comment-actions button,
-    .comment-footer-actions button {
-        font-size: 0.7rem;
-    }
+    .comment-footer-actions { gap: 10px; padding-left: 8px; }
 }
 
-/* ========================================
-   SIDEBAR ESPECÍFICO (Lightbox)
-   ======================================== */
+/* ========================================================================
+   11. SCROLLBAR
+   ======================================================================== */
+.comments-area,
+.comments-list { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.25) transparent; }
 
-.photo-sidebar .comments-area {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-}
-
-.photo-sidebar .comments-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--comment-border);
-}
-
-.photo-sidebar .comments-list {
-    padding: 12px 16px 0;
-    gap: 8px;
-}
-
-.photo-sidebar .comment-item {
-    gap: 6px;
-}
-
-.photo-sidebar .comment-avatar {
-    width: 32px;
-    height: 32px;
-}
-
-.photo-sidebar .comment-text-wrapper {
-    padding: 6px 10px;
-    font-size: 0.875rem;
-}
-
-.photo-sidebar .comment-actions {
-    gap: 8px;
-    padding-left: 8px;
-    font-size: 0.7rem;
-}
-
-/* ========================================
-   SCROLLBAR CUSTOMIZADO
-   ======================================== */
-
-.comments-area::-webkit-scrollbar {
-    width: 6px;
-}
-
-.comments-area::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.comments-area::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+.comments-area::-webkit-scrollbar,
+.comments-list::-webkit-scrollbar { width: 6px; }
+.comments-area::-webkit-scrollbar-track,
+.comments-list::-webkit-scrollbar-track { background: transparent; }
+.comments-area::-webkit-scrollbar-thumb,
+.comments-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.22);
     border-radius: 3px;
 }
+.comments-area::-webkit-scrollbar-thumb:hover,
+.comments-list::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.35); }
 
-.comments-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.photo-sidebar .comments-area::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.photo-sidebar .comments-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
+.photo-sidebar .comments-area::-webkit-scrollbar-thumb,
+.photo-sidebar .comments-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); }
+.photo-sidebar .comments-area::-webkit-scrollbar-thumb:hover,
+.photo-sidebar .comments-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.35); }

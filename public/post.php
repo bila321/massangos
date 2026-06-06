@@ -1405,7 +1405,7 @@ $feed_item_id_escaped = htmlspecialchars($feed_item_id);
         // ── Carregar comentários ──
         function loadComments() {
             const commentsList = document.getElementById('v3CommentsList');
-            fetch(BASE_URL + 'ajax/get_comments.php?feed_item_id=' + FEED_ITEM_ID)
+            fetch(BASE_URL + 'api/comments.php?feed_item_id=' + FEED_ITEM_ID)
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.comments) {

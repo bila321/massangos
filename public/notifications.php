@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * massangosu — Notifications (v3)

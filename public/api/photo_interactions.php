@@ -1,4 +1,9 @@
 <?php
+/**
+ * UNIFIED LIKE ENDPOINT (MASTER)
+ * Consolidado em 20260606_175439
+ * Usa este ficheiro para TODOS os likes.
+ */
 
 /**
  * public/api/photo_interactions.php

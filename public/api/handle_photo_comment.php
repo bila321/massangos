@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // public/api/handle_photo_comment.php
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/functions.php'; // Adicionado para ter is_logged_in() e outras funções

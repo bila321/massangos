@@ -1,4 +1,9 @@
 <?php
+/**
+ * DEPRECATED - Consolidado em public/api/comments.php
+ * Data: 20260606_175439
+ * Todas as chamadas devem usar: /api/comments.php
+ */
 
 /**
  * public/ajax/get_comments.php

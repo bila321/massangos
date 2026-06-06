@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/_render_comment_html.php';
 // includes/functions.php
@@ -230,6 +230,8 @@ if (!function_exists('display_comments')) {
 
                                 <div class="comment-input-area">
                                     <?php
+
+require_once __DIR__ . '/_render_comment_html.php';
                                     // Certifica-se de que UPLOAD_URL e BASE_URL estão definidos em config.php
                                     $logged_in_user_profile_pic = $_SESSION['user_profile_picture'] ?? BASE_URL . 'assets/img/default_profile.png';
                                     ?>
@@ -248,6 +250,8 @@ if (!function_exists('display_comments')) {
                     <?php endif; ?>
 
                     <?php
+
+require_once __DIR__ . '/_render_comment_html.php';
                     // Chamada recursiva para exibir as respostas
                     if (!empty($comment['replies'])) {
                         // O UL interno já terá as classes e o estilo display:none;
@@ -264,6 +268,8 @@ if (!function_exists('display_comments')) {
                 </div>
             </li>
 <?php
+
+require_once __DIR__ . '/_render_comment_html.php';
         }
         echo '</ul>';
     }

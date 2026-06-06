@@ -1,4 +1,8 @@
 <?php
+/**
+ * DEPRECATED - Usa public/api/photo_interactions.php
+ * Data: 20260606_175439
+ */
 // public/process_like.php
 
 

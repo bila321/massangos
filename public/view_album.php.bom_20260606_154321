@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 define('SECURE_ACCESS', true);
 define('ENVIRONMENT', 'development');
 
