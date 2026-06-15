@@ -680,4 +680,4 @@ elseif ($filter_sale === '0')   $active_chip = 'free';
 <script src="<?= BASE_URL ?>assets/js/pages/reels.js"></script>
 
 <?php require_once __DIR__ . '/../includes/reels_lightbox.php'; ?>
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer2.php'; ?>

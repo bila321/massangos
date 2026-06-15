@@ -62,7 +62,7 @@
     min-height: calc(100vh - 60px);
     padding: 0;
     margin: 0;
-    background: var(--bg-main, #f4f4f6);
+    background: transparent;
 }
 
 /* ── BARRA DE FILTROS ─────────────────────────────────── */

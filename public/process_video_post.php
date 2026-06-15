@@ -40,8 +40,12 @@ switch ($action) {
         break;
 
     default:
-        // Criar vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­deo
-        $result = $videoService->createVideo($_POST, $_FILES['video'] ?? []);
+        // Criar vídeo recolhendo dinamicamente a thumbnail injetada pelo canvas do frontend
+        $result = $videoService->createVideo(
+            $_POST,
+            $_FILES['video'] ?? [],
+            $_FILES['thumbnail'] ?? null
+        );
         break;
 }
 
@@ -59,8 +63,8 @@ if ($result['success']) {
 
 redirect(BASE_URL . $redirectTo);
 
-function is_ajax_request() {
+function is_ajax_request()
+{
     return isset($_SERVER['HTTP_X_REQUESTED_WITH'])
         && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 }
-

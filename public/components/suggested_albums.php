@@ -21,9 +21,7 @@ if (!empty($suggested_albums_list)): ?>
 
         .suggested-albums-card {
             border-radius: 16px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            background: var(--bg-main);
             overflow: hidden;
             transition: all 0.3s ease;
         }

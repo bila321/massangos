@@ -1,104 +1,107 @@
 <?php
 /**
  * includes/db.php
- * Mantem $pdo global para compatibilidade com codigo existente.
- * Database::getInstance() reutiliza a mesma ligacao via singleton.
+ * Conexão PDO centralizada para o projecto Massangos.
+ *
+ * Carregue este ficheiro logo após config.php:
+ *   require_once __DIR__ . '/db.php';
+ *
+ * A variável $pdo fica disponível globalmente.
  */
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+defined('SECURE_ACCESS') or die('Acesso directo não permitido.');
 
+/* ── Credenciais ────────────────────────────────────────────
+   Defina estas constantes em config.php (ou num .env).
+   Nunca escreva senhas aqui directamente em produção.
+   ────────────────────────────────────────────────────────── */
+if (!defined('DB_HOST'))    define('DB_HOST',    'localhost');
+if (!defined('DB_PORT'))    define('DB_PORT',    '3306');
+if (!defined('DB_NAME'))    define('DB_NAME',    'amassangos');
+if (!defined('DB_USER'))    define('DB_USER',    'root');
+if (!defined('DB_PASS'))    define('DB_PASS',    '');        // altere em produção
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
+
+/* ── DSN ────────────────────────────────────────────────── */
+$dsn = sprintf(
+    'mysql:host=%s;port=%s;dbname=%s;charset=%s',
+    DB_HOST,
+    DB_PORT,
+    DB_NAME,
+    DB_CHARSET
+);
+
+/* ── Opções PDO ─────────────────────────────────────────── */
+$pdo_options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,   // lança PDOException em erros
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,          // arrays associativos por defeito
+    PDO::ATTR_EMULATE_PREPARES   => false,                     // prepared statements reais
+    PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+];
+
+/* ── Ligação ────────────────────────────────────────────── */
 try {
-    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-
-    $options = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false,
-        PDO::ATTR_PERSISTENT         => false,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'",
-        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-    ];
-
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-
-    // Regista a mesma instancia no singleton Database
-    // para que Massango\Core\Database::getInstance() reutilize esta ligacao
-    \Massango\Core\Database::setInstance($pdo);
-
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, $pdo_options);
 } catch (PDOException $e) {
-    error_log("Erro PDO: " . $e->getMessage());
+    /* Em produção não exponha detalhes; registe no log do servidor */
+    error_log('[Massangos DB] Falha na ligação: ' . $e->getMessage());
+
     if (defined('ENVIRONMENT') && ENVIRONMENT === 'development') {
-        die("Erro de conexao: " . $e->getMessage());
-    } else {
-        die("Erro ao conectar com o banco de dados. Tente novamente mais tarde.");
+        die('<pre style="color:red;font-family:monospace">
+<b>Erro de base de dados (modo desenvolvimento)</b>
+' . htmlspecialchars($e->getMessage()) . '
+</pre>');
     }
+
+    /* Resposta genérica para o utilizador em produção */
+    http_response_code(503);
+    die('Serviço temporariamente indisponível. Tente novamente mais tarde.');
 }
 
-global $pdo;
+/* ─────────────────────────────────────────────────────────
+   TABELA AUXILIAR: auth_carousel_slides
+   ─────────────────────────────────────────────────────────
+   Cria automaticamente a tabela se ainda não existir.
+   Remova este bloco depois da primeira execução se preferir
+   gerir o schema manualmente via migrations.
+   ────────────────────────────────────────────────────────── */
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `auth_carousel_slides` (
+            `id`          INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+            `title`       VARCHAR(255)     NOT NULL DEFAULT '',
+            `subtitle`    TEXT             DEFAULT NULL,
+            `image_url`   VARCHAR(512)     DEFAULT NULL   COMMENT 'URL pública da imagem (pode ficar vazio para usar gradiente)',
+            `cta_text`    VARCHAR(100)     DEFAULT NULL   COMMENT 'Texto do botão CTA (opcional)',
+            `sort_order`  TINYINT(3)       NOT NULL DEFAULT 0,
+            `is_active`   TINYINT(1)       NOT NULL DEFAULT 1,
+            `created_at`  TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at`  TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `idx_active_order` (`is_active`, `sort_order`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+          COMMENT='Slides do carrossel nas páginas de autenticação';
+    ");
 
-function executeQuery(string $sql, array $params = []): \PDOStatement
-{
-    global $pdo;
-    try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt;
-    } catch (PDOException $e) {
-        error_log("Erro na query: " . $e->getMessage() . " SQL: " . $sql);
-        throw new Exception("Erro na operacao do banco de dados");
+    /* Insere slides de exemplo se a tabela estiver vazia */
+    $count = (int) $pdo->query("SELECT COUNT(*) FROM auth_carousel_slides")->fetchColumn();
+    if ($count === 0) {
+        $pdo->exec("
+            INSERT INTO `auth_carousel_slides`
+                (`title`, `subtitle`, `image_url`, `sort_order`, `is_active`)
+            VALUES
+                ('A rede social que <span>te conecta</span>',
+                 'Partilhe momentos, descubra conteúdos e fique mais perto de quem importa.',
+                 '', 1, 1),
+                ('Monetize o seu <span>conteúdo</span>',
+                 'Defina preços, venda acesso premium e receba via M-Pesa ou e-Mola.',
+                 '', 2, 1),
+                ('Cresça a sua <span>audiência</span>',
+                 'Sistema de estrelas que impulsiona os criadores mais activos da plataforma.',
+                 '', 3, 1);
+        ");
     }
-}
-
-function fetchOne(string $sql, array $params = []): array|false
-{
-    return executeQuery($sql, $params)->fetch();
-}
-
-function fetchAll(string $sql, array $params = []): array
-{
-    return executeQuery($sql, $params)->fetchAll();
-}
-
-function insertAndGetId(string $sql, array $params = []): string|false
-{
-    global $pdo;
-    executeQuery($sql, $params);
-    return $pdo->lastInsertId();
-}
-
-function countRecords(string $sql, array $params = []): mixed
-{
-    return executeQuery($sql, $params)->fetchColumn();
-}
-
-function recordExists(string $table, array $conditions = []): bool
-{
-    $sql    = "SELECT COUNT(*) FROM `{$table}`";
-    $params = [];
-    if (!empty($conditions)) {
-        $where = [];
-        foreach ($conditions as $column => $value) {
-            $where[]  = "`{$column}` = ?";
-            $params[] = $value;
-        }
-        $sql .= " WHERE " . implode(" AND ", $where);
-    }
-    return (int)countRecords($sql, $params) > 0;
-}
-
-function executeTransaction(callable $callback): mixed
-{
-    global $pdo;
-    try {
-        $pdo->beginTransaction();
-        $result = $callback($pdo);
-        $pdo->commit();
-        return $result;
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        error_log("Erro na transacao: " . $e->getMessage());
-        throw $e;
-    }
+} catch (PDOException $e) {
+    /* Não bloqueia o arranque — apenas regista */
+    error_log('[Massangos DB] Falha ao criar/popular auth_carousel_slides: ' . $e->getMessage());
 }

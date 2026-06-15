@@ -19,7 +19,7 @@ body {
     font-size: var(--fb-font-size-base);
     line-height: 1.5;
     background-color: var(--bg-main);
-    color: var(--text-primary);
+    color: var(--text-main);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;

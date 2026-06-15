@@ -28,6 +28,21 @@ use Massango\Models\Album;
 use Massango\Models\FeedItem;
 use Massango\Models\Notification;
 
+/**
+ * Retorna o URL completo do thumbnail de um vídeo.
+ * Os thumbnails de vídeo ficam em storage/uploads/videos/thumbnails/.
+ * Se o campo já contiver a subpasta (legado), evita duplicação.
+ */
+function get_video_thumb_url(string $thumbnail_path): string
+{
+    if (empty($thumbnail_path)) return '';
+    // Evita duplicar o prefixo se o caminho já o incluir
+    if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
+        return UPLOAD_URL . $thumbnail_path;
+    }
+    return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
+}
+
 // 6. Finalmente, incluir o header (que agora terá acesso a tudo)
 if (!is_logged_in()) {
     set_message("Você precisa estar logado para acessar o massangos.", "danger");
@@ -91,6 +106,8 @@ require_once __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/repost-header.css">
 
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
+<script src="<?= BASE_URL ?>assets/js/pages/media-backdrop.js" defer></script>
+
 <div class="posts-list">
     <?php if (!empty($feedItems)): ?>
         <?php foreach ($feedItems as $item): ?>
@@ -472,7 +489,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                 data-is-for-sale="<?= $isForSaleShared ? 'true' : 'false' ?>"
                                                 data-price="<?= $sharedData["price"] ?? 0 ?>"
                                                 data-has-access="true"
-                                                data-thumbnail="<?= UPLOAD_URL . htmlspecialchars($sharedData["thumbnail_path"] ?? '') ?>"
+                                                data-thumbnail="<?= htmlspecialchars(get_video_thumb_url($sharedData["thumbnail_path"] ?? '')) ?>"
                                                 data-ai-status="<?= htmlspecialchars($ai_analysis['status'] ?? '') ?>"
                                                 data-ai-risk="<?= htmlspecialchars($ai_analysis['risk_level'] ?? '') ?>"
                                                 data-ai-score="<?= htmlspecialchars($ai_analysis['explicit_percentage'] ?? 0) ?>"
@@ -480,7 +497,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                                                 style="position: relative; overflow: hidden; cursor: pointer;">
                                                 <?php if (!empty($sharedData["thumbnail_path"])): ?>
-                                                    <img src="<?= UPLOAD_URL . htmlspecialchars($sharedData["thumbnail_path"]) ?>" class="post-image <?= $should_blur ? 'media-blur' : '' ?>" style="display: block; width: 100%;">
+                                                    <img src="<?= htmlspecialchars(get_video_thumb_url($sharedData["thumbnail_path"])) ?>" class="post-image <?= $should_blur ? 'media-blur' : '' ?>" style="display: block; width: 100%;">
                                                 <?php else: ?>
                                                     <video src="<?= UPLOAD_URL . htmlspecialchars($sharedData["video_path"]) ?>"
                                                         class="post-image <?= $should_blur ? 'media-blur' : '' ?>"
@@ -536,13 +553,13 @@ require_once __DIR__ . '/../includes/header.php';
                                                 data-is-for-sale="true"
                                                 data-price="<?= $sharedData['price'] ?? 0 ?>"
                                                 data-has-access="false"
-                                                data-thumbnail="<?= UPLOAD_URL . htmlspecialchars($sharedData['thumbnail_path']) ?>"
+                                                data-thumbnail="<?= htmlspecialchars(get_video_thumb_url($sharedData['thumbnail_path'] ?? '')) ?>"
                                                 data-duration="<?= $sharedData['duration'] ?? 248 ?>"
                                                 data-is-verified="<?= $isVerifiedCreator ? 'true' : 'false' ?>"
                                                 data-checkout-url="<?= htmlspecialchars($checkoutUrl) ?>"
                                                 style="cursor: pointer; position: relative;">
 
-                                                <img src="<?= UPLOAD_URL . htmlspecialchars($sharedData['thumbnail_path']) ?>"
+                                                <img src="<?= htmlspecialchars(get_video_thumb_url($sharedData['thumbnail_path'] ?? '')) ?>"
                                                     class="album-cover-image"
                                                     style="filter: blur(10px); width: 100%; display: block;"
                                                     data-is-paid="true">
@@ -702,7 +719,7 @@ require_once __DIR__ . '/../includes/header.php';
                                             <?php if ($hasAccess): ?>
                                                 <!-- VÍDEO COM ACESSO - Estrutura limpa para lightbox -->
                                                 <div class="media-wrapper-<?= htmlspecialchars($item["feed_item_id"]) ?> <?= $should_blur ? 'media-blur-container' : '' ?>">
-                                                    <div class="video-locked lightbox-trigger"
+                                                    <div class="post-video lightbox-trigger"
                                                         data-type="video"
                                                         data-id="<?= htmlspecialchars($item["feed_item_id"]) ?>"
                                                         data-item-id="<?= htmlspecialchars($item["item_id"]) ?>"
@@ -711,7 +728,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                         data-is-for-sale="<?= (isset($content_data["is_for_sale"]) && $content_data["is_for_sale"]) ? 'true' : 'false' ?>"
                                                         data-price="<?= $content_data["price"] ?? 0 ?>"
                                                         data-has-access="true"
-                                                        data-thumbnail="<?= UPLOAD_URL . htmlspecialchars($content_data["thumbnail_path"] ?? '') ?>"
+                                                        data-thumbnail="<?= htmlspecialchars(get_video_thumb_url($content_data["thumbnail_path"] ?? '')) ?>"
                                                         data-ai-status="<?= htmlspecialchars($ai_analysis['status'] ?? '') ?>"
                                                         data-ai-risk="<?= htmlspecialchars($ai_analysis['risk_level'] ?? '') ?>"
                                                         data-ai-score="<?= htmlspecialchars($ai_analysis['explicit_percentage'] ?? 0) ?>"
@@ -719,7 +736,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                                                         style="position: relative; overflow: hidden; cursor: pointer;">
                                                         <?php if (!empty($content_data["thumbnail_path"])): ?>
-                                                            <img src="<?= UPLOAD_URL . htmlspecialchars($content_data["thumbnail_path"]) ?>" class="post-image <?= $should_blur ? 'media-blur' : '' ?>" style="display: block; width: 100%;">
+                                                            <img src="<?= htmlspecialchars(get_video_thumb_url($content_data["thumbnail_path"])) ?>" class="post-video <?= $should_blur ? 'media-blur' : '' ?>" style="display: block; width: 100%;">
                                                         <?php else: ?>
                                                             <video src="<?= UPLOAD_URL . htmlspecialchars($content_data["video_path"]) ?>"
                                                                 class="post-image <?= $should_blur ? 'media-blur' : '' ?>"
@@ -775,13 +792,13 @@ require_once __DIR__ . '/../includes/header.php';
                                                         data-is-for-sale="true"
                                                         data-price="<?= $content_data['price'] ?? 0 ?>"
                                                         data-has-access="false"
-                                                        data-thumbnail="<?= UPLOAD_URL . htmlspecialchars($content_data['thumbnail_path']) ?>"
+                                                        data-thumbnail="<?= htmlspecialchars(get_video_thumb_url($content_data['thumbnail_path'] ?? '')) ?>"
                                                         data-duration="<?= $content_data['duration'] ?? 248 ?>"
                                                         data-is-verified="<?= $isVerifiedCreator ? 'true' : 'false' ?>"
                                                         data-checkout-url="<?= htmlspecialchars($checkoutUrl) ?>"
                                                         style="cursor: pointer; position: relative;">
 
-                                                        <img src="<?= UPLOAD_URL . htmlspecialchars($content_data['thumbnail_path']) ?>"
+                                                        <img src="<?= htmlspecialchars(get_video_thumb_url($content_data['thumbnail_path'] ?? '')) ?>"
                                                             class="album-cover-image"
                                                             style="filter: blur(10px); width: 100%; display: block;"
                                                             data-is-paid="true">
@@ -824,7 +841,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                                                     echo '<div class="' . $album_blur_class . '" style="position: relative; display: block;">';
                                                     echo '<a href="' . BASE_URL . 'view_album.php?id=' . htmlspecialchars($item['item_id']) . '" class="album-placeholder-link album-cover-link" data-item-id="' . (int)$item['item_id'] . '" data-item-type="album">';
-                                                    echo render_adult_content('<img src="' . get_protected_media_url($album_thumb) . '" alt="Capa do Álbum" class="album-cover-image ' . ($should_blur ? 'album-blur' : '') . '" style="height: 520px; object-fit: contain; width: 100%; display: block;">', $content_data);
+                                                    echo render_adult_content('<img src="' . get_protected_media_url($album_thumb) . '" alt="Capa do Álbum" class="album-cover-image ' . ($should_blur ? 'album-blur' : '') . '" style="object-fit: contain; width: 100%; display: block;">', $content_data);
                                                     echo '</a>';
 
                                                     // [AI ALBUM FIX] Overlay inside the container, properly positioned

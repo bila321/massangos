@@ -78,77 +78,65 @@ $current_page    = basename($_SERVER['PHP_SELF']);
             </li>
         </ul>
 
-        <!-- Botão Ver mais -->
-        <button class="sidebar-ver-mais" id="sidebarVerMais" aria-expanded="false">
-            <i class="fa-solid fa-chevron-down sidebar-chevron"></i>
-            <span class="ver-mais-label">Ver mais</span>
-        </button>
-
-        <!-- Bloco colapsável: Creator + Sistema -->
-        <div class="sidebar-extra" id="sidebarExtra">
-
-            <?php if (!empty($user_data['is_verified_creator'])): ?>
-                <div class="sidebar-section-title">Creator</div>
-                <ul class="sidebar-menu">
-                    <li>
-                        <a href="<?= BASE_URL ?>analytics.php" class="nav-link <?= $current_page === 'analytics.php' ? 'active' : '' ?>">
-                            <i class="fa-solid fa-chart-line"></i><span>Analytics</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>wallet.php" class="nav-link <?= $current_page === 'wallet.php' ? 'active' : '' ?>">
-                            <i class="fa-solid fa-wallet"></i><span>Carteira</span>
-                            <?php if (!empty($user_stats['balance'])): ?>
-                                <span class="sidebar-badge" style="background:rgba(0,245,118,.15);color:#00f576;">
-                                    <?= number_format($user_stats['balance'], 0) ?> MT
-                                </span>
-                            <?php endif; ?>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>sales_performance.php" class="nav-link <?= $current_page === 'sales_performance.php' ? 'active' : '' ?>">
-                            <i class="fa-solid fa-chart-bar"></i><span>Vendas</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>subscriptions.php" class="nav-link <?= $current_page === 'subscriptions.php' ? 'active' : '' ?>">
-                            <i class="fa-solid fa-star"></i><span>Assinaturas</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>ai-center.php" class="nav-link <?= $current_page === 'ai-center.php' ? 'active' : '' ?>">
-                            <i class="fa-solid fa-robot"></i><span>IA Center</span>
-                            <span class="sidebar-badge beta">BETA</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= BASE_URL ?>upgrade.php" class="nav-link <?= $current_page === 'upgrade.php' ? 'active' : '' ?>">
-                            <i class="fa-solid fa-crown crown-icon"></i><span>natura</span>
-                        </a>
-                    </li>
-                </ul>
-            <?php endif; ?>
-
-            <div class="sidebar-section-title">Sistema</div>
+        <?php if (!empty($user_data['is_verified_creator'])): ?>
             <ul class="sidebar-menu">
                 <li>
-                    <a href="<?= BASE_URL ?>settings.php" class="nav-link <?= $current_page === 'settings.php' ? 'active' : '' ?>">
-                        <i class="fa-solid fa-sliders"></i><span>Configurações</span>
+                    <a href="<?= BASE_URL ?>analytics.php" class="nav-link <?= $current_page === 'analytics.php' ? 'active' : '' ?>">
+                        <i class="fa-solid fa-chart-line"></i><span>Analytics</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?= BASE_URL ?>support.php" class="nav-link <?= $current_page === 'support.php' ? 'active' : '' ?>">
-                        <i class="fa-solid fa-headset"></i><span>Suporte</span>
+                    <a href="<?= BASE_URL ?>wallet.php" class="nav-link <?= $current_page === 'wallet.php' ? 'active' : '' ?>">
+                        <i class="fa-solid fa-wallet"></i><span>Carteira</span>
+                        <?php if (!empty($user_stats['balance'])): ?>
+                            <span class="sidebar-badge" style="background:rgba(0,245,118,.15);color:#00f576;">
+                                <?= number_format($user_stats['balance'], 0) ?> MT
+                            </span>
+                        <?php endif; ?>
                     </a>
                 </li>
                 <li>
-                    <a href="<?= BASE_URL ?>logout.php" class="nav-link logout-link">
-                        <i class="fa-solid fa-right-from-bracket"></i><span>Sair</span>
+                    <a href="<?= BASE_URL ?>sales_performance.php" class="nav-link <?= $current_page === 'sales_performance.php' ? 'active' : '' ?>">
+                        <i class="fa-solid fa-chart-bar"></i><span>Vendas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= BASE_URL ?>subscriptions.php" class="nav-link <?= $current_page === 'subscriptions.php' ? 'active' : '' ?>">
+                        <i class="fa-solid fa-star"></i><span>Assinaturas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= BASE_URL ?>ai-center.php" class="nav-link <?= $current_page === 'ai-center.php' ? 'active' : '' ?>">
+                        <i class="fa-solid fa-robot"></i><span>IA Center</span>
+                        <span class="sidebar-badge beta">BETA</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= BASE_URL ?>upgrade.php" class="nav-link <?= $current_page === 'upgrade.php' ? 'active' : '' ?>">
+                        <i class="fa-solid fa-crown crown-icon"></i><span>natura</span>
                     </a>
                 </li>
             </ul>
+        <?php endif; ?>
 
-        </div><!-- /#sidebarExtra -->
+        <ul class="sidebar-menu">
+            <li>
+                <a href="<?= BASE_URL ?>settings.php" class="nav-link <?= $current_page === 'settings.php' ? 'active' : '' ?>">
+                    <i class="fa-solid fa-sliders"></i><span>Configurações</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?= BASE_URL ?>support.php" class="nav-link <?= $current_page === 'support.php' ? 'active' : '' ?>">
+                    <i class="fa-solid fa-headset"></i><span>Suporte</span>
+                </a>
+            </li>
+            <li>
+                <a href="<?= BASE_URL ?>logout.php" class="nav-link logout-link">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Sair</span>
+                </a>
+            </li>
+        </ul>
+
 
     </nav>
 

@@ -1,10 +1,17 @@
 <?php
 /**
+ * @DEPRECATED - Usa public/api/photo_interactions.php
+ * Data: 20260606_202828
+ * 
+ * Este ficheiro serÃ¡ removido apÃ³s migraÃ§Ã£o completa.
+ */
+/**
  * DEPRECATED - Usa public/api/photo_interactions.php
- * Data: 20260606_175439
+ * Data: 20260606_175439 
  */
 // public/api/handle_vote.php
 require_once __DIR__ . '/../../includes/db.php'; // Inclui conexão e sessão
+require_once __DIR__ . '/../../includes/Like.php'; // Inclui classe Like
 
 header('Content-Type: application/json');
 

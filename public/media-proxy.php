@@ -36,17 +36,37 @@ if (isset($_GET['id'])) {
     $file = $_GET['file'] ?? '';
 }
 
-// Sanitizar e validar path com realpath
+// Sanitizar e validar path
 $file = str_replace('\\', '', $file);
 $file = ltrim($file, '/\\');
-if (empty($file)) {
-    // caminho vazio tratado abaixo
-} else {
+if (!empty($file)) {
+    // Rejeitar tentativas de path traversal sem depender do realpath()
+    // (que devolve false para ficheiros inexistentes, causando falsos 403).
+    // Normaliza os segmentos manualmente e verifica que não saem da base.
+    $segments = explode('/', $file);
+    $normalized = [];
+    foreach ($segments as $seg) {
+        if ($seg === '' || $seg === '.') {
+            continue;
+        }
+        if ($seg === '..') {
+            // Tentativa de subir um nível — rejeita imediatamente
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $normalized[] = $seg;
+    }
+    $file = implode('/', $normalized);
+
+    // Confirmação extra: se o ficheiro existir, valida com realpath
     $resolvedStorageBase = realpath($storageBase);
-    $resolvedPath = realpath($storageBase . $file);
-    if ($resolvedPath === false || !str_starts_with($resolvedPath, $resolvedStorageBase)) {
-        http_response_code(403);
-        exit('Forbidden');
+    $candidate = $storageBase . $file;
+    if ($resolvedStorageBase !== false && file_exists($candidate)) {
+        $resolvedPath = realpath($candidate);
+        if ($resolvedPath === false || !str_starts_with($resolvedPath, $resolvedStorageBase)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
     }
 }
 
@@ -80,6 +100,11 @@ if (str_starts_with($file, 'verifications/')) {
 
 
 
+// Normalizar segmentos duplicados que podem surgir quando o valor de
+// data-thumbnail já inclui o sub-caminho completo (ex: thumbnails/thumbnails/)
+$file = preg_replace('#(videos/thumbnails)/thumbnails/#', '$1/', $file);
+$file = preg_replace('#(albums/thumbnails)/thumbnails/#', '$1/', $file);
+
 // Procurar primeiro na localização nova, depois na antiga
 $path = $storageBase . $file;
 if (!file_exists($path)) {
@@ -96,18 +121,10 @@ if (!file_exists($path) && str_contains($file, 'albums/thumbnails/')) {
 // Fallback: se thumbnail de video nao existe, tenta o ficheiro de video original
 if (!file_exists($path) && str_contains($file, 'videos/thumbnails/')) {
     $original = str_replace('videos/thumbnails/', 'videos/', $file);
-    // Tenta encontrar o vídeo original com qualquer uma das extensões suportadas
-    $videoName = preg_replace('/_thumb\.jpg$/', '', $original);
-    $found = false;
-    foreach(['.mp4', '.webm', '.ogg'] as $ext) {
-        $tryPath = $storageBase . $videoName . $ext;
-        if (!file_exists($tryPath)) $tryPath = $storageBaseLegacy . $videoName . $ext;
-        
-        if (file_exists($tryPath)) {
-            $path = $tryPath;
-            break;
-        }
-    }
+    $original = preg_replace('/_thumb\.jpg$/', '.mp4', $original);
+    $tryPath = $storageBase . $original;
+    if (!file_exists($tryPath)) $tryPath = $storageBaseLegacy . $original;
+    if (file_exists($tryPath)) $path = $tryPath;
 }
 // Fallbacks para imagem por omissão
 if (!file_exists($path)) {
@@ -138,6 +155,16 @@ $mime_map = [
     'webm' => 'video/webm',
 ];
 $mime = $mime_map[$ext] ?? 'application/octet-stream';
+
+// Permite que canvas JS leia imagens/thumbnails via crossOrigin="anonymous"
+// sem tornar o canvas tainted, necessário para o background-blur funcionar.
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed = $_SERVER['HTTP_HOST'] ?? '';
+if ($origin && (parse_url($origin, PHP_URL_HOST) === $allowed)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
+    header("Vary: Origin");
+}
 
 header("Content-Type: $mime");
 header("Content-Length: " . filesize($path));

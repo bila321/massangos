@@ -4,6 +4,8 @@ if (!defined('SECURE_ACCESS')) exit;
 
 use Massango\Models\User;
 
+global $pdo;
+
 $current_user_id = get_current_user_id();
 $suggested_users_list = [];
 if (is_logged_in()) {
@@ -18,10 +20,9 @@ if (!empty($suggested_users_list)): ?>
 
         .suggested-users-card {
             border-radius: 16px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             overflow: hidden;
-            background: var(--bg-main);
+            background: transparent;
             transition: all 0.3s ease;
         }
 

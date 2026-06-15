@@ -73,7 +73,7 @@
     /* altura real do topbar desktop e mobile */
     --topbar-height: 60px;
     /* alias mobile-nav — mantido em sincronia */
-    --sidebar-w: 360px;
+    --sidebar-w: 280px;
     /* sidebar esquerda */
     --widgets-w: 320px;
     /* sidebar direita */
@@ -81,7 +81,7 @@
     --feed-w: 680px;
 
     /* --- Tipografia --- */
-    --fb-font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    --fb-font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     --fb-font-size-base: 0.9375rem;
     --fb-font-size-small: 0.8125rem;
     --fb-font-size-xsmall: 0.75rem;
@@ -130,5 +130,6 @@
         --border: #292929;
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+        --primary-soft: rgba(7, 201, 91, 0.07);
     }
 }

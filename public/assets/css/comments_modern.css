@@ -11,27 +11,27 @@
    1. TOKENS (mapeados ao design system; com fallback para light/dark)
    ======================================================================== */
 :root {
-    --c-bg:           var(--bg-card,    #ffffff);
-    --c-bubble:       var(--bg-surface, #f1f5f9);
+    --c-bg: var(--bg-card, #ffffff);
+    --c-bubble: var(--bg-surface, #f1f5f9);
     --c-bubble-hover: rgba(0, 0, 0, 0.04);
-    --c-text:         var(--text-main,  #0f172a);
-    --c-text-muted:   var(--text-muted, #64748b);
-    --c-primary:      var(--primary,    #07c95b);
-    --c-border:       var(--border,     #e2e8f0);
+    --c-text: var(--text-main, #0f172a);
+    --c-text-muted: var(--text-muted, #64748b);
+    --c-primary: var(--primary, #07c95b);
+    --c-border: var(--border, #e2e8f0);
 
-    --c-radius:       18px;
+    --c-radius: 18px;
     --c-radius-input: 22px;
-    --c-font:         13px;
-    --c-font-meta:    11px;
-    --c-avatar:       30px;
-    --c-avatar-sm:    26px;
-    --c-gap:          8px;
-    --c-pad-bubble:   6px 10px;
+    --c-font: 13px;
+    --c-font-meta: 11px;
+    --c-avatar: 30px;
+    --c-avatar-sm: 26px;
+    --c-gap: 8px;
+    --c-pad-bubble: 6px 10px;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --c-bubble:       #262626;
+        --c-bubble: #262626;
         --c-bubble-hover: rgba(255, 255, 255, 0.06);
     }
 }
@@ -39,13 +39,13 @@
 /* Adapter dark para o sidebar do lightbox (forçado, independente do SO) */
 .photo-sidebar,
 .va-album-comments[data-theme="dark"] {
-    --c-bg:           #1a1a1a;
-    --c-bubble:       #2a2a2a;
+    --c-bg: #1a1a1a;
+    --c-bubble: #2a2a2a;
     --c-bubble-hover: #333333;
-    --c-text:         #e4e6eb;
-    --c-text-muted:   #a8abb0;
-    --c-border:       #3a3a3a;
-    --c-primary:      var(--primary-glow, #00f576);
+    --c-text: #e4e6eb;
+    --c-text-muted: #a8abb0;
+    --c-border: #3a3a3a;
+    --c-primary: var(--primary-glow, #00f576);
 }
 
 /* ========================================================================
@@ -63,6 +63,7 @@
     font-family: var(--fb-font-family, 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
     width: 100%;
     box-sizing: border-box;
+    border-radius: var(--c-radius);
 }
 
 /* No sidebar do lightbox: preencher altura e fazer scroll só na lista */
@@ -71,7 +72,8 @@
     height: 100%;
     min-height: 0;
     gap: 0;
-    overflow: hidden; /* scroll fica na .comments-list */
+    overflow: hidden;
+    /* scroll fica na .comments-list */
 }
 
 /* ========================================================================
@@ -83,7 +85,7 @@
     gap: var(--c-gap);
     align-items: flex-end;
     width: 100%;
-    padding: 8px 10px;
+    padding: 8px 0;
     background-color: var(--c-bg);
     border-bottom: 1px solid var(--c-border);
     box-sizing: border-box;
@@ -91,8 +93,8 @@
 
 /* Filho directo da .comments-area = form principal => fica sticky.
    Forms dentro de .comment-replies não são filhos directos, logo não ficam sticky. */
-.comments-area > .comment-form-with-avatar,
-.comments-area > .comment-input-area {
+.comments-area>.comment-form-with-avatar,
+.comments-area>.comment-input-area {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -113,7 +115,10 @@
     border-bottom: 1px solid var(--c-border);
     background-color: var(--c-bg);
 }
-.comments-header i { color: var(--c-text-muted); }
+
+.comments-header i {
+    color: var(--c-text-muted);
+}
 
 .comment-input-container,
 .comment-form-with-avatar .input-wrap {
@@ -186,11 +191,10 @@
 .comments-list,
 .comment-list {
     list-style: none;
-    padding: 4px 0 8px;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     width: 100%;
     flex: 1 1 auto;
     min-height: 0;
@@ -242,7 +246,7 @@
     padding: var(--c-pad-bubble);
     border-radius: var(--c-radius);
     align-self: flex-start;
-    max-width: 100%;
+    width: 100%;
     word-wrap: break-word;
     word-break: break-word;
 }
@@ -268,7 +272,9 @@
 }
 
 .comment-author:hover,
-.comment-author-name:hover { text-decoration: underline; }
+.comment-author-name:hover {
+    text-decoration: underline;
+}
 
 .comment-text,
 .comment-text-content p {
@@ -287,7 +293,6 @@
     border-radius: 8px;
     font-size: 10px;
     font-weight: 600;
-    background-color: var(--c-primary);
     color: #fff;
     margin-right: 4px;
     text-decoration: none;
@@ -334,12 +339,19 @@
 
 .comment-actions button:hover,
 .comment-footer-actions button:hover,
-.btn-reply-comment:hover { color: var(--c-text); }
+.btn-reply-comment:hover {
+    color: var(--c-text);
+}
 
 .btn-comment-like.active,
-.btn-comment-like.liked { color: var(--c-primary); }
+.btn-comment-like.liked {
+    color: var(--c-primary);
+}
 
-.btn-comment-dislike[disabled] { opacity: 0.45; cursor: not-allowed; }
+.btn-comment-dislike[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
 
 .comment-likes-count,
 .comment-dislikes-count {
@@ -351,12 +363,9 @@
    7. RESPOSTAS (subnível)
    ======================================================================== */
 .comment-replies {
-    margin: 6px 0 0 calc(var(--c-avatar) + 8px);
     display: flex;
     flex-direction: column;
     gap: 6px;
-    border-left: 2px solid var(--c-border);
-    padding-left: 10px;
 }
 
 .comment-reply-form,
@@ -365,7 +374,7 @@
 }
 
 @media (max-width: 768px) {
-    .comment-replies,
+
     .comment-reply-form,
     .reply-form-container {
         margin-left: 18px;
@@ -377,16 +386,29 @@
    8. DROPDOWN "…"
    ======================================================================== */
 .comment-actions-dropdown {
-    position: absolute;
-    right: -18px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative;
+    margin-left: auto;
+    flex-shrink: 0;
     opacity: 0;
     transition: opacity 0.15s ease;
 }
 
-.comment-item { position: relative; }
-.comment-item:hover .comment-actions-dropdown { opacity: 1; }
+.comment-item {
+    position: relative;
+}
+
+.comment-item:hover .comment-actions-dropdown,
+.comment-item:focus-within .comment-actions-dropdown {
+    opacity: 1;
+}
+
+@media (hover: none) {
+
+    /* Touch: dropdown sempre visível */
+    .comment-actions-dropdown {
+        opacity: 1;
+    }
+}
 
 .dropdown-toggle {
     background: none;
@@ -401,7 +423,9 @@
     justify-content: center;
 }
 
-.dropdown-toggle:hover { background-color: var(--c-bubble-hover); }
+.dropdown-toggle:hover {
+    background-color: var(--c-bubble-hover);
+}
 
 .dropdown-menu {
     position: absolute;
@@ -430,7 +454,9 @@
     gap: 8px;
 }
 
-.dropdown-menu button:hover { background-color: var(--c-bubble); }
+.dropdown-menu button:hover {
+    background-color: var(--c-bubble);
+}
 
 /* ========================================================================
    9. ESTADO VAZIO
@@ -450,38 +476,405 @@
         --c-avatar: 28px;
         --c-avatar-sm: 24px;
     }
+
     .comments-container,
     .comment-section-full,
-    .comments-area { padding: 8px; }
-    .comment-actions-dropdown { opacity: 1; right: 0; }
+    .comments-area {
+        padding: 8px;
+    }
+
+    .comment-actions-dropdown {
+        opacity: 1;
+    }
+}
+
+/* Dropdown aberto via JS (aria-expanded) */
+.dropdown-toggle[aria-expanded="true"]+.dropdown-menu {
+    display: block !important;
 }
 
 @media (max-width: 480px) {
+
     .comment-text-wrapper,
-    .comment-text-content { padding: 5px 9px; }
+    .comment-text-content {
+        padding: 5px 9px;
+    }
+
     .comment-actions,
-    .comment-footer-actions { gap: 10px; padding-left: 8px; }
+    .comment-footer-actions {
+        gap: 10px;
+        padding-left: 8px;
+    }
 }
 
 /* ========================================================================
    11. SCROLLBAR
    ======================================================================== */
 .comments-area,
-.comments-list { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.25) transparent; }
+.comments-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
 
 .comments-area::-webkit-scrollbar,
-.comments-list::-webkit-scrollbar { width: 6px; }
+.comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+
 .comments-area::-webkit-scrollbar-track,
-.comments-list::-webkit-scrollbar-track { background: transparent; }
+.comments-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 .comments-area::-webkit-scrollbar-thumb,
 .comments-list::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.22);
+    background: rgba(0, 0, 0, 0.22);
     border-radius: 3px;
 }
+
 .comments-area::-webkit-scrollbar-thumb:hover,
-.comments-list::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.35); }
+.comments-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
 
 .photo-sidebar .comments-area::-webkit-scrollbar-thumb,
-.photo-sidebar .comments-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); }
+.photo-sidebar .comments-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+}
+
 .photo-sidebar .comments-area::-webkit-scrollbar-thumb:hover,
-.photo-sidebar .comments-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.35); }
+.photo-sidebar .comments-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* ========================================================================
+   12. COMPLEMENTOS — unificação dos dois sistemas de comentários
+   ======================================================================== */
+
+/* ── "Ver/Ocultar respostas" ─────────────────────────────────────── */
+.btn-toggle-replies {
+    background: none;
+    border: none;
+    padding: 0 0 0 calc(var(--c-avatar) + 16px);
+    font-size: var(--c-font-meta);
+    font-weight: 600;
+    color: var(--c-primary);
+    cursor: pointer;
+    margin-top: 4px;
+    transition: opacity 0.15s;
+    text-align: left;
+}
+
+.btn-toggle-replies:hover {
+    opacity: 0.75;
+}
+
+/* ── Tag "Foto #N" — cor verde do projecto ───────────────────────── */
+.va-photo-comment-tag {
+    background-color: var(--c-primary);
+}
+
+/* ── Contentor de respostas de fotos (va-pc-replies) ────────────── */
+.va-pc-replies {
+    margin-left: calc(var(--c-avatar) + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 10px;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .va-pc-replies {
+        margin-left: 18px;
+        padding-left: 8px;
+    }
+}
+
+
+#vaLbCommentsWrap .comment-item {
+    padding: 0 4px;
+}
+
+#vaLbCommentsWrap .comment-text-wrapper,
+#vaLbCommentsWrap .comment-text-content {
+    background-color: var(--c-bubble, #2a2a2a);
+}
+
+#vaLbCommentsWrap .comment-author {
+    color: var(--c-text, #e4e6eb);
+}
+
+#vaLbCommentsWrap .comment-text p {
+    color: var(--c-text, #e4e6eb);
+}
+
+#vaLbCommentsWrap .comment-time {
+    color: var(--c-text-muted, #a8abb0);
+}
+
+#vaLbCommentsWrap .btn-comment-like,
+#vaLbCommentsWrap .btn-reply-comment {
+    color: var(--c-text-muted, #a8abb0);
+}
+
+#vaLbCommentsWrap .btn-comment-like.active {
+    color: var(--c-primary, #00f576);
+}
+
+/* ── reply-form-container dentro do lightbox ────────────────────── */
+#vaLbCommentsWrap .reply-form-container {
+    margin: 4px 0 0 calc(var(--c-avatar) + 8px);
+    background-color: var(--c-bubble, #2a2a2a);
+    border-radius: var(--c-radius);
+    padding: 4px 8px;
+}
+
+#vaLbCommentsWrap .reply-form-container textarea {
+    color: var(--c-text, #e4e6eb);
+    background: none;
+    border: none;
+    outline: none;
+    resize: none;
+    width: 100%;
+    font-size: var(--c-font);
+}
+
+#vaLbCommentsWrap .reply-form-container textarea::placeholder {
+    color: var(--c-text-muted, #a8abb0);
+}
+
+/* ── just-posted: destaque suave no comentário recém-injectado ───── */
+.comment-item.just-posted {
+    animation: va-fadein 0.35s ease;
+}
+
+@keyframes va-fadein {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================================================
+   13. REPLY FORM NATIVO (display_comments — functions.php)
+   Substitui as classes btn btn-primary/btn-secondary do Bootstrap.
+   ======================================================================== */
+
+/* Wrapper da área de input de resposta */
+.reply-input-area {
+    display: flex;
+    gap: var(--c-gap);
+    align-items: flex-start;
+}
+
+/* Avatar do utilizador logado dentro do reply form */
+.reply-form-avatar {
+    width: var(--c-avatar-sm);
+    height: var(--c-avatar-sm);
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+/* Textarea do reply form */
+.reply-textarea {
+    flex: 1;
+    background: var(--c-bubble);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-input);
+    padding: 7px 12px;
+    color: var(--c-text);
+    font-size: var(--c-font);
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    min-height: 34px;
+    max-height: 100px;
+    overflow-y: auto;
+    line-height: 1.4;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.reply-textarea:focus {
+    border-color: var(--c-primary);
+}
+
+.reply-textarea::placeholder {
+    color: var(--c-text-muted);
+}
+
+/* Botões de acção do reply form */
+.reply-form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 5px;
+}
+
+.reply-btn-send {
+    font-size: var(--c-font-meta);
+    font-weight: 700;
+    padding: 5px 16px;
+    border-radius: 14px;
+    background: var(--c-primary);
+    color: #000;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.reply-btn-send:hover {
+    opacity: 0.85;
+}
+
+.reply-btn-cancel {
+    font-size: var(--c-font-meta);
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 14px;
+    background: none;
+    color: var(--c-text-muted);
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.reply-btn-cancel:hover {
+    color: var(--c-text);
+}
+
+/* Neutralizar border-bottom + sticky do .comment-input-area
+   quando está nested dentro de .reply-form-container */
+.reply-form-container .comment-input-area {
+    border-bottom: none;
+    position: static;
+    background: transparent;
+    padding: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* ========================================================================
+   14. INLINE REPLY FORM (vaShowPhotoCommentReplyForm — view_album.js)
+   Substitui todos os style="" inline injectados via JS.
+   ======================================================================== */
+.va-inline-reply-form {
+    display: flex;
+    gap: var(--c-gap);
+    align-items: flex-start;
+    margin-top: 8px;
+    padding-left: 4px;
+}
+
+.va-irf-avatar {
+    width: var(--c-avatar-sm);
+    height: var(--c-avatar-sm);
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.va-irf-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.va-irf-textarea {
+    width: 100%;
+    resize: none;
+    border-radius: var(--c-radius-input);
+    padding: 7px 12px;
+    border: 1px solid var(--c-border);
+    background: var(--c-bubble);
+    color: var(--c-text);
+    font-size: var(--c-font);
+    font-family: inherit;
+    box-sizing: border-box;
+    outline: none;
+    line-height: 1.4;
+    transition: border-color 0.15s;
+}
+
+.va-irf-textarea:focus {
+    border-color: var(--c-primary);
+}
+
+.va-irf-textarea::placeholder {
+    color: var(--c-text-muted);
+}
+
+.va-irf-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.va-irf-btn-send {
+    font-size: var(--c-font-meta);
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 12px;
+    background: var(--c-primary);
+    color: #000;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.va-irf-btn-send:hover {
+    opacity: 0.85;
+}
+
+.va-irf-btn-cancel {
+    font-size: var(--c-font-meta);
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: none;
+    color: var(--c-text-muted);
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.va-irf-btn-cancel:hover {
+    color: var(--c-text);
+}
+
+/* ========================================================================
+   15. RESPOSTA INJECTADA APÓS ENVIO
+   ======================================================================== */
+
+/* Indentação da resposta injectada via JS (substitui marginLeft inline) */
+.va-pc-reply--injected {
+    margin-left: calc(var(--c-avatar) + 8px);
+}
+
+@media (max-width: 768px) {
+    .va-pc-reply--injected {
+        margin-left: 18px;
+    }
+}
+
+/* ========================================================================
+   16. DARK CONTEXT — view_album (página e lightbox)
+   O view_album usa dark por defeito; forçar os tokens sem depender do SO.
+   ======================================================================== */
+.va-comments,
+.va-album-comments {
+    --c-bg: var(--card-bg, #1a1a1a);
+    --c-bubble: rgba(255, 255, 255, 0.07);
+    --c-bubble-hover: rgba(255, 255, 255, 0.1);
+    --c-text: var(--text, #e4e6eb);
+    --c-text-muted: var(--text-muted, #a8abb0);
+    --c-border: rgba(255, 255, 255, 0.1);
+}

@@ -317,17 +317,302 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
 
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#07c95b">
     <title>Recuperar Senha — massangos</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/base.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/auth_premium.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        /* ═══════════════════════════════════════════════════════════════
+           LAYOUT BASE — Centralização premium + Responsividade
+           (sobrepõe/reforça regras de auth_premium.css / style.css)
+           ═══════════════════════════════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+        }
+
+        .auth-container {
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(16px, 4vw, 48px);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            margin: 0 auto;
+            background: var(--bg-card, #ffffff);
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: var(--radius-xl, 1rem);
+            box-shadow:
+                0 1px 2px rgba(15, 23, 42, .04),
+                0 12px 32px -8px rgba(15, 23, 42, .12),
+                0 24px 64px -24px rgba(7, 201, 91, .08);
+            padding: clamp(28px, 5vw, 48px);
+            animation: auth-fade-up .5s ease both;
+        }
+
+        @keyframes auth-fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: var(--space-lg, 24px);
+        }
+
+        .auth-header h2 {
+            margin: 0 0 8px;
+            font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem);
+            font-weight: 800;
+            color: var(--text-main, #0f172a);
+            letter-spacing: -0.02em;
+        }
+
+        .auth-header p {
+            margin: 0;
+            font-size: var(--text-sm, .9rem);
+            color: var(--text-muted, #64748b);
+            line-height: 1.6;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md, 18px);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: var(--text-sm, .85rem);
+            font-weight: 600;
+            color: var(--text-main, #0f172a);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid var(--border, #e2e8f0);
+            border-radius: var(--radius-md, 12px);
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-main, #0f172a);
+            background: var(--bg-surface, #f8fafc);
+            transition: border-color .2s, box-shadow .2s, background .2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary, #07c95b);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(7, 201, 91, .12);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted, #94a3b8);
+        }
+
+        .btn-auth-submit {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--radius-md, 12px);
+            background: var(--primary, #07c95b);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            letter-spacing: .01em;
+            cursor: pointer;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            box-shadow: 0 8px 20px -8px rgba(7, 201, 91, .55);
+        }
+
+        .btn-auth-submit:hover {
+            background: var(--primary-hover, #027e21);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px -8px rgba(7, 201, 91, .6);
+        }
+
+        .btn-auth-submit:active {
+            transform: translateY(0);
+        }
+
+        .auth-footer {
+            margin-top: var(--space-lg, 24px);
+            text-align: center;
+            font-size: var(--text-sm, .85rem);
+            color: var(--text-muted, #64748b);
+            line-height: 1.7;
+        }
+
+        .auth-footer a {
+            color: var(--primary, #07c95b);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .auth-footer a:hover {
+            color: var(--primary-hover, #027e21);
+            text-decoration: underline;
+        }
+
+        .auth-card>.auth-back-link:first-child {
+            margin-top: 0;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           RESPONSIVIDADE — Breakpoints premium
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* Tablets e telas médias */
+        @media (max-width: 768px) {
+            .auth-card {
+                max-width: 420px;
+                border-radius: var(--radius-lg, 0.75rem);
+            }
+        }
+
+        /* Smartphones */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 12px;
+                align-items: stretch;
+            }
+
+            .auth-card {
+                max-width: 100%;
+                margin: auto 0;
+                border-radius: 16px;
+                padding: 28px 20px;
+                box-shadow:
+                    0 1px 2px rgba(15, 23, 42, .04),
+                    0 8px 24px -8px rgba(15, 23, 42, .10);
+            }
+
+            .auth-header h2 {
+                font-size: 1.35rem;
+            }
+
+            .auth-icon-wrap {
+                width: 56px;
+                height: 56px;
+            }
+
+            .auth-icon-wrap i {
+                font-size: 1.4rem;
+            }
+
+            .form-control,
+            .btn-auth-submit,
+            .btn-secondary {
+                font-size: 0.95rem;
+            }
+
+            .sent-email-box {
+                font-size: 0.8rem;
+                padding: 10px 12px;
+            }
+        }
+
+        /* Telas muito pequenas */
+        @media (max-width: 360px) {
+            .auth-card {
+                padding: 22px 16px;
+            }
+
+            .auth-header h2 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Modo paisagem em mobile — evita overflow vertical */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .auth-container {
+                align-items: flex-start;
+                padding-top: 24px;
+                padding-bottom: 24px;
+            }
+
+            .auth-icon-wrap {
+                width: 48px;
+                height: 48px;
+                margin-bottom: 12px;
+            }
+
+            .auth-header {
+                margin-bottom: 16px;
+            }
+        }
+
+        /* Telas grandes (desktop wide) */
+        @media (min-width: 1440px) {
+            .auth-card {
+                max-width: 480px;
+                padding: 52px;
+            }
+        }
+
+        /* Acessibilidade: reduzir movimento */
+        @media (prefers-reduced-motion: reduce) {
+            .auth-card {
+                animation: none;
+            }
+        }
+
         /* ── Extras: forgot_password ─────────────────────────────────── */
         .auth-back-link {
             display: inline-flex;
@@ -542,7 +827,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
         <div class="auth-card">
 
             <a href="<?= BASE_URL ?>login.php" class="auth-back-link">
-                <i class="fas fa-arrow-left"></i> Voltar ao login
+                <i class="ti ti-arrow-left"></i> Voltar ao login
             </a>
 
             <?php if (!empty($errors)): ?>
@@ -560,7 +845,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
             <?php if ($step === 'request'): ?>
 
                 <div class="auth-icon-wrap">
-                    <i class="fas fa-lock-open"></i>
+                    <i class="ti ti-lock-open"></i>
                 </div>
 
                 <div class="auth-header">
@@ -587,7 +872,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
                     </div>
 
                     <button type="submit" class="btn-auth-submit">
-                        <i class="fas fa-paper-plane" style="margin-right:8px;"></i>Enviar link de recuperação
+                        <i class="ti ti-send" style="margin-right:8px;"></i>Enviar link de recuperação
                     </button>
                 </form>
 
@@ -603,7 +888,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
             <?php elseif ($step === 'sent'): ?>
 
                 <div class="auth-icon-wrap success-icon">
-                    <i class="fas fa-envelope-circle-check"></i>
+                    <i class="ti ti-mail-check"></i>
                 </div>
 
                 <div class="auth-header">
@@ -612,7 +897,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
                 </div>
 
                 <div class="sent-email-box">
-                    <i class="fas fa-envelope"></i>
+                    <i class="ti ti-mail"></i>
                     <?= htmlspecialchars($_POST['email'] ?? '') ?>
                 </div>
 
@@ -626,7 +911,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                     <input type="hidden" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
                     <button type="submit" class="btn-secondary">
-                        <i class="fas fa-rotate-right"></i> Reenviar e-mail
+                        <i class="ti ti-rotate-clockwise"></i> Reenviar e-mail
                     </button>
                 </form>
 
@@ -641,7 +926,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
             <?php elseif ($step === 'reset' && $token_row): ?>
 
                 <div class="auth-icon-wrap">
-                    <i class="fas fa-key"></i>
+                    <i class="ti ti-key"></i>
                 </div>
 
                 <div class="auth-header">
@@ -668,7 +953,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
                                 required
                                 autofocus>
                             <button type="button" class="pw-toggle" onclick="togglePw('password',this)" aria-label="Mostrar senha">
-                                <i class="fas fa-eye"></i>
+                                <i class="ti ti-eye"></i>
                             </button>
                         </div>
 
@@ -678,9 +963,9 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
                         <p class="strength-label" id="strengthLabel"></p>
 
                         <ul class="pw-requirements" id="pwReqs">
-                            <li id="req-len"> <i class="fas fa-circle-dot"></i> Mínimo <?= defined('MIN_PASSWORD_LENGTH') ? MIN_PASSWORD_LENGTH : 8 ?> caracteres</li>
-                            <li id="req-upper"><i class="fas fa-circle-dot"></i> Uma letra maiúscula (A–Z)</li>
-                            <li id="req-num"> <i class="fas fa-circle-dot"></i> Um número (0–9)</li>
+                            <li id="req-len"> <i class="ti ti-circle"></i> Mínimo <?= defined('MIN_PASSWORD_LENGTH') ? MIN_PASSWORD_LENGTH : 8 ?> caracteres</li>
+                            <li id="req-upper"><i class="ti ti-circle"></i> Uma letra maiúscula (A–Z)</li>
+                            <li id="req-num"> <i class="ti ti-circle"></i> Um número (0–9)</li>
                         </ul>
                     </div>
 
@@ -697,14 +982,14 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
                                 autocomplete="new-password"
                                 required>
                             <button type="button" class="pw-toggle" onclick="togglePw('confirm_password',this)" aria-label="Mostrar senha">
-                                <i class="fas fa-eye"></i>
+                                <i class="ti ti-eye"></i>
                             </button>
                         </div>
                         <p class="match-label" id="matchLabel"></p>
                     </div>
 
                     <button type="submit" class="btn-auth-submit">
-                        <i class="fas fa-shield-halved" style="margin-right:8px;"></i>Guardar nova senha
+                        <i class="ti ti-shield-check" style="margin-right:8px;"></i>Guardar nova senha
                     </button>
                 </form>
 
@@ -724,7 +1009,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
             const icon = btn.querySelector('i');
             const hide = inp.type === 'password';
             inp.type = hide ? 'text' : 'password';
-            icon.className = hide ? 'fas fa-eye-slash' : 'fas fa-eye';
+            icon.className = hide ? 'ti ti-eye-off' : 'ti ti-eye';
             btn.setAttribute('aria-label', hide ? 'Ocultar senha' : 'Mostrar senha');
         }
 
@@ -773,7 +1058,7 @@ function _send_reset_email(string $to_email, string $to_name, string $token): vo
 
             function setReq(el, ok) {
                 el.classList.toggle('valid', ok);
-                el.querySelector('i').className = ok ? 'fas fa-circle-check' : 'fas fa-circle-dot';
+                el.querySelector('i').className = ok ? 'ti ti-circle-check' : 'ti ti-circle';
             }
 
             function updateMatch() {

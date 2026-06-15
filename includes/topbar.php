@@ -358,12 +358,12 @@ $current_page    = basename($_SERVER['PHP_SELF']);
             <a href="<?= BASE_URL ?>reels.php"
                 class="nav-item <?= $current_page === 'reels.php' ? 'active' : '' ?>"
                 title="Reels" aria-label="Reels">
-                <i class="fa-solid fa-clapperboard" aria-hidden="true"></i>
+                <i class="fa-solid fa-stop" aria-hidden="true"></i>
             </a>
             <a href="<?= BASE_URL ?>create-post.php"
                 class="nav-item <?= $current_page === 'create-post.php' ? 'active' : '' ?>"
                 title="Publicar" aria-label="Criar publicação">
-                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <i class="fa-solid fa-circle-plus" aria-hidden="true"></i>
             </a>
             <a href="<?= BASE_URL ?>marketplace.php"
                 class="nav-item <?= $current_page === 'marketplace.php' ? 'active' : '' ?>"

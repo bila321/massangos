@@ -208,11 +208,12 @@ if (!function_exists('display_comments')) {
                     </div>
                     <div class="comment-actions">
                         <span class="comment-time"><?= format_datetime_ago($comment['created_at']) ?></span>
-                        <button class="btn-comment-like <?= ($user_vote === 'like' ? 'active' : '') ?>" data-comment-id="<?= htmlspecialchars($comment['id']) ?>" data-vote-type="like">
-                            Gosto <span class="comment-likes-count"><?= htmlspecialchars($likes_count) ?></span>
-                        </button>
-                        <button class="btn-comment-dislike <?= ($user_vote === 'dislike' ? 'active' : '') ?>" data-comment-id="<?= htmlspecialchars($comment['id']) ?>" data-vote-type="dislike">
-                            Não gosto
+                        <button class="btn-comment-like <?= ($user_vote === 'like' ? 'active' : '') ?>"
+                            data-comment-id="<?= htmlspecialchars($comment['id']) ?>"
+                            data-source="photo"
+                            data-vote-type="like">
+                            <i class="fa-<?= $user_vote ? 'solid' : 'regular' ?> fa-heart"></i>
+                            <span class="comment-likes-count"><?= htmlspecialchars($likes_count) ?></span>
                         </button>
                         <?php if ($currentUserId): ?>
                             <button class="btn-reply-comment"
@@ -228,20 +229,19 @@ if (!function_exists('display_comments')) {
                                 <input type="hidden" name="feed_item_id" value="<?= htmlspecialchars($comment['feed_item_id']) ?>">
                                 <input type="hidden" name="parent_comment_id" value="<?= htmlspecialchars($comment['id']) ?>">
 
-                                <div class="comment-input-area">
+                                <div class="reply-input-area">
                                     <?php
-                                    // Certifica-se de que UPLOAD_URL e BASE_URL estão definidos em config.php
                                     $logged_in_user_profile_pic = $_SESSION['user_profile_picture'] ?? BASE_URL . 'assets/img/default_profile.png';
                                     ?>
                                     <img src="<?= htmlspecialchars($logged_in_user_profile_pic) ?>"
                                         alt="Sua foto de perfil"
-                                        class="comment-profile-picture your-profile-picture-small">
-                                    <textarea name="comment_content" placeholder="Escreva sua resposta..." required></textarea>
+                                        class="comment-avatar reply-form-avatar">
+                                    <textarea name="comment_content" class="reply-textarea" placeholder="Escreva sua resposta..." required></textarea>
                                 </div>
 
-                                <div class="form-buttons">
-                                    <button type="submit" class="btn btn-primary btn-sm">Responder</button>
-                                    <button type="button" class="btn btn-secondary btn-sm cancel-reply-btn" data-comment-id="<?= htmlspecialchars($comment['id']) ?>">Cancelar</button>
+                                <div class="reply-form-actions">
+                                    <button type="submit" class="reply-btn-send">Responder</button>
+                                    <button type="button" class="reply-btn-cancel cancel-reply-btn" data-comment-id="<?= htmlspecialchars($comment['id']) ?>">Cancelar</button>
                                 </div>
                             </form>
                         </div>

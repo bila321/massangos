@@ -90,11 +90,6 @@
     transform: translateX(4px);
 }
 
-.sidebar .nav-link.active {
-    background: linear-gradient(135deg, rgba(0, 245, 118, 0.13), rgba(0, 209, 178, 0.13));
-    color: #00f576;
-}
-
 .sidebar .nav-link.active i {
     color: #00f576;
 }
@@ -408,8 +403,7 @@
 
 
 .widget-card {
-    background: var(--bg-main);
-    border: 1px solid var(--border);
+    background: transparent;
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
     margin-bottom: var(--space-xl);
@@ -511,11 +505,6 @@
     transform: translateX(5px);
 }
 
-.nav-link.active {
-    background: var(--primary-gradient);
-    color: white;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
 
 .sidebar-overlay.active {
     display: block;

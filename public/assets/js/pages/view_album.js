@@ -101,7 +101,7 @@
                         <button class="va-lb-action-btn va-lb-btn-dark" data-action="lb-save" title="Guardar">
                             <i class="fa-regular fa-bookmark"></i>
                         </button>
-                        <span class="va-lb-action-label">Guardar</span>
+                        <span class="va-lb-action-label" id="vaLbSaveCount">0</span>
                     </div>
                     <div class="va-lb-action-group">
                         <button class="va-lb-action-btn va-lb-btn-dark" data-action="lb-share" title="Partilhar">
@@ -180,26 +180,8 @@ function vaOpenLightbox(idx) {
     document.documentElement.style.overflow = 'hidden';
     vaUpdateNav();
     // Sincronizar contadores individuais da foto
-    const lbLikeBtn = document.getElementById('vaLbLikeBtn');
-    const lbLikeCnt = document.getElementById('vaLbLikeCount');
-    const lbComCnt = document.getElementById('vaLbCommentCount');
-    const photo = VA_PHOTOS[idx];
-    if (!photo) return;
-    if (lbLikeBtn) lbLikeBtn.classList.toggle('active', !!photo.user_liked);
-    if (lbLikeCnt) lbLikeCnt.textContent = photo.likes_count ?? 0;
-    if (lbComCnt) {
-        lbComCnt.textContent = photo.comments_count ?? 0;
-        // Actualizar contador real do servidor em background
-        fetch(BASE_URL + 'api/photo_interactions.php?action=comments&photo_id=' + photo.id)
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    photo.comments_count = data.total;
-                    const cnt = document.getElementById('vaLbCommentCount');
-                    if (cnt) cnt.textContent = data.total;
-                }
-            }).catch(() => { });
-    }
+    // Sincronizar contadores individuais da foto
+    vaSyncPhotoCounters(VA_PHOTOS[idx]);
     vaLbCommentsLoaded = false;
 }
 
@@ -242,8 +224,6 @@ function vaLoadPhoto(idx) {
     const mediaEl = document.getElementById('vaLbMedia');
 
     // … 1. Definir estado de blur ANTES de trocar a imagem …
-    // Isto garante que o novo estado (blur ou limpo) está em vigor antes
-    // do browser renderizar o próximo frame … elimina o piscar.
     const needsBlur = photo.show_blur && !vaLbBlurRevealed;
     if (imgInner) imgInner.style.filter = needsBlur ? 'blur(18px) saturate(0.4)' : 'none';
 
@@ -251,7 +231,7 @@ function vaLoadPhoto(idx) {
     const oldShield = mediaEl.querySelector('.va-lb-blur-shield');
     if (oldShield) oldShield.remove();
 
-    // … 3. Trocar imagem (assíncrono … o blur já está aplicado) …
+    // … 3. Trocar imagem …
     img.classList.add('loading');
     const tmp = new Image();
     tmp.onload = function () {
@@ -269,33 +249,33 @@ function vaLoadPhoto(idx) {
     document.getElementById('vaLbCounter').textContent = (idx + 1) + ' | ' + VA_PHOTOS.length;
     vaUpdateNav();
 
+    // ✅ CORREÇÃO: Sincronizar botões e contadores ao navegar entre fotos
+    vaSyncPhotoCounters(photo);
+
     // … 5. Shield de blur (se necessário) …
     if (needsBlur) {
         const shield = document.createElement('div');
         shield.className = 'va-lb-blur-shield';
         shield.innerHTML = `
-                <i class="fa-solid fa-eye-slash"></i>
-                <p>Conteúdo pode ser explícito</p>
-                <small>${photo.explicit_pct}% de conteúdo adulto detectado</small>
-                <button class="va-lb-reveal-btn" id="vaLbRevealBtn">
-                    <i class="fa-solid fa-eye"></i>&nbsp; Ver mesmo assim
-                </button>`;
+            <i class="fa-solid fa-eye-slash"></i>
+            <p>Conteúdo pode ser explícito</p>
+            <small>${photo.explicit_pct}% de conteúdo adulto detectado</small>
+            <button class="va-lb-reveal-btn" id="vaLbRevealBtn">
+                <i class="fa-solid fa-eye"></i>&nbsp; Ver mesmo assim
+            </button>`;
         mediaEl.appendChild(shield);
         document.getElementById('vaLbRevealBtn').addEventListener('click', function (e) {
             e.stopPropagation();
             vaLbBlurRevealed = true;
             if (imgInner) {
-                // Adicionar transition apenas no momento do reveal … UX suave
                 imgInner.style.transition = 'filter 0.25s ease';
                 imgInner.style.filter = 'none';
-                // Remover transition depois para que a próxima navegação seja instantânea
                 imgInner.addEventListener('transitionend', function cleanup() {
                     imgInner.style.transition = '';
                     imgInner.removeEventListener('transitionend', cleanup);
                 });
             }
             shield.remove();
-            // O grid permanece com blur … só o lightbox revela a imagem
         });
     }
 }
@@ -329,6 +309,23 @@ function vaSyncPhotoCounters(photo) {
             photo.comments_count ?? 0;
     }
 
+    // ── Sincronizar ícone de bookmark da foto ──
+    const lbSaveBtn = document.querySelector('[data-action="lb-save"]');
+    if (lbSaveBtn) {
+        lbSaveBtn.classList.toggle('active', !!photo.user_saved);
+        const icon = lbSaveBtn.querySelector('i');
+        if (icon) {
+            icon.className = photo.user_saved
+                ? 'fa-solid fa-bookmark'
+                : 'fa-regular fa-bookmark';
+        }
+    }
+
+    const lbSaveCnt = document.getElementById('vaLbSaveCount');
+    if (lbSaveCnt) {
+        lbSaveCnt.textContent = photo.saves_count ?? 0;
+    }
+
     fetch(
         BASE_URL +
         'api/photo_interactions.php?action=comments&photo_id=' +
@@ -352,31 +349,36 @@ function vaSyncPhotoCounters(photo) {
         .catch(() => { });
 }
 
+
 function vaUpdateNav() {
     const prev = document.getElementById('vaLbPrev');
     const next = document.getElementById('vaLbNext');
     if (prev) prev.disabled = vaCurrentIdx === 0;
     if (next) next.disabled = vaCurrentIdx === VA_PHOTOS.length - 1;
 }
-function vaNavPhoto(direction) {
-    if (typeof vaCurrentIdx === 'undefined' || !VA_PHOTOS || VA_PHOTOS.length === 0) {
-        console.warn('vaNavPhoto: estado invÃ¡lido');
-        return;
-    }
-    const newIdx = vaCurrentIdx + direction;
-    if (newIdx >= 0 && newIdx < VA_PHOTOS.length) {
-        vaCurrentIdx = newIdx;
-        if (typeof vaLoadPhoto === 'function') vaLoadPhoto(vaCurrentIdx);
-        if (typeof vaUpdateNav === 'function') vaUpdateNav();
+
+// ← ADICIONAR AQUI ↓
+function vaNavPhoto(dir) {
+    const next = vaCurrentIdx + dir;
+
+    // Não sair dos limites do array
+    if (next < 0 || next >= VA_PHOTOS.length) return;
+
+    vaCurrentIdx = next;
+
+    // Cada foto tem o seu próprio estado de blur
+    vaLbBlurRevealed = false;
+
+    // Carrega imagem + metadata + sincroniza contadores
+    vaLoadPhoto(vaCurrentIdx);
+
+    // Se sidebar estiver aberta, recarrega comentários da nova foto
+    const sidebar = document.getElementById('vaLbCommentsSidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+        vaLbCommentsLoaded = false;
+        vaReloadPhotoComments();
     }
 }
-
-
-// …
-// COMENT…RIOS … duas modalidades:
-//   1. Lightbox: comentário por FOTO (photo_interactions.php)
-// 2. Página: comentário do …LBUM (api/comments.php via FEED_ITEM_ID)
-// …
 
 // Determina se o input é do lightbox (foto) ou da página (álbum)
 function vaSubmitComment(inputId) {
@@ -460,29 +462,36 @@ function vaSubmitAlbumComment(inputId) {
         .catch(console.error);
 }
 
-// Recarregar comentários da FOTO no sidebar do lightbox
-// Alias usado pelo vaToggleLbSidebar
-function vaReloadComments() { vaReloadPhotoComments(); }
-
 // Injectar comentário de foto na lista geral do álbum (sem reload)
 // Injectar comentario geral do album no DOM sem reload
 function vaInjectAlbumCommentInList(text) {
     const list = document.getElementById('vaCommentsListInline');
     if (!list) return;
-    const empty = list.querySelector('.va-no-comments');
+    const empty = list.querySelector('.no-comments, .va-no-comments');
     if (empty) empty.remove();
     const meAvatar = typeof VA_LB_ME_PIC !== 'undefined' ? VA_LB_ME_PIC : '';
     const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const div = document.createElement('div');
-    div.className = 'va-comment-item';
-    div.innerHTML = `
-        <img src="${meAvatar}" class="va-comment-avatar" onerror="this.style.display='none'">
-        <div class="va-comment-body">
-            <div class="va-comment-bubble"><p>${safe}</p></div>
-            <div class="va-comment-meta">agora</div>
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    const li = document.createElement('li');
+    li.className = 'comment-item just-posted';
+    li.dataset.likes = '0';
+    li.dataset.createdAt = now;
+    li.innerHTML = `
+        <img src="${meAvatar}" class="comment-avatar" onerror="this.style.display='none'">
+        <div class="comment-body">
+            <div class="comment-text-wrapper">
+                <div class="comment-text"><p>${safe}</p></div>
+            </div>
+            <div class="comment-actions">
+                <span class="comment-time">agora</span>
+                <button class="btn-comment-like" data-comment-id="0" data-vote-type="like" data-source="album" disabled>
+                    <i class="fa-regular fa-heart"></i>
+                    <span class="comment-likes-count"></span>
+                </button>
+            </div>
         </div>`;
-    list.appendChild(div);
-    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    list.appendChild(li);
+    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function vaInjectPhotoCommentInAlbum(text, photoNum, photoJsIdx) {
@@ -497,23 +506,31 @@ function vaInjectPhotoCommentInAlbum(text, photoNum, photoJsIdx) {
     const safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     const div = document.createElement('div');
-    div.className = 'va-comment-item va-comment-from-photo';
+    div.className = 'comment-item va-comment-from-photo';
     div.dataset.photoIdx = photoJsIdx;
+    div.dataset.likes = '0';
+    div.dataset.createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
     div.title = 'Clique para abrir a Foto #' + photoNum;
     div.style.cursor = 'pointer';
     div.onclick = () => vaOpenLightbox(photoJsIdx);
     div.innerHTML = `
-        <img src="${meAvatar}" class="va-comment-avatar" onerror="this.style.display='none'">
-        <div class="va-comment-body">
-            <div class="va-photo-comment-tag">
-                <i class="fa-solid fa-image"></i>
-                Foto #${photoNum}
-                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px;opacity:0.6;"></i>
+        <img src="${meAvatar}" class="comment-avatar" onerror="this.style.display='none'">
+        <div class="comment-body">
+            <div class="comment-text-wrapper">
+                <div class="comment-header">
+                    <span class="va-photo-comment-tag"
+                        onclick="event.stopPropagation(); vaOpenLightbox(${photoJsIdx})"
+                        title="Abrir Foto #${photoNum}" style="cursor:pointer;">
+                        <i class="fa-solid fa-image"></i>
+                        Foto #${photoNum}
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px;opacity:0.6;"></i>
+                    </span>
+                </div>
+                <div class="comment-text"><p>${safeText}</p></div>
             </div>
-            <div class="va-comment-bubble">
-                <p>${safeText}</p>
+            <div class="comment-actions">
+                <span class="comment-time">agora</span>
             </div>
-            <div class="va-comment-meta">agora</div>
         </div>`;
 
     list.appendChild(div);
@@ -551,6 +568,50 @@ function vaDeletePhoto(photoId, btn) {
 }
 
 // …
+// LIKE individual da FOTO no lightbox
+// …
+function vaPerformPhotoLike(btn) {
+    const photo = VA_PHOTOS[vaCurrentIdx];
+    if (!photo || !photo.id) return;
+
+    if (btn) btn.disabled = true;
+
+    fetch(BASE_URL + 'api/photo_interactions.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            photo_id: photo.id,
+            action: 'like'
+        })
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+
+            // Guardar estado actualizado na foto actual
+            photo.user_liked = !!data.liked;
+            photo.likes_count = data.likes ?? 0;
+
+            // Actualizar botão do lightbox
+            const lbLikeBtn = document.getElementById('vaLbLikeBtn');
+            const lbLikeCnt = document.getElementById('vaLbLikeCount');
+
+            if (lbLikeBtn) {
+                lbLikeBtn.classList.toggle('active', !!data.liked);
+            }
+
+            if (lbLikeCnt) {
+                lbLikeCnt.textContent = data.likes ?? 0;
+            }
+        })
+        .catch(console.error)
+        .finally(() => {
+            if (btn) btn.disabled = false;
+        });
+}
+// …
 // LIKE … reutilizável para página e lightbox
 // …
 function vaPerformLike(btn) {
@@ -559,7 +620,7 @@ function vaPerformLike(btn) {
     fd.append('feed_item_id', FEED_ITEM_ID);
     fd.append('action', 'like');
 
-    fetch(BASE_URL + 'api/photo_interactions.php', {
+    fetch(BASE_URL + 'process_like.php', {
         method: 'POST',
         body: fd
     })
@@ -567,13 +628,11 @@ function vaPerformLike(btn) {
         .then(data => {
             if (data.success) {
                 const isActive = data.user_vote === 1 || data.user_vote === 'like';
-                document.querySelectorAll('[data-action="like"], [data-action="lb-like"]').forEach(b => {
+                document.querySelectorAll('[data-action="like"]').forEach(b => {
                     b.classList.toggle('active', isActive);
                 });
                 const pageCnt = document.getElementById('vaPageLikeCount');
-                const lbCnt = document.getElementById('vaLbLikeCount');
                 if (pageCnt && data.likes !== undefined) pageCnt.textContent = data.likes;
-                if (lbCnt && data.likes !== undefined) lbCnt.textContent = data.likes;
             }
         })
         .catch(console.error);
@@ -604,6 +663,93 @@ function vaPerformSave(btn) {
             }
         })
         .catch(console.error);
+}
+
+// ─────────────────────────────────────────────
+// Abrir automaticamente uma foto quando a URL
+// contém #photo-123
+// ─────────────────────────────────────────────
+window.addEventListener('load', function () {
+    const hash = window.location.hash || '';
+
+    const m = hash.match(/^#photo-(\d+)$/);
+    if (!m) return;
+
+    const photoId = parseInt(m[1], 10);
+
+    const idx = VA_PHOTOS.findIndex(
+        p => parseInt(p.id, 10) === photoId
+    );
+
+    if (idx >= 0) {
+        setTimeout(() => {
+            vaOpenLightbox(idx);
+        }, 300);
+    }
+});
+
+// …
+// SAVE da FOTO individual no lightbox — usa toggle_save.php com item_type=photo
+// …
+let vaPhotoSaveBusy = false;
+
+function vaPerformPhotoSave(btn, event) {
+    // Só aceitar clique real do utilizador
+    if (!event || event.isTrusted !== true) return;
+
+    // Evitar chamadas repetidas
+    if (vaPhotoSaveBusy) return;
+
+    const photo = VA_PHOTOS[vaCurrentIdx];
+    if (!photo || !photo.id) return;
+
+    vaPhotoSaveBusy = true;
+    if (btn) btn.disabled = true;
+
+    const fd = new FormData();
+    fd.append('item_type', 'photo');
+    fd.append('item_id', photo.id);
+    fd.append('csrf_token', CSRF_TOKEN);
+
+    fetch(BASE_URL + 'ajax/toggle_save.php', {
+        method: 'POST',
+        body: fd
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Erro ao guardar foto:', data);
+                return;
+            }
+
+            photo.user_saved = !!data.saved;
+
+            const lbSaveBtn = document.querySelector('[data-action="lb-save"]');
+
+            if (lbSaveBtn) {
+                lbSaveBtn.classList.toggle('active', !!data.saved);
+
+                const icon = lbSaveBtn.querySelector('i');
+                if (icon) {
+                    icon.className = data.saved
+                        ? 'fa-solid fa-bookmark'
+                        : 'fa-regular fa-bookmark';
+                }
+            }
+            // Actualizar contador
+            photo.saves_count = (photo.saves_count ?? 0) + (data.saved ? 1 : -1);
+            if (photo.saves_count < 0) photo.saves_count = 0;
+
+            const lbSaveCnt = document.getElementById('vaLbSaveCount');
+            if (lbSaveCnt) {
+                lbSaveCnt.textContent = photo.saves_count;
+            }
+        })
+        .catch(console.error)
+        .finally(() => {
+            vaPhotoSaveBusy = false;
+            if (btn) btn.disabled = false;
+        });
 }
 
 // …
@@ -675,11 +821,14 @@ document.addEventListener('click', function (e) {
             vaNavPhoto(1);
             break;
 
-        // … Like (página e lightbox) …
         case 'like':
-        case 'lb-like':
             e.stopPropagation();
             vaPerformLike(btn);
+            break;
+
+        case 'lb-like':
+            e.stopPropagation();
+            vaPerformPhotoLike(btn);
             break;
 
         // … Scroll para comentários (página) …
@@ -702,9 +851,14 @@ document.addEventListener('click', function (e) {
 
         // … Guardar (página e lightbox) …
         case 'save':
-        case 'lb-save':
             e.stopPropagation();
             vaPerformSave(btn);
+            break;
+
+        case 'lb-save':
+            e.preventDefault();
+            e.stopPropagation();
+            vaPerformPhotoSave(btn, e);
             break;
 
         // … Partilhar (página e lightbox) …
@@ -773,58 +927,83 @@ document.querySelectorAll('.va-comment-textarea').forEach(function (ta) {
 
 // Construir HTML de um comentário (raiz ou resposta)
 function vaRenderComment(c, isReply) {
-    const pic = c.profile_picture
-        ? (BASE_URL + '../storage/uploads/' + c.profile_picture)
-        : '';
+    const pic = c.profile_picture ? (UPLOAD_URL + c.profile_picture) : '';
     const safe = (c.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const liked = c.user_liked ? 'active' : '';
     const likes = c.likes_count || 0;
-    const indent = isReply ? 'margin-left:44px;margin-top:8px;' : '';
+
+    // Permissões: dono do comentário ou dono do álbum
+    const isCommentOwner = (typeof CURRENT_USER_ID !== 'undefined') && CURRENT_USER_ID && (c.user_id == CURRENT_USER_ID);
+    const isAlbumOwner = (typeof VA_LB_IS_OWNER !== 'undefined') && VA_LB_IS_OWNER;
+    const canDelete = isCommentOwner || isAlbumOwner;
+    const isLoggedIn = (typeof CURRENT_USER_ID !== 'undefined') && !!CURRENT_USER_ID;
+
+    // Dropdown "⋮" — só renderiza se houver pelo menos uma acção disponível
+    const dropdownHtml = (isCommentOwner || canDelete) ? `
+        <div class="comment-actions-dropdown">
+            <button class="dropdown-toggle" aria-label="Opções do comentário" aria-expanded="false">&#x22EE;</button>
+            <div class="dropdown-menu" style="display:none;">
+                ${isCommentOwner ? `<button class="edit-comment-btn"
+                    data-comment-id="${c.id}"
+                    data-content="${safe}"
+                    data-source="photo">Editar</button>` : ''}
+                ${canDelete ? `<button class="delete-comment-btn"
+                    data-comment-id="${c.id}"
+                    data-source="photo">Apagar</button>` : ''}
+            </div>
+        </div>` : '';
 
     // Respostas aninhadas
     let repliesHtml = '';
     if (!isReply && c.replies && c.replies.length > 0) {
-        repliesHtml = c.replies.map(r => vaRenderComment(r, true)).join('');
+        repliesHtml =
+            '<ul class="comment-list comment-replies">' +
+            c.replies.map(r => vaRenderComment(r, true)).join('') +
+            '</ul>';
     }
 
     return `
-    <div class="va-pc-item${isReply ? ' va-pc-reply' : ''}" data-comment-id="${c.id}" style="${indent}">
-        <img src="${pic}" class="va-pc-avatar"
+    <li class="comment-item" data-comment-id="${c.id}" data-user-id="${c.user_id || ''}">
+        <img src="${pic}" class="comment-avatar"
              onerror="this.style.visibility='hidden'">
-        <div class="va-pc-body">
-            <div class="va-pc-bubble">
-                <strong class="va-pc-username">${c.username || ''}</strong>
-                <p class="va-pc-text">${safe}</p>
+        <div class="comment-body">
+            <div class="comment-text-wrapper">
+                <div class="comment-header">
+                    <span class="comment-author">${c.username || ''}</span>
+                    ${dropdownHtml}
+                </div>
+                <div class="comment-text"><p>${safe}</p></div>
             </div>
-            <div class="va-pc-actions">
-                <button class="va-pc-like-btn ${liked}"
-                        onclick="vaLikeComment(${c.id}, this)"
-                        title="Gostei">
-                    <i class="fa-${c.user_liked ? 'solid' : 'regular'} fa-heart"></i>
-                    <span class="va-pc-like-count">${likes > 0 ? likes : ''}</span>
+            <div class="comment-actions">
+                <span class="comment-time">${c.pc_time || ''}</span>
+                <button class="btn-comment-like ${liked}"
+                       data-comment-id="${c.id}"
+                       data-vote-type="like"
+                       data-source="photo"
+                       title="Gostei">
+                       <i class="fa-${c.user_liked ? 'solid' : 'regular'} fa-heart"></i>
+                    <span class="comment-likes-count">${likes > 0 ? likes : ''}</span>
                 </button>
-                ${!isReply ? `<button class="va-pc-reply-btn"
-                        onclick="vaShowReplyInput(${c.id}, this)"
+                ${isLoggedIn && !isReply ? `<button class="btn-reply-comment"
+                        data-comment-id="${c.id}"
+                        data-author="${c.username || ''}"
                         title="Responder">
-                    <i class="fa-solid fa-reply"></i> Responder
+                    Responder
                 </button>` : ''}
-                <span class="va-pc-date">${c.created_at || ''}</span>
             </div>
-            <div class="va-pc-reply-form" id="va-reply-form-${c.id}" style="display:none;">
-                <div class="va-pc-reply-input-wrap">
-                    <textarea class="va-pc-reply-textarea"
-                              placeholder="Responder a ${c.username || ''}…"
-                              rows="1"
-                              id="va-reply-ta-${c.id}"></textarea>
-                    <button class="va-pc-reply-send"
-                            onclick="vaSubmitReply(${c.id})">
+            ${isLoggedIn && !isReply ? `<div class="reply-form-container" id="replyFormContainer-lb-${c.id}" style="display:none;">
+                <div class="reply-input-area">
+                    <img src="${typeof VA_LB_ME_PIC !== 'undefined' ? VA_LB_ME_PIC : ''}" class="comment-avatar reply-form-avatar" onerror="this.style.display='none'">
+                    <textarea name="comment_content" class="reply-textarea"
+                        placeholder="Responder a ${c.username || ''}…" rows="1"></textarea>
+                    <button type="button" class="btn-send-comment va-lb-reply-send" data-comment-id="${c.id}">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
-            </div>
+            </div>` : ''}
         </div>
-    </div>
-    ${repliesHtml}`;
+        ${repliesHtml}
+    </li>`;
 }
 
 // Recarregar comentários da FOTO no sidebar do lightbox
@@ -839,11 +1018,11 @@ function vaReloadPhotoComments() {
             if (!wrap) return;
 
             if (data.comments && data.comments.length > 0) {
-                wrap.innerHTML = '<div class="va-pc-list">' +
+                wrap.innerHTML = '<ul class="comment-list comments-list">' +
                     data.comments.map(c => vaRenderComment(c, false)).join('') +
-                    '</div>';
+                    '</ul>';
             } else {
-                wrap.innerHTML = '<p style="text-align:center;color:#888;padding:40px 20px;">Nenhum comentário ainda.<br>Seja o primeiro!</p>';
+                wrap.innerHTML = '<div class="no-comments"><i class="fa-regular fa-comment-dots"></i><br>Nenhum comentário ainda.<br>Seja o primeiro!</div>';
             }
 
             // Actualizar contador
@@ -859,53 +1038,26 @@ function vaReloadPhotoComments() {
 // Alias
 function vaReloadComments() { vaReloadPhotoComments(); }
 
-// … Like num comentário …
-function vaLikeComment(commentId, btn) {
-    fetch(BASE_URL + 'api/photo_interactions.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment_id: commentId, action: 'like_comment' })
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                btn.classList.toggle('active', data.liked);
-                const icon = btn.querySelector('i');
-                if (icon) {
-                    icon.className = data.liked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-                }
-                const cnt = btn.querySelector('.va-pc-like-count');
-                if (cnt) cnt.textContent = data.likes > 0 ? data.likes : '';
-            }
-        })
-        .catch(console.error);
-}
-
-// … Mostrar input de resposta …
+// Toggle form de resposta no lightbox (usa replyFormContainer-lb-{id})
 function vaShowReplyInput(commentId, btn) {
-    // Fechar outros inputs abertos
-    document.querySelectorAll('.va-pc-reply-form').forEach(f => {
-        if (f.id !== 'va-reply-form-' + commentId) {
-            f.style.display = 'none';
-        }
+    document.querySelectorAll('.reply-form-container').forEach(f => {
+        if (f.id !== 'replyFormContainer-lb-' + commentId) f.style.display = 'none';
     });
 
-    const form = document.getElementById('va-reply-form-' + commentId);
-    if (!form) return;
+    const container = document.getElementById('replyFormContainer-lb-' + commentId);
+    if (!container) return;
 
-    const isOpen = form.style.display !== 'none';
-    form.style.display = isOpen ? 'none' : 'block';
+    const isOpen = container.style.display !== 'none';
+    container.style.display = isOpen ? 'none' : 'block';
 
     if (!isOpen) {
-        const ta = document.getElementById('va-reply-ta-' + commentId);
+        const ta = container.querySelector('textarea[name="comment_content"]');
         if (ta) {
             ta.focus();
-            // Auto-resize
             ta.addEventListener('input', function () {
                 this.style.height = 'auto';
                 this.style.height = this.scrollHeight + 'px';
             });
-            // Enter para enviar (Shift+Enter = nova linha)
             ta.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -916,14 +1068,20 @@ function vaShowReplyInput(commentId, btn) {
     }
 }
 
-// … Submeter resposta …
+// Submeter resposta no lightbox
 function vaSubmitReply(parentCommentId) {
-    const ta = document.getElementById('va-reply-ta-' + parentCommentId);
+    const container = document.getElementById('replyFormContainer-lb-' + parentCommentId);
     const photo = VA_PHOTOS[vaCurrentIdx];
-    if (!ta || !photo) return;
+    if (!container || !photo) return;
+
+    const ta = container.querySelector('textarea[name="comment_content"]');
+    if (!ta) return;
 
     const text = ta.value.trim();
-    if (!text) return;
+    if (!text) { ta.focus(); return; }
+
+    const sendBtn = container.querySelector('.va-lb-reply-send');
+    if (sendBtn) sendBtn.disabled = true;
 
     fetch(BASE_URL + 'api/photo_interactions.php', {
         method: 'POST',
@@ -939,13 +1097,612 @@ function vaSubmitReply(parentCommentId) {
         .then(data => {
             if (data.success) {
                 ta.value = '';
-                // Fechar form de resposta
-                const form = document.getElementById('va-reply-form-' + parentCommentId);
-                if (form) form.style.display = 'none';
-                // Recarregar comentários
+                container.style.display = 'none';
                 vaLbCommentsLoaded = false;
                 vaReloadPhotoComments();
             }
         })
-        .catch(console.error);
+        .catch(console.error)
+        .finally(() => { if (sendBtn) sendBtn.disabled = false; });
+}
+
+// Handler para botão Enviar no lightbox (delegação)
+document.addEventListener('click', function (e) {
+    const sendBtn = e.target.closest('.va-lb-reply-send');
+    if (!sendBtn) return;
+    e.stopPropagation();
+    vaSubmitReply(sendBtn.dataset.commentId);
+});
+
+
+// ═══════════════════════════════════════════════════════════════════
+// SISTEMA DE COMENTÁRIOS — lista inline do álbum
+// Likes + respostas para comentários do álbum e de fotos
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Delegação unificada de cliques ────────────────────────────────
+document.addEventListener('click', function (e) {
+
+    // 1a. Like em comentário do álbum (li.comment-item sem va-comment-from-photo)
+    // 1b. Like em comentário de foto (li.comment-item.va-comment-from-photo)
+    // SUBSTITUIR o bloco 1a/1b (linhas ~1147-1158):
+    var likeBtn = e.target.closest('.btn-comment-like');
+    if (likeBtn) {
+        e.stopPropagation();
+        // Comentário de foto: tem data-source="photo" (na página e no lightbox)
+        if (likeBtn.dataset.source === 'photo') {
+            vaTogglePhotoCommentLike(likeBtn);
+        } else {
+            vaToggleAlbumCommentLike(likeBtn);
+        }
+        return;
+    }
+
+    // 2. Responder em comentário de foto (div.va-comment-from-photo)
+    var replyBtn = e.target.closest('.btn-reply-comment');
+    if (replyBtn && replyBtn.classList.contains('va-pc-reply-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        var photoItem = replyBtn.closest('.comment-item');
+        if (photoItem) vaShowPhotoCommentReplyForm(photoItem, replyBtn.dataset.commentId, replyBtn);
+        return;
+    }
+
+    // 3. Responder em comentário do álbum (li.comment-item)
+    if (replyBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        vaToggleAlbumReplyForm(replyBtn.dataset.commentId);
+        return;
+    }
+
+    // 4. Cancelar resposta
+    var cancelBtn = e.target.closest('.cancel-reply-btn');
+    if (cancelBtn) {
+        e.preventDefault();
+        var cid = cancelBtn.dataset.commentId;
+        var fc = document.getElementById('replyFormContainer-' + cid);
+        if (fc) fc.style.display = 'none';
+        return;
+    }
+
+    // 5. Toggle "Ver/Ocultar respostas"
+    var toggleBtn = e.target.closest('.btn-toggle-replies');
+    if (toggleBtn) {
+        var parentLi = document.querySelector('.comment-item[data-comment-id="' + toggleBtn.dataset.commentId + '"]');
+        if (!parentLi) return;
+        var repliesUl = parentLi.querySelector('ul.comment-replies');
+        if (!repliesUl) return;
+        var isOpen = toggleBtn.dataset.open === 'true';
+        repliesUl.style.display = isOpen ? 'none' : 'block';
+        toggleBtn.dataset.open = isOpen ? 'false' : 'true';
+        var count = repliesUl.querySelectorAll(':scope > li.comment-item').length;
+        toggleBtn.textContent = isOpen
+            ? 'Ver ' + count + ' resposta' + (count !== 1 ? 's' : '')
+            : 'Ocultar respostas';
+        return;
+    }
+
+    // 6. Toggle dropdown "⋮"
+    var dropToggle = e.target.closest('.dropdown-toggle');
+    if (dropToggle) {
+        e.stopPropagation();
+        var menu = dropToggle.nextElementSibling;
+        if (!menu || !menu.classList.contains('dropdown-menu')) return;
+        var isVisible = menu.style.display !== 'none';
+        // Fecha todos os dropdowns abertos antes de abrir este
+        document.querySelectorAll('.dropdown-menu').forEach(function (m) {
+            m.style.display = 'none';
+        });
+        document.querySelectorAll('.dropdown-toggle').forEach(function (b) {
+            b.setAttribute('aria-expanded', 'false');
+        });
+        if (!isVisible) {
+            menu.style.display = 'block';
+            dropToggle.setAttribute('aria-expanded', 'true');
+        }
+        return;
+    }
+
+}, true);
+
+// Fechar dropdowns ao clicar fora
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.comment-actions-dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(function (m) {
+            m.style.display = 'none';
+        });
+        document.querySelectorAll('.dropdown-toggle').forEach(function (b) {
+            b.setAttribute('aria-expanded', 'false');
+        });
+    }
+});
+
+// ── Editar comentário ────────────────────────────────────────────────
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.edit-comment-btn');
+    if (!btn) return;
+    e.stopPropagation();
+
+    var commentId = btn.dataset.commentId;
+    var source = btn.dataset.source || 'album'; // 'album' | 'photo'
+    var current = btn.dataset.content || '';
+
+    // Fechar dropdown
+    var menu = btn.closest('.dropdown-menu');
+    if (menu) menu.style.display = 'none';
+
+    // Encontrar a bolha do comentário
+    var item = document.querySelector('.comment-item[data-comment-id="' + commentId + '"]');
+    if (!item) return;
+    var textEl = item.querySelector('.comment-text p');
+    if (!textEl) return;
+
+    // Evitar abrir dois editores no mesmo comentário
+    if (item.querySelector('.va-edit-form')) return;
+
+    var editForm = document.createElement('div');
+    editForm.className = 'va-edit-form';
+    editForm.innerHTML =
+        '<textarea class="va-edit-textarea reply-textarea">' +
+        current.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+        '</textarea>' +
+        '<div class="reply-form-actions">' +
+        '<button class="reply-btn-cancel va-edit-cancel">Cancelar</button>' +
+        '<button class="reply-btn-send va-edit-save" data-comment-id="' + commentId + '" data-source="' + source + '">Guardar</button>' +
+        '</div>';
+
+    // Substitui o parágrafo pelo form de edição
+    textEl.parentNode.insertBefore(editForm, textEl);
+    textEl.style.display = 'none';
+    editForm.querySelector('.va-edit-textarea').focus();
+});
+
+// Cancelar edição
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.va-edit-cancel');
+    if (!btn) return;
+    var form = btn.closest('.va-edit-form');
+    if (!form) return;
+    var textEl = form.parentNode.querySelector('.comment-text p');
+    if (textEl) textEl.style.display = '';
+    form.remove();
+});
+
+// Guardar edição
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.va-edit-save');
+    if (!btn || btn.dataset.busy === '1') return;
+
+    var commentId = btn.dataset.commentId;
+    var source = btn.dataset.source || 'album';
+    var form = btn.closest('.va-edit-form');
+    var ta = form ? form.querySelector('.va-edit-textarea') : null;
+    if (!ta) return;
+
+    var newContent = ta.value.trim();
+    if (!newContent) { ta.focus(); return; }
+
+    btn.dataset.busy = '1';
+    btn.textContent = '…';
+
+    var endpoint = source === 'photo'
+        ? (window.BASE_URL || '/') + 'api/photo_interactions.php'
+        : (window.BASE_URL || '/') + 'api/comments.php';
+
+    var payload = source === 'photo'
+        ? { action: 'edit_comment', comment_id: parseInt(commentId, 10), content: newContent }
+        : { action: 'edit', id: parseInt(commentId, 10), content: newContent };
+
+    if (window.CSRF_TOKEN) payload.csrf_token = window.CSRF_TOKEN;
+
+    fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data && data.success) {
+                var item = document.querySelector('.comment-item[data-comment-id="' + commentId + '"]');
+                if (item) {
+                    var textEl = item.querySelector('.comment-text p');
+                    if (textEl) {
+                        textEl.textContent = newContent;
+                        textEl.style.display = '';
+                    }
+                    // Actualizar data-content no botão de editar para a próxima vez
+                    var editBtn = item.querySelector('.edit-comment-btn');
+                    if (editBtn) editBtn.dataset.content = newContent;
+                }
+                if (form) form.remove();
+            } else {
+                alert(data.error || 'Erro ao guardar. Tenta novamente.');
+                btn.dataset.busy = '0';
+                btn.textContent = 'Guardar';
+            }
+        })
+        .catch(function () {
+            alert('Erro de rede. Tenta novamente.');
+            btn.dataset.busy = '0';
+            btn.textContent = 'Guardar';
+        });
+});
+
+// ── Apagar comentário ────────────────────────────────────────────────
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.delete-comment-btn');
+    if (!btn) return;
+    e.stopPropagation();
+
+    var commentId = btn.dataset.commentId;
+    var source = btn.dataset.source || 'album';
+
+    var menu = btn.closest('.dropdown-menu');
+    if (menu) menu.style.display = 'none';
+
+    if (!confirm('Apagar este comentário? Esta acção não pode ser desfeita.')) return;
+
+    var endpoint = source === 'photo'
+        ? (window.BASE_URL || '/') + 'api/photo_interactions.php'
+        : (window.BASE_URL || '/') + 'api/comments.php';
+
+    var payload = source === 'photo'
+        ? { action: 'delete_comment', comment_id: parseInt(commentId, 10) }
+        : { action: 'delete', id: parseInt(commentId, 10) };
+
+    if (window.CSRF_TOKEN) payload.csrf_token = window.CSRF_TOKEN;
+
+    fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data && data.success) {
+                // Remove o <li> ou <ul> wrapper do comentário
+                var item = document.querySelector('.comment-item[data-comment-id="' + commentId + '"]');
+                if (item) {
+                    // Se o pai for um <ul> com só este filho, remove o <ul> também
+                    var parent = item.parentNode;
+                    item.remove();
+                    if (parent && parent.tagName === 'UL' && parent.children.length === 0) {
+                        parent.remove();
+                    }
+                }
+                // Actualizar contador
+                var countLabel = document.getElementById('vaPageCommentCountLabel');
+                if (countLabel) {
+                    var n = parseInt(countLabel.textContent.replace(/\D/g, ''), 10) || 1;
+                    countLabel.textContent = '(' + Math.max(0, n - 1) + ')';
+                }
+            } else {
+                alert(data.error || 'Erro ao apagar. Tenta novamente.');
+            }
+        })
+        .catch(function () {
+            alert('Erro de rede. Tenta novamente.');
+        });
+});
+
+// ── Intercept submit do form de resposta → AJAX ───────────────────
+document.addEventListener('submit', function (e) {
+    var form = e.target.closest('.reply-form');
+    if (!form) return;
+    e.preventDefault();
+    var container = form.closest('.reply-form-container');
+    var commentId = container ? container.id.replace('replyFormContainer-', '') : null;
+    if (commentId) vaSubmitAlbumReply(commentId, container);
+});
+
+function vaTogglePhotoCommentLike(btn) {
+    if (!btn || btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
+
+    var commentId = parseInt(btn.dataset.commentId, 10);
+
+    fetch((window.BASE_URL || '/') + 'api/photo_interactions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            action: 'like_comment',
+            comment_id: commentId
+        })
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data && data.success) {
+                btn.classList.toggle('active', !!data.liked);
+                var icon = btn.querySelector('i');
+                if (icon) icon.className = data.liked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+                var countEl = btn.querySelector('.comment-likes-count');
+                if (countEl) countEl.textContent = (data.likes > 0) ? data.likes : '';
+            }
+        })
+        .catch(function (err) { console.error('Erro like comentario foto:', err); })
+        .finally(function () { btn.dataset.busy = '0'; });
+}
+
+// ── Like num comentário do álbum ──────────────────────────────────
+function vaToggleAlbumCommentLike(btn) {
+    if (!btn || btn.dataset.busy === '1') return;
+    btn.dataset.busy = '1';
+
+    var commentId = parseInt(btn.dataset.commentId, 10);
+    if (!commentId) { btn.dataset.busy = '0'; return; }
+
+    fetch((window.BASE_URL || '/') + 'api/comments.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: 'vote_comment', comment_id: commentId, vote_type: 'like' })
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data || !data.success) return;
+            var liked = data.user_vote === 'like';
+            var likes = parseInt(data.likes, 10) || 0;
+            btn.classList.toggle('active', liked);
+            var countEl = btn.querySelector('.comment-likes-count');
+            if (countEl) countEl.textContent = likes > 0 ? likes : '';
+            var item = btn.closest('.comment-item');
+            if (item) item.dataset.likes = likes;
+            vaReorderAlbumCommentsByLikes();
+        })
+        .catch(function (err) { console.error('Erro like comentario:', err); })
+        .finally(function () { btn.dataset.busy = '0'; });
+}
+
+// ── Reordenar comentários por likes ──────────────────────────────
+function vaReorderAlbumCommentsByLikes() {
+    var list = document.getElementById('vaCommentsListInline');
+    if (!list) return;
+    var items = Array.prototype.slice.call(
+        list.querySelectorAll(':scope > .comment-item, :scope > li.comment-item')
+    );
+    if (items.length < 2) return;
+    items.sort(function (a, b) {
+        var la = parseInt(a.dataset.likes, 10) || 0;
+        var lb = parseInt(b.dataset.likes, 10) || 0;
+        if (lb !== la) return lb - la;
+        return (a.dataset.createdAt || '') < (b.dataset.createdAt || '') ? -1 : 1;
+    });
+    items.forEach(function (item) {
+        item.style.transition = 'opacity 0.2s';
+        item.style.opacity = '0.5';
+        list.appendChild(item);
+    });
+    setTimeout(function () { items.forEach(function (i) { i.style.opacity = '1'; }); }, 50);
+}
+
+// ── Toggle form de resposta (comentários do álbum) ────────────────
+function vaToggleAlbumReplyForm(commentId) {
+    document.querySelectorAll('.reply-form-container').forEach(function (c) {
+        if (c.id !== 'replyFormContainer-' + commentId) c.style.display = 'none';
+    });
+
+    var container = document.getElementById('replyFormContainer-' + commentId);
+    if (!container) return;
+
+    var isOpen = container.style.display === 'block';
+    container.style.display = isOpen ? 'none' : 'block';
+
+    if (!isOpen) {
+        var ta = container.querySelector('textarea[name="comment_content"]');
+        if (ta) {
+            ta.focus();
+            ta.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+            ta.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter' && !ev.shiftKey) {
+                    ev.preventDefault();
+                    vaSubmitAlbumReply(commentId, container);
+                }
+            });
+        }
+    }
+}
+
+// ── Enviar resposta a comentário do álbum (AJAX) ──────────────────
+function vaSubmitAlbumReply(parentCommentId, container) {
+    if (!container) container = document.getElementById('replyFormContainer-' + parentCommentId);
+    if (!container) return;
+
+    var ta = container.querySelector('textarea[name="comment_content"]');
+    var feedItemIdInput = container.querySelector('input[name="feed_item_id"]');
+    if (!ta || !feedItemIdInput) return;
+
+    var text = ta.value.trim();
+    if (!text) { ta.focus(); return; }
+
+    var feedItemId = parseInt(feedItemIdInput.value, 10);
+    if (!feedItemId) return;
+
+    var submitBtn = container.querySelector('button[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '…'; }
+
+    fetch((window.BASE_URL || '/') + 'api/comments.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            action: 'add_reply',
+            feed_item_id: feedItemId,
+            content: text,
+            parent_comment_id: parseInt(parentCommentId, 10)
+        })
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data || !data.success) {
+                alert(data.message || 'Erro ao enviar resposta.');
+                return;
+            }
+            ta.value = '';
+            ta.style.height = 'auto';
+            container.style.display = 'none';
+            vaInjectAlbumReplyInList(parentCommentId, data);
+            var countLabel = document.getElementById('vaPageCommentCountLabel');
+            if (countLabel && data.total) countLabel.textContent = '(' + data.total + ')';
+        })
+        .catch(function (err) { console.error('Erro reply álbum:', err); })
+        .finally(function () {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Responder'; }
+        });
+}
+
+// ── Injectar resposta no DOM (comentários do álbum) ───────────────
+function vaInjectAlbumReplyInList(parentCommentId, data) {
+    var parentLi = document.querySelector('.comment-item[data-comment-id="' + parentCommentId + '"]');
+    if (!parentLi) return;
+
+    var meAvatar = typeof VA_LB_ME_PIC !== 'undefined' ? VA_LB_ME_PIC : '';
+    var meUsername = typeof VA_ME_USERNAME !== 'undefined' ? VA_ME_USERNAME : '';
+    var safe = (data.content || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    var li = document.createElement('li');
+    li.className = 'comment-item just-posted';
+    li.dataset.commentId = data.comment_id || '0';
+    li.dataset.likes = '0';
+    li.dataset.createdAt = now;
+    li.style.marginLeft = '25px';
+    li.innerHTML =
+        '<img src="' + meAvatar + '" class="comment-avatar" onerror="this.style.display=\'none\'">' +
+        '<div class="comment-body">' +
+        '<div class="comment-text-wrapper">' +
+        '<div class="comment-header">' +
+        '<span class="comment-author">' + meUsername + '</span>' +
+        '</div>' +
+        '<div class="comment-text"><p>' + safe + '</p></div>' +
+        '</div>' +
+        '<div class="comment-actions">' +
+        '<span class="comment-time">agora</span>' +
+        '<button class="btn-comment-like" data-comment-id="' + (data.comment_id || '0') + '" data-vote-type="like" data-source="album">' +
+        '<i class="fa-regular fa-heart"></i> <span class="comment-likes-count"></span>' +
+        '</button>' +
+        '</div>' +
+        '</div>';
+
+    var repliesUl = parentLi.querySelector('ul.comment-replies');
+    if (!repliesUl) {
+        repliesUl = document.createElement('ul');
+        repliesUl.className = 'comment-list comment-replies';
+        var existingToggle = parentLi.querySelector('.btn-toggle-replies');
+        if (existingToggle) {
+            parentLi.querySelector('.comment-body').insertBefore(repliesUl, existingToggle);
+        } else {
+            parentLi.querySelector('.comment-body').appendChild(repliesUl);
+        }
+    }
+    repliesUl.style.display = 'block';
+    repliesUl.appendChild(li);
+    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Actualizar/criar btn-toggle-replies
+    var count = repliesUl.querySelectorAll(':scope > li.comment-item').length;
+    var toggleBtn = parentLi.querySelector('.btn-toggle-replies');
+    if (!toggleBtn) {
+        toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn-toggle-replies';
+        toggleBtn.dataset.commentId = parentCommentId;
+        parentLi.querySelector('.comment-body').appendChild(toggleBtn);
+    }
+    toggleBtn.textContent = 'Ocultar respostas';
+    toggleBtn.dataset.open = 'true';
+}
+
+// ── Form inline de resposta para comentários de foto ─────────────
+function vaShowPhotoCommentReplyForm(commentItem, commentId, btn) {
+    var existingForm = commentItem.querySelector('.va-inline-reply-form');
+    if (existingForm) { existingForm.remove(); return; }
+
+    document.querySelectorAll('.va-inline-reply-form').forEach(function (f) { f.remove(); });
+
+    var photoId = parseInt(commentItem.dataset.photoId, 10);
+    var photoIdx = parseInt(commentItem.dataset.photoIdx, 10);
+    var author = btn.dataset.author || '';
+    var meAvatar = typeof VA_LB_ME_PIC !== 'undefined' ? VA_LB_ME_PIC : '';
+
+    var form = document.createElement('div');
+    form.className = 'va-inline-reply-form';
+    form.innerHTML =
+        '<img src="' + meAvatar + '" class="va-irf-avatar comment-avatar" onerror="this.style.display=\'none\'">' +
+        '<div class="va-irf-body">' +
+        '<textarea class="va-reply-ta va-irf-textarea" placeholder="Responder a ' + author + '…" rows="2"></textarea>' +
+        '<div class="va-irf-actions">' +
+        '<button class="va-reply-cancel va-irf-btn-cancel">Cancelar</button>' +
+        '<button class="va-reply-send va-irf-btn-send">Enviar</button>' +
+        '</div>' +
+        '</div>';
+
+    commentItem.querySelector('.comment-body').appendChild(form);
+    var ta = form.querySelector('.va-reply-ta');
+    ta.focus();
+
+    form.querySelector('.va-reply-cancel').addEventListener('click', function () { form.remove(); });
+
+    function sendPhotoReply() {
+        var text = ta.value.trim();
+        if (!text) return;
+        var sendBtn = form.querySelector('.va-reply-send');
+        sendBtn.disabled = true;
+
+        fetch((window.BASE_URL || '/') + 'api/photo_interactions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                action: 'comment',
+                photo_id: photoId,
+                content: text,
+                parent_comment_id: parseInt(commentId, 10)
+            })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || !data.success) { alert(data.message || 'Erro ao responder.'); return; }
+                form.remove();
+
+                // Injectar a resposta no vaReplies-{id} se existir no DOM
+                var repliesDiv = document.getElementById('vaReplies-' + commentId);
+                if (repliesDiv) {
+                    var safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                    var d = document.createElement('div');
+                    d.className = 'comment-item va-pc-reply va-pc-reply--injected just-posted';
+                    d.dataset.likes = '0';
+                    d.dataset.createdAt = now;
+                    d.innerHTML =
+                        '<img src="' + meAvatar + '" class="comment-avatar" onerror="this.style.display=\'none\'">' +
+                        '<div class="comment-body">' +
+                        '<div class="comment-text-wrapper"><div class="comment-text"><p>' + safe + '</p></div></div>' +
+                        '<div class="comment-actions"><span class="comment-time"></span></div>' +
+                        '</div>';
+                    repliesDiv.appendChild(d);
+                    d.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+                // Recarregar sidebar do lightbox se aberto na mesma foto
+                var curIdx = typeof vaCurrentIdx !== 'undefined' ? vaCurrentIdx
+                    : (window.vaCurrentIdx !== undefined ? window.vaCurrentIdx : -1);
+                if (typeof vaLbCommentsLoaded !== 'undefined' && curIdx === photoIdx) {
+                    vaLbCommentsLoaded = false;
+                    if (typeof vaReloadPhotoComments === 'function') vaReloadPhotoComments();
+                }
+            })
+            .catch(function (err) { console.error('Erro reply foto:', err); })
+            .finally(function () { sendBtn.disabled = false; });
+    }
+
+    form.querySelector('.va-reply-send').addEventListener('click', sendPhotoReply);
+    ta.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); sendPhotoReply(); }
+    });
 }

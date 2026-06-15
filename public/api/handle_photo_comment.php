@@ -108,7 +108,8 @@ try {
 echo json_encode($response);
 
 // Helper function to render comments HTML — classes comments_modern.css
-function display_comments_html($comments, $current_user_id, $level = 0) {
+function display_comments_html($comments, $current_user_id, $level = 0)
+{
     foreach ($comments as $comment) {
         $is_owner = ($comment['user_id'] == $current_user_id);
         $pic = UPLOAD_URL . htmlspecialchars($comment['profile_picture'] ?? 'profiles/default_profile.png');
@@ -116,7 +117,7 @@ function display_comments_html($comments, $current_user_id, $level = 0) {
         $content = nl2br(htmlspecialchars($comment['content'] ?? ''));
         $date = date('d/m/Y H:i', strtotime($comment['created_at']));
         $indent = $level > 0 ? 'comment-replies' : '';
-        ?>
+?>
         <div class="comment-item <?= $indent ?>"
             data-comment-id="<?= (int)$comment['id'] ?>">
 
@@ -173,8 +174,7 @@ function display_comments_html($comments, $current_user_id, $level = 0) {
                 <?php endif; ?>
             </div>
         </div>
-        <?php
+<?php
     }
 }
 ?>
-

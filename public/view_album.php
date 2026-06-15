@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 define('SECURE_ACCESS', true);
 define('ENVIRONMENT', 'development');
 
@@ -311,20 +311,44 @@ if (!empty($photos)) {
 
     $stmt_pc_all = $pdo->prepare("
         SELECT pc.id, pc.photo_id, pc.user_id, pc.content, pc.created_at,
-               u.username, u.profile_picture
+               pc.parent_comment_id,
+               u.username, u.profile_picture,
+               COALESCE(lk.likes_count, 0) AS likes_count,
+               COALESCE(lk.user_liked, 0)  AS user_liked
         FROM photo_comments pc
         JOIN users u ON u.id = pc.user_id
+        LEFT JOIN (
+            SELECT comment_id,
+                   COUNT(*) AS likes_count,
+                   MAX(CASE WHEN user_id = ? THEN 1 ELSE 0 END) AS user_liked
+            FROM photo_comment_likes
+            GROUP BY comment_id
+        ) lk ON lk.comment_id = pc.id
         WHERE pc.photo_id IN ($ph)
         ORDER BY pc.created_at ASC
     ");
-    $stmt_pc_all->execute($photo_ids_list);
+    $stmt_pc_all->execute(array_merge([$current_user_id], $photo_ids_list));
     $raw_pc = $stmt_pc_all->fetchAll(PDO::FETCH_ASSOC);
 
+    // Organizar em árvore: raiz → replies
+    $pc_by_id = [];
     foreach ($raw_pc as $pc) {
-        $pc['photo_index'] = $photo_index_map[$pc['photo_id']] ?? null;
-        // Índice JS 0-based para abrir o lightbox na foto correcta
+        $pc['photo_index']  = $photo_index_map[$pc['photo_id']] ?? null;
         $pc['photo_js_idx'] = ($pc['photo_index'] !== null) ? $pc['photo_index'] - 1 : null;
-        $photo_comments_for_album[] = $pc;
+        $pc['replies']      = [];
+        $pc_by_id[$pc['id']] = $pc;
+    }
+    foreach ($pc_by_id as $id => &$pc_ref) {
+        $pid = $pc_ref['parent_comment_id'];
+        if ($pid && isset($pc_by_id[$pid])) {
+            $pc_by_id[$pid]['replies'][] = &$pc_by_id[$id];
+        }
+    }
+    unset($pc_ref);
+    foreach ($pc_by_id as $pc) {
+        if (empty($pc['parent_comment_id'])) {
+            $photo_comments_for_album[] = $pc;
+        }
     }
 }
 
@@ -510,154 +534,223 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- Comentários inline -->
-<div class="comments-area comment-section-full va-album-comments"
-     id="vaCommentsSection"
-     data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>">
+    <div class="comments-area comment-section-full va-album-comments"
+        id="vaCommentsSection"
+        data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>">
 
-    <div class="comments-header">
-        <i class="fa-regular fa-message"></i>
-        Comentários
-        <span style="color:var(--c-text-muted);font-weight:400;font-size:0.78rem;" id="vaPageCommentCountLabel">
-            (<?= (int)$comment_count ?>)
-        </span>
-    </div>
-
-    <!-- ▼ FORM NO TOPO (sticky via CSS) -->
-    <?php if ($current_user_id): ?>
-    <div class="comment-form-with-avatar">
-        <img src="<?= UPLOAD_URL . htmlspecialchars($me_pic) ?>"
-             alt="Tu" class="comment-avatar">
-        <div class="comment-input-container">
-            <textarea
-                id="vaCommentInput"
-                class="comment-input-container__textarea"
-                placeholder="Escreve um comentário no álbum…"
-                rows="1"
-                aria-label="Escreve um comentário"
-                data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>"></textarea>
-            <button class="btn-send-comment"
-                    onclick="vaSubmitComment('vaCommentInput')"
-                    title="Enviar"
-                    aria-label="Enviar comentário">
-                <i class="fa-solid fa-paper-plane"></i>
-            </button>
+        <div class="comments-header">
+            <i class="fa-regular fa-message"></i>
+            Comentários
+            <span style="color:var(--c-text-muted);font-weight:400;font-size:0.78rem;" id="vaPageCommentCountLabel">
+                (<?= (int)$comment_count ?>)
+            </span>
         </div>
-    </div>
-    <?php endif; ?>
 
-    <!-- ▼ LISTA DE COMENTÁRIOS -->
-    <div class="comments-list" id="vaCommentsListInline">
-        <?php
-        // Misturar comentários do álbum e de fotos, ordenados por data
-        $all_comments_merged = [];
-
-        foreach ($comment_tree as $c) {
-            $type = !empty($c['source_photo_id']) ? 'photo' : 'album';
-            $all_comments_merged[] = [
-                'type'       => $type,
-                'created_at' => $c['created_at'],
-                'data'       => $c,
-            ];
-        }
-
-        // Ordenar por data (mais recente primeiro — coerente com form no topo)
-        usort($all_comments_merged, function($a, $b) {
-            $likesA = (int)($a['data']['likes_count'] ?? 0);
-            $likesB = (int)($b['data']['likes_count'] ?? 0);
-            if ($likesA !== $likesB) return $likesB - $likesA;     // likes DESC
-            return strcmp($a['created_at'], $b['created_at']);     // empate: mais antigo primeiro
-        });
-
-        if (!empty($all_comments_merged)):
-            foreach ($all_comments_merged as $item):
-                if ($item['type'] === 'album'):
-                    // Comentário normal do álbum
-                    display_comments([$item['data']], $current_user_id, $is_owner, $pdo);
-                else:
-                    // Comentário de foto — com marcador clicável
-                    $pc            = $item['data'];
-                    $idx           = (int)($pc['photo_js_idx'] ?? 0);
-                    $num           = (int)($pc['photo_index'] ?? $pc['photo_position'] ?? 0);
-                    $pic           = htmlspecialchars($pc['profile_picture'] ?? 'profiles/default_profile.png');
-                    $uname         = htmlspecialchars($pc['username'] ?? '');
-                    $raw_content   = $pc['content'] ?? '';
-                    $raw_content   = preg_replace('/^\s*(?:\[(?:Foto|Photo)\s*#?\d+\]|\b(?:Foto|Photo)\s*#?\d+\b)\s*[:\-–—]?\s*/iu', '', $raw_content);
-                    $content       = htmlspecialchars($raw_content);
-                    $likes_pc      = (int)($pc['likes_count'] ?? 0);
-                    $user_liked_pc = !empty($pc['user_liked']);
-                    $pc_id         = (int)($pc['id'] ?? 0);
-                    $pc_photo_id   = (int)($pc['photo_id'] ?? 0);
-        ?>
-            <div class="comment-item va-comment-from-photo"
-                 data-comment-id="<?= $pc_id ?>"
-                 data-photo-id="<?= $pc_photo_id ?>"
-                 data-photo-idx="<?= $idx ?>"
-                 data-likes="<?= $likes_pc ?>"
-                 data-created-at="<?= htmlspecialchars($pc['created_at']) ?>">
-
-                <img src="<?= UPLOAD_URL . $pic ?>"
-                     alt="<?= $uname ?>"
-                     class="comment-avatar"
-                     onclick="vaOpenLightbox(<?= $idx ?>)"
-                     style="cursor:pointer;"
-                     onerror="this.src='<?= UPLOAD_URL ?>profiles/default_profile.png'">
-
-                <div class="comment-body">
-                    <div class="comment-text-wrapper">
-                        <div class="comment-header">
-                            <span class="comment-author"><?= $uname ?></span>
-                            <span class="va-photo-comment-tag"
-                                  onclick="vaOpenLightbox(<?= $idx ?>)"
-                                  title="Abrir Foto #<?= $num ?>"
-                                  style="cursor:pointer;">
-                                <i class="fa-solid fa-image"></i>
-                                Foto #<?= $num ?>
-                                <i class="fa-solid fa-arrow-up-right-from-square"
-                                   style="font-size:9px;opacity:0.6;"></i>
-                            </span>
-                        </div>
-                        <div class="comment-text">
-                            <p><?= $content ?></p>
-                        </div>
-                    </div>
-
-                    <div class="comment-actions">
-                        <span class="comment-time"><?= format_datetime_ago($pc['created_at']) ?></span>
-                        <button class="btn-comment-like va-pc-like-btn <?= $user_liked_pc ? 'active' : '' ?>"
-                                data-comment-id="<?= $pc_id ?>"
-                                data-photo-id="<?= $pc_photo_id ?>"
-                                onclick="vaTogglePhotoCommentLike(this); event.stopPropagation();">
-                            Gosto <span class="comment-likes-count"><?= $likes_pc ?></span>
-                        </button>
-                        <button class="btn-comment-dislike" disabled
-                                title="Indisponível para comentários de fotos">
-                            Não gosto
-                        </button>
-                        <?php if ($current_user_id): ?>
-                            <button class="btn-reply-comment va-pc-reply-btn"
-                                    data-comment-id="<?= $pc_id ?>"
-                                    data-photo-id="<?= $pc_photo_id ?>"
-                                    data-photo-idx="<?= $idx ?>"
-                                    data-author="<?= $uname ?>"
-                                    onclick="vaOpenLightbox(<?= $idx ?>); event.stopPropagation();">
-                                Responder
-                            </button>
-                        <?php endif; ?>
-                    </div>
+        <!-- ▼ FORM NO TOPO (sticky via CSS) -->
+        <?php if ($current_user_id): ?>
+            <div class="comment-form-with-avatar">
+                <img src="<?= UPLOAD_URL . htmlspecialchars($me_pic) ?>"
+                    alt="Tu" class="comment-avatar">
+                <div class="comment-input-container">
+                    <textarea
+                        id="vaCommentInput"
+                        class="comment-input-container__textarea"
+                        placeholder="Escreve um comentário no álbum…"
+                        rows="1"
+                        aria-label="Escreve um comentário"
+                        data-feed-item-id="<?= htmlspecialchars($feed_item_id) ?>"></textarea>
+                    <button class="btn-send-comment"
+                        onclick="vaSubmitComment('vaCommentInput')"
+                        title="Enviar"
+                        aria-label="Enviar comentário">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
-        <?php
-                endif;
-            endforeach;
-        else: ?>
-            <div class="no-comments">
-                <i class="fa-regular fa-comment-dots"></i>
-                Sem comentários. Sê o primeiro!
-            </div>
         <?php endif; ?>
-    </div>
 
-</div></div><!-- /.va-page -->
+        <!-- ▼ LISTA DE COMENTÁRIOS -->
+        <div class="comments-list" id="vaCommentsListInline">
+            <?php
+            // Misturar comentários do álbum e de fotos, ordenados por data
+            $all_comments_merged = [];
+
+            // 1. Comentários do álbum — excluir espelhos antigos (source_photo_id preenchido)
+            //    que eram criados por uma versão anterior e duplicam os photo_comments reais.
+            foreach ($comment_tree as $c) {
+                if (!empty($c['source_photo_id'])) continue; // espelho antigo — ignorar
+                $all_comments_merged[] = [
+                    'type'       => 'album',
+                    'created_at' => $c['created_at'],
+                    'data'       => $c,
+                ];
+            }
+
+            // 2. Comentários de fotos individuais — fonte correcta: photo_comments_for_album
+            foreach ($photo_comments_for_album as $pc) {
+                $all_comments_merged[] = [
+                    'type'       => 'photo',
+                    'created_at' => $pc['created_at'],
+                    'data'       => $pc,
+                ];
+            }
+
+            // Ordenar por data (mais recente primeiro — coerente com form no topo)
+            usort($all_comments_merged, function ($a, $b) {
+                $likesA = (int)($a['data']['likes_count'] ?? 0);
+                $likesB = (int)($b['data']['likes_count'] ?? 0);
+                if ($likesA !== $likesB) return $likesB - $likesA;     // likes DESC
+                return strcmp($a['created_at'], $b['created_at']);     // empate: mais antigo primeiro
+            });
+
+            if (!empty($all_comments_merged)):
+                foreach ($all_comments_merged as $item):
+                    if ($item['type'] === 'album'):
+                        // Comentário normal do álbum
+                        display_comments([$item['data']], $current_user_id, $is_owner, $pdo);
+                    else:
+                        // Comentário de foto — HTML idêntico ao display_comments()
+                        $pc            = $item['data'];
+                        $idx           = (int)($pc['photo_js_idx'] ?? 0);
+                        $num           = (int)($pc['photo_index'] ?? 0);
+                        $pic           = htmlspecialchars($pc['profile_picture'] ?? 'profiles/default_profile.png');
+                        $uname         = htmlspecialchars($pc['username'] ?? '');
+                        $raw_content   = $pc['content'] ?? '';
+                        $raw_content   = preg_replace('/^\s*(?:\[(?:Foto|Photo)\s*#?\d+\]|\b(?:Foto|Photo)\s*#?\d+\b)\s*[:\-–—]?\s*/iu', '', $raw_content);
+                        $content       = htmlspecialchars($raw_content);
+                        $likes_pc      = (int)($pc['likes_count'] ?? 0);
+                        $user_liked_pc = !empty($pc['user_liked']);
+                        $pc_id         = (int)($pc['id'] ?? 0);
+                        $pc_photo_id   = (int)($pc['photo_id'] ?? 0);
+                        $pc_time       = format_datetime_ago($pc['created_at']);
+            ?>
+                        <ul class="comment-list">
+                            <li class="comment-item va-comment-from-photo"
+                                data-comment-id="<?= $pc_id ?>"
+                                data-photo-id="<?= $pc_photo_id ?>"
+                                data-photo-idx="<?= $idx ?>"
+                                data-likes="<?= $likes_pc ?>"
+                                data-created-at="<?= htmlspecialchars($pc['created_at']) ?>">
+
+                                <img src="<?= UPLOAD_URL . $pic ?>"
+                                    alt="<?= $uname ?>"
+                                    class="comment-avatar"
+                                    onclick="vaOpenLightbox(<?= $idx ?>)"
+                                    style="cursor:pointer;"
+                                    onerror="this.src='<?= UPLOAD_URL ?>profiles/default_profile.png'">
+
+                                <div class="comment-body">
+                                    <div class="comment-text-wrapper">
+                                        <div class="comment-header">
+                                            <span class="comment-author"><?= $uname ?></span>
+                                            <span class="va-photo-comment-tag"
+                                                onclick="vaOpenLightbox(<?= $idx ?>)"
+                                                title="Abrir Foto #<?= $num ?>"
+                                                style="cursor:pointer;">
+                                                <i class="fa-solid fa-image"></i>
+                                                Foto #<?= $num ?>
+                                                <i class="fa-solid fa-arrow-up-right-from-square"
+                                                    style="font-size:9px;opacity:0.6;"></i>
+                                            </span>
+                                            <?php
+                                            $is_pc_owner   = ($current_user_id && ($pc['user_id'] ?? 0) == $current_user_id);
+                                            $can_delete_pc = ($is_pc_owner || $is_owner);
+                                            if ($is_pc_owner || $can_delete_pc): ?>
+                                                <div class="comment-actions-dropdown">
+                                                    <button class="dropdown-toggle" aria-label="Opções do comentário" aria-expanded="false">&#x22EE;</button>
+                                                    <div class="dropdown-menu" style="display:none;">
+                                                        <?php if ($is_pc_owner): ?>
+                                                            <button class="edit-comment-btn"
+                                                                data-comment-id="<?= $pc_id ?>"
+                                                                data-content="<?= htmlspecialchars($raw_content) ?>"
+                                                                data-source="photo">Editar</button>
+                                                        <?php endif; ?>
+                                                        <?php if ($can_delete_pc): ?>
+                                                            <button class="delete-comment-btn"
+                                                                data-comment-id="<?= $pc_id ?>"
+                                                                data-source="photo">Apagar</button>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="comment-text">
+                                            <p><?= $content ?></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-actions">
+                                        <span class="comment-time"><?= $pc_time ?></span>
+                                        <button class="btn-comment-like <?= $user_liked_pc ? 'active' : '' ?>"
+                                            data-comment-id="<?= $pc_id ?>"
+                                            data-photo-id="<?= $pc_photo_id ?>"
+                                            data-source="photo"
+                                            data-vote-type="like">
+                                            <i class="fa-<?= $user_liked_pc ? 'solid' : 'regular' ?> fa-heart"></i>
+                                            <span class="comment-likes-count"><?= $likes_pc > 0 ? $likes_pc : '' ?></span>
+                                        </button>
+                                        <?php if ($current_user_id): ?>
+                                            <button class="btn-reply-comment va-pc-reply-btn"
+                                                data-comment-id="<?= $pc_id ?>"
+                                                data-photo-id="<?= $pc_photo_id ?>"
+                                                data-photo-idx="<?= $idx ?>"
+                                                data-author="<?= $uname ?>">
+                                                Responder
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <?php if (!empty($pc['replies'])): ?>
+                                        <ul class="comment-list comment-replies" id="vaReplies-<?= $pc_id ?>">
+                                            <?php foreach ($pc['replies'] as $reply):
+                                                $r_uname   = htmlspecialchars($reply['username'] ?? '');
+                                                $r_pic     = htmlspecialchars($reply['profile_picture'] ?? 'profiles/default_profile.png');
+                                                $r_content = htmlspecialchars($reply['content'] ?? '');
+                                                $r_id      = (int)$reply['id'];
+                                            ?>
+                                                <li class="comment-item va-pc-reply"
+                                                    data-comment-id="<?= $r_id ?>"
+                                                    data-likes="0">
+                                                    <img src="<?= UPLOAD_URL . $r_pic ?>"
+                                                        alt="<?= $r_uname ?>"
+                                                        class="comment-avatar"
+                                                        onerror="this.src='<?= UPLOAD_URL ?>profiles/default_profile.png'">
+                                                    <div class="comment-body">
+                                                        <div class="comment-text-wrapper">
+                                                            <div class="comment-header">
+                                                                <span class="comment-author"><?= $r_uname ?></span>
+                                                            </div>
+                                                            <div class="comment-text">
+                                                                <p><?= $r_content ?></p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="comment-actions">
+                                                            <span class="comment-time"><?= format_datetime_ago($reply['created_at']) ?></span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php else: ?>
+                                        <ul class="comment-list comment-replies" id="vaReplies-<?= $pc_id ?>" style="display:none;"></ul>
+                                    <?php endif; ?>
+
+                                </div>
+                            </li>
+                        </ul>
+                <?php
+                    endif;
+                endforeach;
+            else: ?>
+                <div class="no-comments">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    Sem comentários. Sê o primeiro!
+                </div>
+            <?php endif; ?>
+        </div>
+
+    </div>
+</div><!-- /.va-page -->
 
 <!-- Modal de Upload -->
 <?php if ($is_owner): ?>
@@ -691,7 +784,7 @@ require_once __DIR__ . '/../includes/header.php';
     const BASE_URL = "<?= BASE_URL ?>";
     const UPLOAD_URL = "<?= UPLOAD_URL ?>";
     const CURRENT_USER_ID = <?= is_logged_in() ? (int)get_current_user_id() : 'null' ?>;
-    const FEED_ITEM_ID = <?= $has_feed ? (int)$feed_item_id : 'null' ?>;
+    const FEED_ITEM_ID = <?= (int)($feed_item_id ?? 0) ?>;
     const ALBUM_ID = <?= (int)$album_id ?>;
     const CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token'] ?? '') ?>;
 
@@ -776,7 +869,7 @@ require_once __DIR__ . '/../includes/header.php';
                COUNT(*) AS likes_count,
                MAX(CASE WHEN user_id = ? THEN 1 ELSE 0 END) AS user_liked
         FROM photo_likes
-        WHERE photo_id IN ($placeholders) AND type = 'like'
+        WHERE photo_id IN ($placeholders)
         GROUP BY photo_id
     ");
         $lk->execute($params_likes);
@@ -935,40 +1028,4 @@ require_once __DIR__ . '/../includes/header.php';
 <script src="<?= BASE_URL ?>assets/js/core/common_notifications.js"></script>
 <script src="<?= BASE_URL ?>assets/js/components/likes.js"></script>
 
-<script>
-function vaTogglePhotoCommentLike(btn) {
-    if (!btn || btn.dataset.busy === '1') return;
-    btn.dataset.busy = '1';
-
-    const commentId = parseInt(btn.dataset.commentId, 10);
-    const photoId   = parseInt(btn.dataset.photoId, 10);
-
-    const fd = new FormData();
-    fd.append('action', 'like_comment');
-    fd.append('comment_id', commentId);
-    fd.append('photo_id', photoId);
-    if (window.CSRF_TOKEN) fd.append('csrf_token', window.CSRF_TOKEN);
-
-    fetch((window.BASE_URL || '/') + 'api/photo_interactions.php', {
-        method: 'POST',
-        body: fd,
-        credentials: 'same-origin'
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data && data.success) {
-            const countEl = btn.querySelector('.comment-likes-count');
-            if (countEl) countEl.textContent = data.likes_count ?? 0;
-            btn.classList.toggle('active', !!data.user_liked);
-        }
-    })
-    .catch(err => console.error('Erro like comentario foto:', err))
-    .finally(() => { btn.dataset.busy = '0'; });
-}
-</script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-
-
-
-
-

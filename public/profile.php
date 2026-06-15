@@ -45,7 +45,20 @@ if (!is_logged_in()) {
     redirect(BASE_URL . 'login.php');
 }
 
-
+/**
+ * Retorna o URL completo do thumbnail de um vídeo.
+ * Os thumbnails de vídeo ficam em storage/uploads/videos/thumbnails/.
+ * Se o campo já contiver a subpasta (legado), evita duplicação.
+ */
+function get_video_thumb_url(string $thumbnail_path): string
+{
+    if (empty($thumbnail_path)) return '';
+    // Evita duplicar o prefixo se o caminho já o incluir
+    if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
+        return UPLOAD_URL . $thumbnail_path;
+    }
+    return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
+}
 
 $current_user_id = get_current_user_id();
 
@@ -1344,6 +1357,7 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- 6. Profile page JS (filtros, unblur, modal Verificação , lightbox protection, modal hoist) â€” carregado por Ãºltimo -->
 <script src="<?= BASE_URL ?>assets/js/pages/profile.js"></script>
 <script src="<?= BASE_URL ?>assets/js/components/save.js"></script>
+<script src="<?= BASE_URL ?>assets/js/pages/media-backdrop.js" defer></script>
 <!-- Widgets: visÃ­veis apenas no filtro Feed -->
 
 

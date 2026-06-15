@@ -35,7 +35,6 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 1000;
-    background: var(--bg-main);
     border-right: 1px solid rgba(0, 0, 0, 0.06);
     transition: transform 0.3s ease;
     scrollbar-width: thin;
@@ -75,7 +74,7 @@ body {
 /* ── Feed ──────────────────────────────────────────────────────────── */
 .feed-container {
     width: 100%;
-    max-width: var(--feed-w);
+    max-width: 90%;
     flex-shrink: 0;
     min-width: 0;
 }
@@ -86,11 +85,11 @@ body {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--space-xl);
     position: sticky;
     top: calc(var(--header-h) + var(--space-l));
     height: fit-content;
     align-self: flex-start;
+    margin-right: var(--space-3xl);
 }
 
 /* ── Overlay Sidebar Mobile ────────────────────────────────────────── */
@@ -130,7 +129,7 @@ body {
     }
 
     .content-wrapper {
-        max-width: var(--feed-w);
+        max-width: 100%;
         justify-content: center;
     }
 }

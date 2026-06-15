@@ -126,7 +126,7 @@ $total_pages = (int)ceil($total / $per_page);
 
 // ── Análise de IA por item ────────────────────────────────────────────────
 // Pré-carrega a análise de IA para todos os itens guardados de uma vez (evita N+1 queries)
-$get_analysis_type = static function(array $item): string {
+$get_analysis_type = static function (array $item): string {
     return match ($item['item_type']) {
         'album' => 'album',
         'video' => 'video',
@@ -297,6 +297,7 @@ $csrf_token = $_SESSION['csrf_token'];
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 3px;
+        border-radius: 14px;
     }
 
     @media (max-width: 600px) {
@@ -311,6 +312,7 @@ $csrf_token = $_SESSION['csrf_token'];
         overflow: hidden;
         background: var(--surface-bg);
         cursor: pointer;
+        border-radius: 14px;
     }
 
     .saved-grid-item:hover .saved-item-overlay {
@@ -322,6 +324,7 @@ $csrf_token = $_SESSION['csrf_token'];
         height: 100%;
         object-fit: cover;
         display: block;
+        border-radius: 14px;
     }
 
     .saved-grid-placeholder {
@@ -542,7 +545,7 @@ $csrf_token = $_SESSION['csrf_token'];
             'post'  => ['icon' => 'fa-image',        'label' => 'Posts'],
             'video' => ['icon' => 'fa-play',         'label' => 'Vídeos'],
             'album' => ['icon' => 'fa-images',       'label' => 'Álbuns'],
-        'photo' => ['icon' => 'fa-image',        'label' => 'Fotos'],
+            'photo' => ['icon' => 'fa-image',        'label' => 'Fotos'],
             'reel'  => ['icon' => 'fa-clapperboard', 'label' => 'Reels'],
         ];
         foreach ($filters as $key => $f):
@@ -665,12 +668,9 @@ $csrf_token = $_SESSION['csrf_token'];
     <?php endif; ?>
 </div>
 
-<script>window.CSRF_TOKEN = '<?= htmlspecialchars($csrf_token) ?>';</script>
+<script>
+    window.CSRF_TOKEN = '<?= htmlspecialchars($csrf_token) ?>';
+</script>
 <script src="<?= BASE_URL ?>assets/js/pages/saved.js"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-
-
-
-
-

@@ -1,5 +1,11 @@
 <?php
 /**
+ * @DEPRECATED - Usa public/api/photo_interactions.php
+ * Data: 20260606_202828
+ * 
+ * Este ficheiro serÃ¡ removido apÃ³s migraÃ§Ã£o completa.
+ */
+/**
  * DEPRECATED - Usa public/api/photo_interactions.php
  * Data: 20260606_175439
  */

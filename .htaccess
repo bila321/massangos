@@ -45,6 +45,9 @@ Options -Indexes
     
     # Política de referrer
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Content Security Policy (permite scripts externos e workers via blob para o editor de vídeo)
+    Header set Content-Security-Policy "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: http: https: https://cdn.jsdelivr.net https://cdn.quilljs.com https://kit.fontawesome.com https://cdnjs.cloudflare.com; worker-src 'self' blob:;"
     
     # Remove informações do servidor
     Header unset Server
