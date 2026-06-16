@@ -189,7 +189,7 @@ $slides_json = json_encode($carousel_slides, JSON_HEX_TAG | JSON_HEX_APOS | JSON
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/base.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/login-register.css">
 

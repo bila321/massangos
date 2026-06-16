@@ -94,7 +94,7 @@ $logged_in_user_profile_pic = $_SESSION['user_profile_picture'] ?? UPLOAD_URL . 
 
 ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/notifications.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/edit-modals.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/edit-modals.css">
 
 <?php if ($is_ajax): ?>
     <div class="edit-modal-header">

@@ -56,7 +56,7 @@ $latest_verification = $stmt_latest->fetch(PDO::FETCH_ASSOC);
 
     <!-- Massango Base Styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modals-unified.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/modals.css">
 
     <!-- Verification Page Styles -->
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/verification/verification.css">

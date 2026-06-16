@@ -38,8 +38,8 @@ $extra_css = ['premium_lightbox.css'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/profile_layout.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card-modern.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/repost-header.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/cards.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/repost-header.css">
 
 
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
