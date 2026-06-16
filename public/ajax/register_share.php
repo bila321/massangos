@@ -1,241 +1,137 @@
 <?php
+// ajax/register_share.php
+define('SECURE_ACCESS', true);
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/security.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-/**
- * ajax/register_share.php
- * Registra partilhas (Link e Repost) no sistema Massangos
- */
+header('Content-Type: application/json; charset=utf-8');
 
-ini_set('display_errors', 0);
-error_reporting(0);
+// --- Apenas POST ---
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Método não permitido.']);
+    exit;
+}
 
-if (ob_get_level()) ob_end_clean();
-ob_start();
+// --- Utilizador tem de estar autenticado ---
+if (!is_logged_in()) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error' => 'Precisas de estar autenticado.']);
+    exit;
+}
 
-session_start();
+$current_user_id = (int) get_current_user_id();
+$feed_item_id    = (int) ($_POST['feed_item_id'] ?? 0);
+$action          = trim($_POST['action'] ?? '');   // 'repost' | 'link'
 
-header('Content-Type: application/json');
+if ($feed_item_id <= 0 || !in_array($action, ['repost', 'link'], true)) {
+    echo json_encode(['success' => false, 'error' => 'Parâmetros inválidos.']);
+    exit;
+}
 
 try {
-    // ============================================================
-    // 1. INCLUDES
-    // ============================================================
-    $paths = [
-        __DIR__ . '/../../includes/config.php',
-        __DIR__ . '/../../includes/db.php',
-        __DIR__ . '/../../includes/functions.php',
-        __DIR__ . '/../../core/Post.php',
-        __DIR__ . '/../../core/FeedItem.php',
-        __DIR__ . '/../../core/User.php',
-        __DIR__ . '/../../core/Notification.php'
-    ];
-
-    foreach ($paths as $path) {
-        if (file_exists($path)) {
-            require_once $path;
-        }
-    }
-
-    if (!defined('ENVIRONMENT')) {
-        define('ENVIRONMENT', 'production');
-    }
-
-    // ============================================================
-    // 2. VALIDACAO
-    // ============================================================
-    if (!isset($_SESSION['user_id'])) {
-        http_response_code(401);
-        throw new \Exception("Sessao expirada ou utilizador nao autenticado.");
-    }
-
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        http_response_code(405);
-        throw new \Exception("Metodo de requisicao invalido.");
-    }
-
-    $feedItemId = isset($_POST['feed_item_id']) ? (int)$_POST['feed_item_id'] : 0;
-    $action     = isset($_POST['action']) ? trim($_POST['action']) : '';
-    $userId     = (int)$_SESSION['user_id'];
-
-    if ($feedItemId <= 0) {
-        http_response_code(400);
-        throw new \Exception("ID da publicacao invalido.");
-    }
-
-    if (!isset($pdo)) {
-        throw new \Exception("Erro de conexao com a base de dados.");
-    }
-
-    // ============================================================
-    // 3. BUSCA FEED ITEM
-    // ============================================================
-    $feedItem = \Massango\Models\FeedItem::getFeedItemById($pdo, $feedItemId);
+    // --- Resolver feed_item → item real ---
+    $stmtFeed = $pdo->prepare("
+        SELECT fi.id, fi.item_type, fi.item_id, fi.user_id
+        FROM feed_items fi
+        WHERE fi.id = ?
+        LIMIT 1
+    ");
+    $stmtFeed->execute([$feed_item_id]);
+    $feedItem = $stmtFeed->fetch(PDO::FETCH_ASSOC);
 
     if (!$feedItem) {
-        http_response_code(400);
-        throw new \Exception("Item do feed nao encontrado.");
+        echo json_encode(['success' => false, 'error' => 'Publicação não encontrada.']);
+        exit;
     }
 
-    $originalItemId = (int)$feedItem['item_id'];
-    $itemType       = $feedItem['item_type'];
+    $item_type   = $feedItem['item_type'];   // post | video | album
+    $item_id     = (int) $feedItem['item_id'];
+    $owner_id    = (int) $feedItem['user_id'];
 
-    // ============================================================
-    // 4. RESOLVE ID FINAL (reposts encadeados)
-    // ============================================================
-    $finalPostId   = $originalItemId;
-    $finalItemType = $itemType;
-
-    if ($itemType === 'post') {
-        $postData = \Massango\Models\Post::getPostById($pdo, $originalItemId);
-        if (!$postData) {
-            throw new \Exception("Publicacao original nao encontrada.");
-        }
-        if (!empty($postData['is_repost']) && !empty($postData['shared_post_id'])) {
-            $finalPostId   = (int)$postData['shared_post_id'];
-            $finalItemType = $postData['shared_item_type'] ?? 'post';
+    // --- Verificar permissão allow_share_repost (só aplica a posts) ---
+    if ($action === 'repost' && $item_type === 'post') {
+        $stmtAllow = $pdo->prepare("SELECT allow_share_repost FROM posts WHERE id = ? LIMIT 1");
+        $stmtAllow->execute([$item_id]);
+        $allow = $stmtAllow->fetchColumn();
+        if ((int)$allow === 0) {
+            echo json_encode(['success' => false, 'error' => 'O autor não permite repost desta publicação.']);
+            exit;
         }
     }
 
-    // ============================================================
-    // 5. VERIFICA DUPLICADO (repost)
-    // ============================================================
-    if ($action === 'repost') {
-        $check = $pdo->prepare("
-            SELECT id FROM posts 
-            WHERE user_id = ? 
-            AND shared_post_id = ? 
-            AND shared_item_type = ? 
-            AND is_repost = 1
-        ");
-        $check->execute([$userId, $finalPostId, $finalItemType]);
-        if ($check->fetch()) {
-            throw new \Exception("Voce ja repostou esta publicacao.");
-        }
+    // --- Não pode repostar o próprio conteúdo ---
+    if ($action === 'repost' && $owner_id === $current_user_id) {
+        echo json_encode(['success' => false, 'error' => 'Não podes repostar a tua própria publicação.']);
+        exit;
     }
 
-    // ============================================================
-    // 6. BUSCA AUTOR ORIGINAL
-    // ============================================================
-    $originalAuthorId = 0;
-
-    if ($finalItemType === 'post') {
-        $orig = \Massango\Models\Post::getPostById($pdo, $finalPostId);
-        $originalAuthorId = $orig ? (int)$orig['user_id'] : 0;
-    } elseif ($finalItemType === 'video') {
-        $orig = \Massango\Models\Video::getVideoById($pdo, $finalPostId);
-        $originalAuthorId = $orig ? (int)$orig['user_id'] : 0;
-    } elseif ($finalItemType === 'album') {
-        $orig = \Massango\Models\Album::getAlbumById($pdo, $finalPostId);
-        $originalAuthorId = $orig ? (int)$orig['user_id'] : 0;
-    }
-
-    if ($originalAuthorId === $userId) {
-        throw new \Exception("Voce nao pode repostar sua propria publicacao.");
-    }
-
-    // ============================================================
-    // 7. REGISTRA NA TABELA post_shares (SEMPRE!)
-    // ============================================================
-    $statType = ($action === 'repost') ? 'repost' : 'link';
-
-    $stmtShare = $pdo->prepare("
-        INSERT INTO post_shares (post_id, user_id, type, created_at) 
-        VALUES (?, ?, ?, NOW())
+    // --- Registar em post_shares (evitar duplicado na mesma sessão: 1 por dia por user) ---
+    $stmtCheck = $pdo->prepare("
+        SELECT id FROM post_shares
+        WHERE post_id = ? AND user_id = ? AND type = ?
+          AND created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+        LIMIT 1
     ");
-    $stmtShare->execute([$finalPostId, $userId, $statType]);
+    $stmtCheck->execute([$item_id, $current_user_id, $action]);
 
-    // ============================================================
-    // 8. SE FOR REPOST, CRIA POST E FEED ITEM
-    // ============================================================
-    $message = "Partilha registada!";
+    if (!$stmtCheck->fetch()) {
+        $stmtInsert = $pdo->prepare("
+            INSERT INTO post_shares (post_id, user_id, type, created_at)
+            VALUES (?, ?, ?, NOW())
+        ");
+        $stmtInsert->execute([$item_id, $current_user_id, $action]);
+    }
 
+    // --- Se for repost: criar post de repost + feed_item ---
     if ($action === 'repost') {
-        try {
-            $pdo->beginTransaction();
+        // Verificar se já repostou este item (para não criar duplicados no feed)
+        $stmtDup = $pdo->prepare("
+            SELECT id FROM posts
+            WHERE user_id = ? AND is_repost = 1
+              AND shared_post_id = ? AND shared_item_type = ?
+            LIMIT 1
+        ");
+        $stmtDup->execute([$current_user_id, $item_id, $item_type]);
 
-            $stmt = $pdo->prepare("
-                INSERT INTO posts 
-                (user_id, content, post_type, is_approved, show_in_feed, 
-                 is_repost, shared_post_id, shared_item_type, created_at) 
-                VALUES (?, '', 'text', 1, 1, 1, ?, ?, NOW())
+        if (!$stmtDup->fetch()) {
+            // Criar o post de repost
+            $stmtPost = $pdo->prepare("
+                INSERT INTO posts
+                    (user_id, content, post_type, is_repost, shared_post_id, shared_item_type,
+                     is_approved, show_in_feed, created_at)
+                VALUES
+                    (?, '', 'text', 1, ?, ?, 1, 1, NOW())
             ");
+            $stmtPost->execute([$current_user_id, $item_id, $item_type]);
+            $new_post_id = (int) $pdo->lastInsertId();
 
-            if (!$stmt->execute([$userId, $finalPostId, $finalItemType])) {
-                throw new \Exception("Falha ao inserir repost no banco.");
-            }
-
-            $newPostId = $pdo->lastInsertId();
-
-            \Massango\Models\FeedItem::createFeedItem(
-                $pdo,
-                $userId,
-                'post',
-                $newPostId,
-                1
-            );
-
-            // Notifica autor original
-            if ($originalAuthorId > 0 && $originalAuthorId != $userId) {
-                $repostUser = \Massango\Models\User::getUserById($pdo, $userId);
-                $repostUsername = $repostUser ? $repostUser['username'] : 'Alguem';
-                $notificationMessage = "@$repostUsername repostou sua publicacao!";
-
-                $newFeedItem = \Massango\Models\FeedItem::getFeedItemByContentId(
-                    $pdo,
-                    $newPostId,
-                    'post'
-                );
-                $newFeedItemId = $newFeedItem ? $newFeedItem['id'] : $newPostId;
-                $notificationLink = BASE_URL . 'post.php?id=' . $newFeedItemId;
-
-                \Massango\Models\Notification::createNotification(
-                    $pdo,
-                    $originalAuthorId,
-                    $notificationMessage,
-                    $notificationLink,
-                    $userId,
-                    'post_reposted',
-                    $newPostId
-                );
-            }
-
-            $pdo->commit();
-            $message = "Repost realizado com sucesso!";
-        } catch (\Exception $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            throw $e;
+            // Criar feed_item para o repost
+            $stmtFeedIns = $pdo->prepare("
+                INSERT INTO feed_items (user_id, item_type, item_id, created_at, show_in_feed)
+                VALUES (?, 'post', ?, NOW(), 1)
+            ");
+            $stmtFeedIns->execute([$current_user_id, $new_post_id]);
         }
     }
 
-    // ============================================================
-    // 9. RETORNA CONTADOR ATUALIZADO
-    // ============================================================
-    $countStmt = $pdo->prepare("
+    // --- Contagem actualizada de partilhas ---
+    $stmtCount = $pdo->prepare("
         SELECT COUNT(*) FROM post_shares WHERE post_id = ?
     ");
-    $countStmt->execute([$finalPostId]);
-    $newCount = (int)$countStmt->fetchColumn();
-
-    if (ob_get_level()) {
-        ob_end_clean();
-    }
+    $stmtCount->execute([$item_id]);
+    $new_count = (int) $stmtCount->fetchColumn();
 
     echo json_encode([
-        'success'         => true,
-        'new_count'       => $newCount,
-        'message'         => $message,
-        'final_post_id'   => $finalPostId,
-        'final_item_type' => $finalItemType
+        'success'   => true,
+        'message'   => $action === 'repost' ? 'Repost realizado com sucesso!' : 'Link copiado!',
+        'new_count' => $new_count,
     ]);
-} catch (\Throwable $e) {
-    if (ob_get_level()) {
-        ob_end_clean();
-    }
-
-    echo json_encode([
-        'success' => false,
-        'error'   => $e->getMessage()
-    ]);
+} catch (PDOException $e) {
+    error_log('[register_share] PDOException: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Erro interno. Tenta novamente.']);
 }
-exit;

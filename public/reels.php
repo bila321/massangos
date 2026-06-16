@@ -1,166 +1,21 @@
 <?php
-
 define('SECURE_ACCESS', true);
-define('ENVIRONMENT', 'development');
-
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/adult-content-helper.php';
-
 SecurityManager::initSecurity();
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use Massango\Controllers\ReelsController;
 use Massango\Models\User;
 
-if (!is_logged_in()) {
-    set_message("Você precisa estar logado para acessar o massangos.", "danger");
-    redirect(BASE_URL . 'login.php');
-}
-
-$current_user_id = get_current_user_id();
-$is_admin        = isset($_SESSION['admin_id']);
-
-// Dados do usuário logado (necessário para IS_VERIFIED_CREATOR e acesso ao checkout)
-$logged_in_user_data = [];
-if (is_logged_in()) {
-    $logged_in_user_data = User::getUserById($pdo, $current_user_id) ?? [];
-}
-
-// ─── FILTROS via GET ──────────────────────────────────────────────────────────
-$filter_search    = trim($_GET['q']          ?? '');
-$filter_sale      = $_GET['sale']            ?? '';   // '' | '1' | '0'
-$filter_sensitive = $_GET['sensitive']       ?? '';   // '' | '1'
-$filter_duration  = $_GET['duration']        ?? '';   // '' | 'short' | 'medium' | 'long'
-$filter_price_min = is_numeric($_GET['price_min'] ?? '') ? (float)$_GET['price_min'] : '';
-$filter_price_max = is_numeric($_GET['price_max'] ?? '') ? (float)$_GET['price_max'] : '';
-$filter_quality   = $_GET['quality']         ?? '';   // '' | 'sd' | 'hd' | 'fhd'
-$filter_sort      = $_GET['sort']            ?? 'recent'; // 'recent' | 'popular' | 'price_asc' | 'price_desc'
-
-// ─── CONSTRUÇÃO DA QUERY ──────────────────────────────────────────────────────
-$where  = ["v.is_approved = 1"];
-$params = [];
-
-if ($filter_search !== '') {
-    $where[]  = "(v.caption LIKE :search OR u.username LIKE :search2)";
-    $params[':search']  = "%{$filter_search}%";
-    $params[':search2'] = "%{$filter_search}%";
-}
-
-if ($filter_sale === '1') {
-    $where[] = "v.is_for_sale = 1";
-} elseif ($filter_sale === '0') {
-    $where[] = "v.is_for_sale = 0";
-}
-
-if ($filter_sensitive === '1') {
-    $where[] = "(v.categoria = '18+' OR (ma.is_sensitive = 1 AND ma.risk_level IN ('medium','high')))";
-} else {
-    if (!$is_admin) {
-        $where[] = "(v.categoria != '18+' OR ma.is_sensitive IS NULL OR ma.risk_level NOT IN ('high'))";
-    }
-}
-
-// Filtro duração
-if ($filter_duration === 'short') {
-    $where[] = "(v.duration_seconds IS NOT NULL AND v.duration_seconds < 60)";
-} elseif ($filter_duration === 'medium') {
-    $where[] = "(v.duration_seconds IS NOT NULL AND v.duration_seconds >= 60 AND v.duration_seconds <= 300)";
-} elseif ($filter_duration === 'long') {
-    $where[] = "(v.duration_seconds IS NOT NULL AND v.duration_seconds > 300)";
-}
-
-// Filtro preço
-if ($filter_price_min !== '') {
-    $where[] = "v.price >= :price_min";
-    $params[':price_min'] = $filter_price_min;
-}
-if ($filter_price_max !== '') {
-    $where[] = "v.price <= :price_max";
-    $params[':price_max'] = $filter_price_max;
-}
-
-// Filtro qualidade
-if ($filter_quality === 'sd') {
-    $where[] = "(v.duration_seconds IS NULL OR v.duration_seconds < 30)";
-} elseif ($filter_quality === 'hd') {
-    $where[] = "(v.duration_seconds >= 30 AND v.duration_seconds < 120)";
-} elseif ($filter_quality === 'fhd') {
-    $where[] = "(v.duration_seconds >= 120)";
-}
-
-$where_sql = implode(' AND ', $where);
-
-$order_map = [
-    'recent'     => 'v.created_at DESC',
-    'popular'    => 'v.views_count DESC',
-    'price_asc'  => 'v.price ASC',
-    'price_desc' => 'v.price DESC',
-];
-$order_sql = $order_map[$filter_sort] ?? 'v.created_at DESC';
-
-$sql = "
-    SELECT v.*, 
-           u.username, u.profile_picture,
-           fi.id AS feed_item_id,
-           ma.is_sensitive, ma.risk_level, ma.score AS ai_score
-    FROM videos v 
-    JOIN users u ON v.user_id = u.id 
-    LEFT JOIN feed_items fi ON fi.item_id = v.id AND fi.item_type = 'video'
-    LEFT JOIN media_analysis ma ON ma.post_id = v.id AND ma.type = 'video'
-    WHERE {$where_sql}
-    ORDER BY {$order_sql}
-    LIMIT 60
-";
-
-try {
-    $stmt = $pdo->prepare($sql);
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value);
-    }
-    $stmt->execute();
-    $reels = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $reels = [];
-    error_log("Reels query error: " . $e->getMessage());
-}
-
-$paymentService = new \Massango\Services\PaymentService($pdo);
-
-// Initialize CSRF token
-$csrf_token = $_SESSION['csrf_token'] ?? bin2hex(random_bytes(32));
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = $csrf_token;
-}
+$data = (new ReelsController($pdo))->load($_GET);
+extract($data);
 
 require_once __DIR__ . '/../includes/header.php';
-// Helper: formatar duração
-function format_duration(int $seconds): string
-{
-    if ($seconds < 60)  return "{$seconds}s";
-    $m = floor($seconds / 60);
-    $s = $seconds % 60;
-    return $s > 0 ? "{$m}m {$s}s" : "{$m}m";
-}
-
-// Helper: badge de qualidade (placeholder até ter coluna resolution)
-function get_quality_badge(?int $duration): string
-{
-    if ($duration === null) return '';
-    if ($duration >= 120) return '<span class="quality-badge fhd">FHD</span>';
-    if ($duration >= 30)  return '<span class="quality-badge hd">HD</span>';
-    return '<span class="quality-badge sd">SD</span>';
-}
-
-// ─── Determina o chip activo para marcar no HTML ──────────────────────────────
-// Baseado nos filtros GET: sale + sensitive → chip activo
-$active_chip = '';
-if ($filter_sensitive === '1')  $active_chip = 'adult';
-elseif ($filter_sale === '1')   $active_chip = 'paid';
-elseif ($filter_sale === '0')   $active_chip = 'free';
 ?>
-
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/premium_lightbox.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/reels.css">
 
@@ -677,7 +532,7 @@ elseif ($filter_sale === '0')   $active_chip = 'free';
 </script>
 
 
-<script src="<?= BASE_URL ?>assets/js/pages/reels.js"></script>
+<script src="<?= BASE_URL ?>assets/js/pages/reels.js?v=202606161014"></script>
 
 <?php require_once __DIR__ . '/../includes/reels_lightbox.php'; ?>
 <?php require_once __DIR__ . '/../includes/footer2.php'; ?>

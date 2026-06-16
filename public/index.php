@@ -379,8 +379,8 @@ require_once __DIR__ . '/../includes/header.php';
                                 <?php elseif ($sharedType === 'album'): ?>
                                     <div class="post-content">
                                         <h2 class="album-title"><?= htmlspecialchars($sharedData['album_name'] ?? 'Álbum sem Nome') ?></h2>
-                                        <?php if (!empty($sharedData['album_description'])): ?>
-                                            <p class="post-text"><?= nl2br(htmlspecialchars($sharedData['album_description'] ?? '')) ?></p>
+                                        <?php if (!empty($sharedData['description'])): ?>
+                                            <p class="post-text"><?= nl2br(htmlspecialchars($sharedData['description'] ?? '')) ?></p>
                                         <?php endif; ?>
                                     </div>
                                     <?php
@@ -617,9 +617,9 @@ require_once __DIR__ . '/../includes/header.php';
                                             <?php endif; ?>
                                         <?php elseif ($item['item_type'] === 'album'): ?>
                                             <div class="post-content">
-                                                <h2 class="album-title"><?= htmlspecialchars($content_data['album_name'] ?? 'Álbum sem Nome') ?></h2>
-                                                <?php if (!empty($content_data['album_description'])): ?>
-                                                    <p class="post-text"><?= nl2br(htmlspecialchars($content_data['album_description'] ?? '')) ?></p>
+                                                <h2 class="album-title"><?= htmlspecialchars($content_data['name'] ?? 'Álbum sem Nome') ?></h2>
+                                                <?php if (!empty($content_data['description'])): ?>
+                                                    <p class="post-text"><?= nl2br(htmlspecialchars($content_data['description'] ?? '')) ?></p>
                                                 <?php endif; ?>
                                             </div>
 

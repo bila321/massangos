@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', function() {
 
 
 // --- Filtros, blur e lazy load (extraido de reels.php) ---
@@ -197,3 +198,8 @@
         const searchInput = document.querySelector('.filter-search input');
         if (searchInput) {
             searchInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') document.getElementById('filterForm').submit();
+            });
+        }
+
+});
