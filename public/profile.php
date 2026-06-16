@@ -26,9 +26,9 @@ $paymentService = new \Massango\Services\PaymentService($pdo);
 if ($am_i_blocked || $is_blocked_by_me) {
     require_once __DIR__ . '/../includes/header.php';
     echo '<div class="main-content-area full-width"><div class="card" style="padding: 40px; text-align: center;">';
-    echo '<h2>Utilizador n�o encontrado ou acesso restrito.</h2>';
-    echo '<p>N�o tem permiss�o para visualizar este perfil.</p>';
-    echo '<a href="' . BASE_URL . '" class="btn btn-primary">Voltar ao In�cio</a>';
+    echo '<h2>Utilizador n�o encontrado ou acesso restrito.</h2>';
+    echo '<p>N�o tem permiss�o para visualizar este perfil.</p>';
+    echo '<a href="' . BASE_URL . '" class="btn btn-primary">Voltar ao In�cio</a>';
     echo '</div></div>';
     require_once __DIR__ . '/../includes/footer.php';
     exit;
@@ -36,7 +36,8 @@ if ($am_i_blocked || $is_blocked_by_me) {
 
 $extra_css = ['premium_lightbox.css'];
 require_once __DIR__ . '/../includes/header.php';
-?><link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/profile_layout.css">
+?>
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/profile_layout.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card-modern.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/repost-header.css">
 
@@ -218,102 +219,193 @@ require_once __DIR__ . '/../includes/header.php';
                             </div>
                         <?php elseif (!empty($all_user_content)): ?>
                             <?php
-                            // Pre-fetch de todas as análises AI de uma só vez (evita N+1 queries)
-                            $all_analysis_ids = array_map(function ($i) {
-                                if ($i['item_type'] === 'post' && !empty($i['is_repost']) && !empty($i['shared_post_id'])) {
-                                    return (int)$i['shared_post_id'];
-                                }
-                                return (int)$i['item_id'];
-                            }, $all_user_content);
-                            $all_analysis_ids = array_unique(array_filter($all_analysis_ids));
+                            // =====================================================
+                            // BATCH PRE-FETCH — evita N+1 queries no loop abaixo
+                            // =====================================================
+                            $is_admin = isset($_SESSION['admin_id']);
 
+                            $feed_item_ids  = array_filter(array_column($all_user_content, 'feed_item_id'));
+                            $all_user_ids   = array_unique(array_filter(array_column($all_user_content, 'user_id')));
+                            $all_post_ids   = array_filter(array_map(fn($i) => $i['item_type'] === 'post' ? (int)$i['item_id'] : null, $all_user_content));
+
+                            // Batch: autores
+                            $authors_map = [];
+                            if (!empty($all_user_ids)) {
+                                $ph = implode(',', array_fill(0, count($all_user_ids), '?'));
+                                $s = $pdo->prepare("SELECT * FROM users WHERE id IN ($ph)");
+                                $s->execute(array_values($all_user_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $authors_map[(int)$row['id']] = $row;
+                            }
+
+                            // Batch: likes/dislikes
+                            $likes_map = [];
+                            if (!empty($feed_item_ids)) {
+                                $ph = implode(',', array_fill(0, count($feed_item_ids), '?'));
+                                $s = $pdo->prepare("SELECT feed_item_id, SUM(type='like') AS likes, SUM(type='dislike') AS dislikes FROM feed_item_likes WHERE feed_item_id IN ($ph) GROUP BY feed_item_id");
+                                $s->execute(array_values($feed_item_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $likes_map[(int)$row['feed_item_id']] = ['likes' => (int)$row['likes'], 'dislikes' => (int)$row['dislikes']];
+                            }
+
+                            // Batch: votos do utilizador
+                            $votes_map = [];
+                            if (!empty($feed_item_ids) && is_logged_in()) {
+                                $ph = implode(',', array_fill(0, count($feed_item_ids), '?'));
+                                $params = array_values($feed_item_ids);
+                                $params[] = $current_user_id;
+                                $s = $pdo->prepare("SELECT feed_item_id, type FROM feed_item_likes WHERE feed_item_id IN ($ph) AND user_id = ?");
+                                $s->execute($params);
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $votes_map[(int)$row['feed_item_id']] = $row['type'];
+                            }
+
+                            // Batch: contagem de comentários
+                            $comment_counts_map = [];
+                            if (!empty($feed_item_ids)) {
+                                $ph = implode(',', array_fill(0, count($feed_item_ids), '?'));
+                                $s = $pdo->prepare("SELECT feed_item_id, COUNT(*) AS total FROM comments WHERE feed_item_id IN ($ph) GROUP BY feed_item_id");
+                                $s->execute(array_values($feed_item_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $comment_counts_map[(int)$row['feed_item_id']] = (int)$row['total'];
+                            }
+
+                            // Batch: share counts
+                            $share_counts_map = [];
+                            if (!empty($all_post_ids)) {
+                                $ph = implode(',', array_fill(0, count($all_post_ids), '?'));
+                                $s = $pdo->prepare("SELECT post_id, COUNT(*) AS total FROM post_shares WHERE post_id IN ($ph) GROUP BY post_id");
+                                $s->execute(array_values($all_post_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $share_counts_map[(int)$row['post_id']] = (int)$row['total'];
+                            }
+
+                            // Batch: follow state (utilizador logado → autores)
+                            $following_set = [];
+                            $pending_set   = [];
+                            if (is_logged_in() && !empty($all_user_ids)) {
+                                $ph = implode(',', array_fill(0, count($all_user_ids), '?'));
+                                $params = array_values($all_user_ids);
+                                $s = $pdo->prepare("SELECT followed_id FROM follows WHERE follower_id = ? AND followed_id IN ($ph)");
+                                $s->execute(array_merge([$current_user_id], $params));
+                                foreach ($s->fetchAll(PDO::FETCH_COLUMN) as $id) $following_set[(int)$id] = true;
+
+                                $s = $pdo->prepare("SELECT followed_id FROM follow_requests WHERE follower_id = ? AND followed_id IN ($ph)");
+                                $s->execute(array_merge([$current_user_id], $params));
+                                foreach ($s->fetchAll(PDO::FETCH_COLUMN) as $id) $pending_set[(int)$id] = true;
+                            }
+
+                            // Batch: AI analysis
                             $ai_analysis_map = [];
+                            $all_analysis_ids = array_unique(array_filter(array_map(function ($i) {
+                                if ($i['item_type'] === 'post' && !empty($i['is_repost']) && !empty($i['shared_post_id'])) return (int)$i['shared_post_id'];
+                                return (int)$i['item_id'];
+                            }, $all_user_content)));
                             if (!empty($all_analysis_ids)) {
-                                $placeholders = implode(',', array_fill(0, count($all_analysis_ids), '?'));
-                                $stmt_all_analysis = $pdo->prepare(
-                                    "SELECT post_id, risk_level, status, explicit_percentage
-                                 FROM media_analysis
-                                 WHERE post_id IN ($placeholders)"
-                                );
-                                $stmt_all_analysis->execute(array_values($all_analysis_ids));
-                                foreach ($stmt_all_analysis->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                                    $ai_analysis_map[$row['post_id']] = $row;
+                                $ph = implode(',', array_fill(0, count($all_analysis_ids), '?'));
+                                $s = $pdo->prepare("SELECT post_id, risk_level, status, explicit_percentage FROM media_analysis WHERE post_id IN ($ph)");
+                                $s->execute(array_values($all_analysis_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $ai_analysis_map[(int)$row['post_id']] = $row;
+                            }
+
+                            // Batch: repost shared content
+                            $repost_post_ids   = [];
+                            $repost_video_ids  = [];
+                            $repost_album_ids  = [];
+                            foreach ($all_user_content as $i) {
+                                if ($i['item_type'] === 'post' && !empty($i['is_repost']) && !empty($i['shared_post_id'])) {
+                                    $st = $i['shared_item_type'] ?? 'post';
+                                    $sid = (int)$i['shared_post_id'];
+                                    if ($st === 'post')  $repost_post_ids[]  = $sid;
+                                    if ($st === 'video') $repost_video_ids[] = $sid;
+                                    if ($st === 'album') $repost_album_ids[] = $sid;
                                 }
+                            }
+                            $shared_posts_map = [];
+                            if (!empty($repost_post_ids)) {
+                                $ph = implode(',', array_fill(0, count($repost_post_ids), '?'));
+                                $s = $pdo->prepare("SELECT * FROM posts WHERE id IN ($ph)");
+                                $s->execute(array_values($repost_post_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $shared_posts_map[(int)$row['id']] = $row;
+                            }
+                            $shared_videos_map = [];
+                            if (!empty($repost_video_ids)) {
+                                $ph = implode(',', array_fill(0, count($repost_video_ids), '?'));
+                                $s = $pdo->prepare("SELECT * FROM videos WHERE id IN ($ph)");
+                                $s->execute(array_values($repost_video_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $shared_videos_map[(int)$row['id']] = $row;
+                            }
+                            $shared_albums_map = [];
+                            if (!empty($repost_album_ids)) {
+                                $ph = implode(',', array_fill(0, count($repost_album_ids), '?'));
+                                $s = $pdo->prepare("SELECT * FROM albums WHERE id IN ($ph)");
+                                $s->execute(array_values($repost_album_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $shared_albums_map[(int)$row['id']] = $row;
+                            }
+                            // Batch: autores de conteúdo partilhado
+                            $shared_user_ids = array_unique(array_filter(array_merge(
+                                array_column($shared_posts_map,  'user_id'),
+                                array_column($shared_videos_map, 'user_id'),
+                                array_column($shared_albums_map, 'user_id')
+                            )));
+                            $shared_authors_map = [];
+                            if (!empty($shared_user_ids)) {
+                                $ph = implode(',', array_fill(0, count($shared_user_ids), '?'));
+                                $s = $pdo->prepare("SELECT * FROM users WHERE id IN ($ph)");
+                                $s->execute(array_values($shared_user_ids));
+                                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $row) $shared_authors_map[(int)$row['id']] = $row;
                             }
                             ?>
 
-
                             <?php foreach ($all_user_content as $item): ?>
                                 <?php
-                                $display_type = $item['item_type'];
-                                $content_data = $item; // já  temos os dados mesclados de FeedItem::getFeedItemsByUserId
-                                $author = User::getUserById($pdo, $item['user_id'] ?? null);
+                                $display_type  = $item['item_type'];
+                                $content_data  = $item;
+                                $feed_item_id  = $item['feed_item_id'] ?? null;
+                                $author        = $authors_map[(int)($item['user_id'] ?? 0)] ?? null;
                                 if (!$author) {
-                                    error_log("Feed item ID: " . ($item['feed_item_id'] ?? 'N/A') . " - Nenhum autor encontrado para user_id " . ($item['user_id'] ?? 'N/A') . ". Ignorando.");
+                                    error_log("profile.php: sem autor para feed_item_id " . ($feed_item_id ?? 'N/A'));
                                     continue;
                                 }
 
-
-                                $feed_item_id = $item['feed_item_id'] ?? null;
-
-
-                                if ($feed_item_id) {
-                                    $like_info = Like::getFeedItemLikesDislikesCount($pdo, $feed_item_id);
-                                    $user_vote = is_logged_in() ? Like::getUserFeedItemVote($pdo, $feed_item_id, $current_user_id) : null;
-                                    $comment_count = Comment::getCommentCountForFeedItem($pdo, $feed_item_id);
-                                } else {
-                                    // Para Ã¡lbuns de parceria ou itens sem feed_item_id, usar valores padrÃ£o
-                                    $like_info = ['likes' => 0, 'dislikes' => 0];
-                                    $user_vote = null;
-                                    $comment_count = 0;
-                                }
-
+                                $like_info     = $feed_item_id ? ($likes_map[(int)$feed_item_id]       ?? ['likes' => 0, 'dislikes' => 0]) : ['likes' => 0, 'dislikes' => 0];
+                                $user_vote     = $feed_item_id ? ($votes_map[(int)$feed_item_id]        ?? null) : null;
+                                $comment_count = $feed_item_id ? ($comment_counts_map[(int)$feed_item_id] ?? 0) : 0;
                                 $is_post_owner = ($current_user_id && $item['user_id'] == $current_user_id);
-                                $is_admin = isset($_SESSION['admin_id']);
 
-                                // Lógica  de Repost (Igual ao index.php)
-                                $isRepost = false;
-                                $sharedData = null;
-                                $sharedType = null;
+                                // Follow state
+                                $item_author_is_following = isset($following_set[(int)$author['id']]);
+                                $has_request              = isset($pending_set[(int)$author['id']]);
+                                $follow_label             = $item_author_is_following ? 'Seguindo' : ($has_request ? 'Pendente' : 'Seguir');
+                                $follow_class             = $item_author_is_following ? 'following' : ($has_request ? 'pending' : '');
+
+                                // Repost
+                                $isRepost    = false;
+                                $sharedData  = null;
+                                $sharedType  = null;
                                 $sharedAuthor = null;
-
-                                if (
-                                    $item['item_type'] === 'post' &&
-                                    !empty($content_data['is_repost']) &&
-                                    !empty($content_data['shared_post_id']) &&
-                                    !empty($content_data['shared_item_type'])
-                                ) {
+                                $sharedId    = null;
+                                if ($item['item_type'] === 'post' && !empty($content_data['is_repost']) && !empty($content_data['shared_post_id']) && !empty($content_data['shared_item_type'])) {
                                     $sharedType = $content_data['shared_item_type'];
-                                    $sharedId = (int)$content_data['shared_post_id'];
-
-                                    switch ($sharedType) {
-                                        case 'post':
-                                            $sharedData = Post::getPostById($pdo, $sharedId);
-                                            break;
-                                        case 'video':
-                                            $sharedData = Video::getVideoById($pdo, $sharedId);
-                                            break;
-                                        case 'album':
-                                            $sharedData = Album::getAlbumById($pdo, $sharedId);
-                                            break;
-                                    }
-
+                                    $sharedId   = (int)$content_data['shared_post_id'];
+                                    $sharedData = match ($sharedType) {
+                                        'post'  => $shared_posts_map[$sharedId]  ?? null,
+                                        'video' => $shared_videos_map[$sharedId] ?? null,
+                                        'album' => $shared_albums_map[$sharedId] ?? null,
+                                        default => null,
+                                    };
                                     if ($sharedData) {
-                                        $isRepost = true;
-                                        $sharedAuthor = User::getUserById($pdo, $sharedData['user_id']);
+                                        $isRepost     = true;
+                                        $sharedAuthor = $shared_authors_map[(int)$sharedData['user_id']] ?? null;
                                     }
                                 }
 
-                                // --- AI Analysis Logic ---
-                                $analysis_id = $item['item_id'];
-                                if ($item['item_type'] === 'post' && !empty($content_data['is_repost']) && !empty($content_data['shared_post_id'])) {
-                                    $analysis_id = $content_data['shared_post_id'];
-                                }
-                                $ai_analysis = $ai_analysis_map[(int)$analysis_id] ?? null;
-
+                                // AI analysis
+                                $analysis_id = ($item['item_type'] === 'post' && !empty($content_data['is_repost']) && !empty($content_data['shared_post_id']))
+                                    ? (int)$content_data['shared_post_id']
+                                    : (int)$item['item_id'];
+                                $ai_analysis    = $ai_analysis_map[$analysis_id] ?? null;
                                 $is_high_risk   = ($ai_analysis && $ai_analysis['status'] === 'done' && $ai_analysis['risk_level'] === 'high');
                                 $is_medium_risk = ($ai_analysis && $ai_analysis['status'] === 'done' && $ai_analysis['risk_level'] === 'medium');
                                 $should_blur    = ($is_high_risk || $is_medium_risk) && !$is_admin;
+
+                                // Share count
+                                $share_count = $share_counts_map[(int)($feed_item_id ?? $item['item_id'])] ?? 0;
                                 ?>
                                 <!-- Estrutura para Visualização  em FEED (Opção  "Todas") -->
                                 <article class="post-card card feed-item-wrapper <?= ($item['item_type'] === 'album' ? 'album-card-style' : '') ?>"
@@ -331,11 +423,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                 <div class="author-line">
                                                     <a href="<?= BASE_URL ?>profile.php?id=<?= htmlspecialchars($author['id']) ?>" class="post-author"><?= htmlspecialchars($author['username']) ?></a>
                                                     <?php if (is_logged_in() && !$is_post_owner): ?>
-                                                        <?php
-                                                        $item_author_is_following = User::isFollowing($pdo, $current_user_id, $author['id']);
-                                                        $has_request = User::hasPendingFollowRequest($pdo, $current_user_id, $author['id']);
-                                                        $follow_label = $item_author_is_following ? 'Seguindo' : ($has_request ? 'Pendente' : 'Seguir');
-                                                        $follow_class = $item_author_is_following ? 'following' : ($has_request ? 'pending' : '');
+                                                        <?php // follow_label e follow_class já calculados no batch acima 
                                                         ?>
                                                         <button class="follow-btn-mini <?= $follow_class ?>"
                                                             onclick="App.toggleFollow(<?= (int)$author['id'] ?>, this)"
@@ -866,9 +954,8 @@ require_once __DIR__ . '/../includes/header.php';
                                             <?php endif; ?>
 
                                             <?php
-                                            // Sistema de Partilha Padronizado
+                                            // share_count já calculado no batch acima
                                             $current_post_id = $feed_item_id ?? $item['item_id'];
-                                            $share_count = $feed_item_id ? \Massango\Models\Post::getShareCount($pdo, (int)$current_post_id) : 0;
                                             $can_link   = $item['allow_share_link']   ?? 1;
                                             $can_repost = $item['allow_share_repost'] ?? 1;
                                             ?>
