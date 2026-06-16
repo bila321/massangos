@@ -130,7 +130,7 @@ $logged_in_user_profile_pic = $_SESSION['user_profile_picture'] ?? UPLOAD_URL . 
                     </div>
                 <?php endif; ?>
 
-                <form action="<?= BASE_URL ?>process_album_post.php" method="POST" enctype="multipart/form-data" class="edit-form">
+                <form action="<?= BASE_URL ?>actions/album.php" method="POST" enctype="multipart/form-data" class="edit-form">
                     <input type="hidden" name="action" value="edit_album">
                     <input type="hidden" name="album_id" value="<?= htmlspecialchars($album['id']) ?>">
                     <input type="hidden" name="feed_item_id" value="<?= htmlspecialchars($feed_item_id) ?>">

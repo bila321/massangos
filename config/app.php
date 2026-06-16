@@ -1,4 +1,6 @@
 <?php
+defined('ENVIRONMENT') || define('ENVIRONMENT', 'development');
+
 define('APP_ROOT', dirname(__DIR__));
 define('BASE_URL', 'http://localhost/massangos/public/');
 define('UPLOAD_URL', BASE_URL . 'media-proxy.php?file=');

@@ -396,13 +396,13 @@ function notif_group(string $created_at): string
                         <!-- Ações: pedido de seguimento -->
                         <?php if ($is_follow_request && $is_unread): ?>
                             <div class="notif-actions">
-                                <form action="<?= BASE_URL ?>process_follow_request.php" method="POST">
+                                <form action="<?= BASE_URL ?>actions/follow_request.php" method="POST">
                                     <input type="hidden" name="follower_id"
                                         value="<?= (int) $n['sender_id'] ?>">
                                     <input type="hidden" name="action" value="accept">
                                     <button type="submit" class="notif-btn primary">Aceitar</button>
                                 </form>
-                                <form action="<?= BASE_URL ?>process_follow_request.php" method="POST">
+                                <form action="<?= BASE_URL ?>actions/follow_request.php" method="POST">
                                     <input type="hidden" name="follower_id"
                                         value="<?= (int) $n['sender_id'] ?>">
                                     <input type="hidden" name="action" value="reject">

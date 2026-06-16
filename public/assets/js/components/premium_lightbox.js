@@ -223,7 +223,7 @@ if (window.reelsManagerInstance) {
                 if (typeof openVerificationInviteModal === 'function') {
                     openVerificationInviteModal();
                 } else {
-                    const verifyPath = fromFeed ? 'process_verification.php' : 'verification/index.php';
+                    const verifyPath = fromFeed ? 'actions/verification.php' : 'verification/index.php';
                     window.location.href = (window.BASE_URL || '') + verifyPath;
                 }
             }
@@ -355,7 +355,7 @@ if (window.reelsManagerInstance) {
                 formData.append('comment_content', text);
 
                 try {
-                    const response = await fetch('process_comment.php', {
+                    const response = await fetch('api/comments.php', {
                         method: 'POST',
                         body: formData
                     });
@@ -424,7 +424,7 @@ if (window.reelsManagerInstance) {
             formData.append('item_type', itemType);
             formData.append('item_id', itemId);
 
-            fetch(`${window.BASE_URL || ''}process_view.php`, {
+            fetch(`${window.BASE_URL || ''}actions/view.php`, {
                 method: 'POST',
                 body: formData
             })
@@ -943,7 +943,7 @@ if (window.reelsManagerInstance) {
             if (item) formData.append('feed_item_id', item.id);
 
             try {
-                const response = await fetch((window.BASE_URL || '') + 'process_comment.php', {
+                const response = await fetch((window.BASE_URL || '') + 'api/comments.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -1074,7 +1074,7 @@ if (window.reelsManagerInstance) {
             formData.append('comment_id', commentId);
 
             try {
-                const response = await fetch((window.BASE_URL || '') + 'process_comment.php', {
+                const response = await fetch((window.BASE_URL || '') + 'api/comments.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -1110,7 +1110,7 @@ if (window.reelsManagerInstance) {
             }
 
             try {
-                const response = await fetch((window.BASE_URL || '') + 'process_comment.php', {
+                const response = await fetch((window.BASE_URL || '') + 'api/comments.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -1927,7 +1927,7 @@ if (window.reelsManagerInstance) {
             formData.append('action', type);
 
             try {
-                const res = await fetch('process_like.php', { method: 'POST', body: formData });
+                const res = await fetch('api/photo_interactions.php', { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.success) {
                     const reel = element.closest('.reel-item');
@@ -1947,7 +1947,7 @@ if (window.reelsManagerInstance) {
 
         deletePost(postId) {
             if (!confirm('Tem certeza?')) return;
-            fetch('process_post.php', {
+            fetch('actions/post.php', {
                 method: 'POST',
                 body: new URLSearchParams({ action: 'delete_post', post_id: postId })
             }).then(res => res.json()).then(data => {

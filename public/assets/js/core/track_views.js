@@ -17,7 +17,7 @@ function sendViewRequest(itemType, itemId, feedItemId) {
     formData.append('item_type', itemType);
     formData.append('item_id', itemId);
 
-    fetch(`${window.BASE_URL || ''}process_view.php`, {
+    fetch(`${window.BASE_URL || ''}actions/view.php`, {
         method: 'POST',
         body: formData
     })

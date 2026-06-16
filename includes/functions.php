@@ -321,3 +321,17 @@ if (!function_exists('get_quality_badge')) {
         return '<span class="quality-badge sd">SD</span>';
     }
 }
+
+/**
+ * Retorna o URL completo do thumbnail de um vídeo.
+ * Os thumbnails ficam em storage/uploads/videos/thumbnails/.
+ * Evita duplicar o prefixo se o caminho já o incluir.
+ */
+function get_video_thumb_url(string $thumbnail_path): string
+{
+    if (empty($thumbnail_path)) return '';
+    if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
+        return UPLOAD_URL . $thumbnail_path;
+    }
+    return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
+}

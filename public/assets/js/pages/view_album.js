@@ -620,7 +620,7 @@ function vaPerformLike(btn) {
     fd.append('feed_item_id', FEED_ITEM_ID);
     fd.append('action', 'like');
 
-    fetch(BASE_URL + 'process_like.php', {
+    fetch(BASE_URL + 'api/photo_interactions.php', {
         method: 'POST',
         body: fd
     })
@@ -647,7 +647,7 @@ function vaPerformSave(btn) {
     fd.append('feed_item_id', FEED_ITEM_ID);
     fd.append('action', 'save');
 
-    fetch(BASE_URL + 'process_save.php', {
+    fetch(BASE_URL + 'ajax/toggle_save.php', {
         method: 'POST',
         body: fd
     })
@@ -783,7 +783,7 @@ function vaDeleteAlbum(albumId) {
     fd.append('album_id', albumId);
     fd.append('redirect_to', 'index.php');
 
-    fetch(BASE_URL + 'process_album_post.php', {
+    fetch(BASE_URL + 'actions/album.php', {
         method: 'POST',
         body: fd
     })

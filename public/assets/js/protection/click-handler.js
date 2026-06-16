@@ -102,7 +102,7 @@
                     if (typeof openVerificationInviteModal === 'function') {
                         openVerificationInviteModal();
                     } else {
-                        window.location.href = (window.BASE_URL || '') + 'process_verification.php';
+                        window.location.href = (window.BASE_URL || '') + 'actions/verification.php';
                     }
                     return;
                 }

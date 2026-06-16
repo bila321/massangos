@@ -830,7 +830,7 @@ if (!$is_ajax) {
         </div>
 
         <div class="stg-card-body">
-            <form action="<?= BASE_URL ?>process_settings.php" method="POST" enctype="multipart/form-data">
+            <form action="<?= BASE_URL ?>actions/settings.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="update_profile" value="1">
 
                 <!-- Informações básicas -->
@@ -957,7 +957,7 @@ if (!$is_ajax) {
         </div>
 
         <div class="stg-card-body">
-            <form action="<?= BASE_URL ?>process_settings.php" method="POST">
+            <form action="<?= BASE_URL ?>actions/settings.php" method="POST">
                 <input type="hidden" name="action" value="update_privacy">
 
                 <label class="privacy-opt">
@@ -1066,7 +1066,7 @@ if (!$is_ajax) {
                                     <?= htmlspecialchars($user['username']) ?>
                                 </a>
                             </div>
-                            <form action="<?= BASE_URL ?>process_block.php" method="POST"
+                            <form action="<?= BASE_URL ?>actions/block.php" method="POST"
                                 onsubmit="return confirm('Deseja desbloquear este utilizador?');">
                                 <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                 <input type="hidden" name="action" value="unblock">
@@ -1507,7 +1507,7 @@ if (!$is_ajax) {
         fd.append('video', capturedMedia.video);
 
         try {
-            const res = await fetch('process_verification.php', {
+            const res = await fetch('actions/verification.php', {
                 method: 'POST',
                 body: fd,
                 headers: {

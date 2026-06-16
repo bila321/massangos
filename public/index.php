@@ -1,25 +1,15 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
-
 define('SECURE_ACCESS', true);
-
-// **2. DEFINE O AMBIENTE AQUI (apenas uma vez)!**
-define('ENVIRONMENT', 'development'); // Usa 'development' durante o desenvolvimento
-// OR
-// define('ENVIRONMENT', 'production'); // Usa 'production' quando fores para o servidor real
-
-// 3. Inclui o arquivo de configuração .
 require_once __DIR__ . '/../includes/config.php';
-
-// 4. Inclui outros arquivos essenciais (db, functions, se tiveres).
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/adult-content-helper.php';
-
 SecurityManager::initSecurity();
+require_once __DIR__ . '/../vendor/autoload.php';
 
-use Massango\Models\User; // Adicione os "use" statements no topo do arquivo PHP
+use Massango\Controllers\FeedController;
+use Massango\Models\User;
 use Massango\Models\Post;
 use Massango\Models\Comment;
 use Massango\Models\Like;
@@ -28,74 +18,9 @@ use Massango\Models\Album;
 use Massango\Models\FeedItem;
 use Massango\Models\Notification;
 
-/**
- * Retorna o URL completo do thumbnail de um vídeo.
- * Os thumbnails de vídeo ficam em storage/uploads/videos/thumbnails/.
- * Se o campo já contiver a subpasta (legado), evita duplicação.
- */
-function get_video_thumb_url(string $thumbnail_path): string
-{
-    if (empty($thumbnail_path)) return '';
-    // Evita duplicar o prefixo se o caminho já o incluir
-    if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
-        return UPLOAD_URL . $thumbnail_path;
-    }
-    return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
-}
+$data = (new FeedController($pdo))->load();
+extract($data);
 
-// 6. Finalmente, incluir o header (que agora terá acesso a tudo)
-if (!is_logged_in()) {
-    set_message("Você precisa estar logado para acessar o massangos.", "danger");
-    redirect(BASE_URL . 'login.php');
-}
-// Obter o ID do usuário logado (se houver)
-$current_user_id = get_current_user_id(); // Função de functions.php
-
-// Lógica para obter todos os itens do feed (posts, vídeos, álbuns)
-$feedItems = FeedItem::getAllFeedItems($pdo);
-
-// Lógica para obter as notificações do usuário logado
-$notifications = [];
-if ($current_user_id) {
-    // Busca as últimas 15 notificações não lidas ou todas se não houver muitas
-    $notifications = Notification::getNotificationsByUserId($pdo, $current_user_id, false, 15);
-}
-// Informações do usuário logado para o campo de comentário
-$logged_in_user_profile_pic = 'profiles/default_profile.png'; // Fallback
-if (is_logged_in()) {
-    $logged_in_user_data = User::getUserById($pdo, $current_user_id);
-    $user_data = $logged_in_user_data; // ↳ ADICIONAR ESTA LINHA
-    if ($logged_in_user_data && !empty($logged_in_user_data['profile_picture'])) {
-        $logged_in_user_profile_pic = $logged_in_user_data['profile_picture'];
-    }
-}
-// Lógica para obter sugestões de amizade
-$suggested_users = [];
-if (is_logged_in()) {
-    $suggested_users = User::getSuggestedUsers($pdo, $current_user_id, 3); // Limita a 3 sugestões
-}
-
-// Lógica para obter álbuns recentes
-$recent_albums = Album::getRecentAlbums($pdo, 3); // Limita a 3 álbuns recentes
-
-
-$saved_ids = [];
-if (is_logged_in()) {
-    $s = $pdo->prepare("SELECT item_type, item_id FROM saved_posts WHERE user_id = ?");
-    $s->execute([get_current_user_id()]);
-    foreach ($s->fetchAll() as $row) {
-        $saved_ids[$row['item_type'] . '_' . $row['item_id']] = true;
-    }
-}
-
-// Initialize CSRF token
-$csrf_token = $_SESSION['csrf_token'] ?? bin2hex(random_bytes(32));
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = $csrf_token;
-}
-
-?>
-<?php
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -362,7 +287,7 @@ require_once __DIR__ . '/../includes/header.php';
                                         <?php if ($is_post_owner): ?>
                                             <a href="<?= BASE_URL ?>edit_post.php?id=<?= htmlspecialchars($item['item_id']) ?>&redirect_to=index.php">Editar Publicação</a>
                                         <?php endif; ?>
-                                        <form action="<?= BASE_URL ?>process_post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esta publicação?');">
+                                        <form action="<?= BASE_URL ?>actions/post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esta publicação?');">
                                             <input type="hidden" name="action" value="delete_post">
                                             <input type="hidden" name="post_id" value="<?= htmlspecialchars($item['item_id']) ?>">
                                             <input type="hidden" name="redirect_to" value="index.php">
@@ -372,7 +297,7 @@ require_once __DIR__ . '/../includes/header.php';
                                         <?php if ($is_post_owner): ?>
                                             <a href="<?= BASE_URL ?>edit_video.php?id=<?= htmlspecialchars($item['item_id']) ?>&redirect_to=index.php">Editar Vídeo</a>
                                         <?php endif; ?>
-                                        <form action="<?= BASE_URL ?>process_video_post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este vídeo?');">
+                                        <form action="<?= BASE_URL ?>actions/video.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este vídeo?');">
                                             <input type="hidden" name="action" value="delete_video">
                                             <input type="hidden" name="video_id" value="<?= htmlspecialchars($item['item_id']) ?>">
                                             <input type="hidden" name="redirect_to" value="index.php">
@@ -382,7 +307,7 @@ require_once __DIR__ . '/../includes/header.php';
                                         <?php if ($is_post_owner): ?>
                                             <a href="<?= BASE_URL ?>edit_album.php?id=<?= htmlspecialchars($item['item_id']) ?>&redirect_to=index.php">Editar Álbum</a>
                                         <?php endif; ?>
-                                        <form action="<?= BASE_URL ?>process_album_post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este álbum?');">
+                                        <form action="<?= BASE_URL ?>actions/album.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este álbum?');">
                                             <input type="hidden" name="action" value="delete_album">
                                             <input type="hidden" name="album_id" value="<?= htmlspecialchars($item['item_id']) ?>">
                                             <input type="hidden" name="redirect_to" value="index.php">

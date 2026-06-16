@@ -87,7 +87,7 @@ if (!$is_ajax) {
                         <span class="h4 text-success"><?= number_format($price, 2, ',', '.') ?> MT</span>
                     </div>
 
-                    <form action="process_payment.php" method="POST" id="payment-form">
+                    <form action="actions/payment.php" method="POST" id="payment-form">
                         <input type="hidden" name="content_type" value="<?= $type ?>">
                         <input type="hidden" name="content_id" value="<?= $id ?>">
                         <input type="hidden" name="amount" value="<?= $price ?>">

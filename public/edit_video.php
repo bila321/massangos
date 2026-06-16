@@ -112,7 +112,7 @@ $logged_in_user_profile_pic = $_SESSION['user_profile_picture'] ?? UPLOAD_URL . 
                 <?php display_site_messages(); // Exibe mensagens de sucesso/erro 
                 ?>
 
-                <form action="<?= BASE_URL ?>process_video_post.php" method="POST" enctype="multipart/form-data" class="edit-form">
+                <form action="<?= BASE_URL ?>actions/video.php" method="POST" enctype="multipart/form-data" class="edit-form">
                     <input type="hidden" name="action" value="edit_video">
                     <input type="hidden" name="video_id" value="<?= htmlspecialchars($video['id']) ?>">
                     <input type="hidden" name="feed_item_id" value="<?= htmlspecialchars($feed_item_id) ?>">

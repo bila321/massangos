@@ -23,7 +23,7 @@ class PostService
     /**
      * Cria um novo post com upload de imagem opcional.
      */
-    public function createPost(array $data): array
+    public function createPost(array $data, array $files = []): array
     {
         try {
             $content = $data['content'] ?? '';
@@ -54,8 +54,8 @@ class PostService
             $thumbnailPath = null;
             $uploadResult = [];
 
-            if (!empty($_FILES['post_image']['tmp_name'])) {
-                $uploadResult = $this->uploadImage($_FILES['post_image']);
+            if (!empty($files['post_image']['tmp_name'])) {
+                $uploadResult = $this->uploadImage($files['post_image']);
                 if (!$uploadResult['success']) {
                     throw new Exception($uploadResult['message']);
                 }

@@ -608,7 +608,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Formulário Texto -->
         <div id="section-text" class="post-form-section active">
-            <form action="<?= BASE_URL ?>process_post.php" method="POST" class="ajax-post-form" data-type="text">
+            <form action="<?= BASE_URL ?>actions/post.php" method="POST" class="ajax-post-form" data-type="text">
                 <input type="hidden" name="post_type" value="text">
                 <input type="hidden" name="content" class="content-hidden">
 
@@ -635,7 +635,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Formulário Foto -->
         <div id="section-photo" class="post-form-section">
-            <form action="<?= BASE_URL ?>process_post.php" method="POST" enctype="multipart/form-data" class="ajax-post-form" data-type="photo">
+            <form action="<?= BASE_URL ?>actions/post.php" method="POST" enctype="multipart/form-data" class="ajax-post-form" data-type="photo">
                 <input type="hidden" name="post_type" value="photo">
                 <textarea name="content" class="form-control mb-3" placeholder="Escreva uma legenda..."></textarea>
 
@@ -669,7 +669,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Formulário Vídeo (WIZARD EM ETAPAS) -->
         <div id="section-video" class="post-form-section">
-            <form action="<?= BASE_URL ?>process_video_post.php" method="POST" enctype="multipart/form-data" class="ajax-post-form" data-type="video" id="video-wizard-form">
+            <form action="<?= BASE_URL ?>actions/video.php" method="POST" enctype="multipart/form-data" class="ajax-post-form" data-type="video" id="video-wizard-form">
                 <input type="hidden" name="post_type" value="video">
 
                 <!-- Indicador de Passos do Vídeo -->
@@ -835,7 +835,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Formulário Álbum -->
         <div id="section-album" class="post-form-section">
-            <form action="<?= BASE_URL ?>process_album_post.php" method="POST" enctype="multipart/form-data" class="ajax-post-form" data-type="album">
+            <form action="<?= BASE_URL ?>actions/album.php" method="POST" enctype="multipart/form-data" class="ajax-post-form" data-type="album">
                 <input type="hidden" name="post_type" value="album">
                 <input type="hidden" name="cover_index" id="cover_index" value="0">
 

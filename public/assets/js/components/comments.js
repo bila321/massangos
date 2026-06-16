@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('feed_item_id', feedItemId);
         formData.append('action', action);
 
-        fetch(BASE_URL + 'process_like.php', { // Aponta para process_like.php
+        fetch(BASE_URL + 'api/feed_interactions.php', { // Aponta para api/feed_interactions.php
             method: 'POST',
             body: formData
         })
@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
 
-        fetch(BASE_URL + 'process_comment.php', { // Aponta para process_comment.php
+        fetch(BASE_URL + 'api/comments.php', { // Aponta para api/comments.php
             method: 'POST',
             body: formData
         })
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const feedItemId = btn.closest('.comment-section-full').dataset.feedItemId;
         container.innerHTML = `
-            <form action="${BASE_URL}process_comment.php" method="POST" class="reply-form">
+            <form action="${BASE_URL}api/comments.php" method="POST" class="reply-form">
                 <input type="hidden" name="action" value="add_reply">
                 <input type="hidden" name="feed_item_id" value="${feedItemId}">
                 <input type="hidden" name="parent_comment_id" value="${commentId}">
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             replyFormContainer.style.display = 'block';
             replyFormContainer.innerHTML = `
-                <form action="${BASE_URL}process_comment.php" method="POST" class="comment-form edit-form">
+                <form action="${BASE_URL}api/comments.php" method="POST" class="comment-form edit-form">
                     <input type="hidden" name="action" value="edit_comment"> 
                     <input type="hidden" name="comment_id" value="${commentId}">
                     <div class="comment-input-wrapper">
@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('comment_id', commentId);
             formData.append('feed_item_id', feedItemId); // Enviar o feed_item_id para a verificação de permissões
 
-            fetch(BASE_URL + 'process_comment.php', {
+            fetch(BASE_URL + 'api/comments.php', {
                 method: 'POST',
                 body: formData
             })
@@ -639,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        fetch(BASE_URL + 'process_comment.php', {
+        fetch(BASE_URL + 'api/comments.php', {
             method: 'POST',
             body: formData
         })

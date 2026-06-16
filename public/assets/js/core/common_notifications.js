@@ -13,7 +13,7 @@ function markNotificationAsRead(notificationId, notificationItem) {
         return Promise.resolve(false); // Retorna uma promessa resolvida com false
     }
 
-    return fetch(BASE_URL + 'process_notification.php', {
+    return fetch(BASE_URL + 'actions/notification.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

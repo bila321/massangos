@@ -1,37 +1,15 @@
 <?php
-
 define('SECURE_ACCESS', true);
-
-// **2. DEFINE O AMBIENTE AQUI (apenas uma vez)!**
-define('ENVIRONMENT', 'development'); // Usa 'development' durante o desenvolvimento
-// OR
-// define('ENVIRONMENT', 'production'); // Usa 'production' quando fores para o servidor real
-
-// 3. Inclui o arquivo de configuração .
 require_once __DIR__ . '/../includes/config.php';
-
-// 4. Inclui outros arquivos essenciais (db, functions, se tiveres).
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/adult-content-helper.php';
-
-// â”€â”€ Helpers partilhados com reels.php â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-$saved_ids = [];
-if (is_logged_in()) {
-    $s = $pdo->prepare("SELECT item_type, item_id FROM saved_posts WHERE user_id = ?");
-    $s->execute([get_current_user_id()]);
-    foreach ($s->fetchAll() as $row) {
-        $saved_ids[$row['item_type'] . '_' . $row['item_id']] = true;
-    }
-}
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 SecurityManager::initSecurity();
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Massango\Models\User; // Adicione os "use" statements no topo do arquivo PHP
+use Massango\Controllers\ProfileController;
+use Massango\Models\User;
 use Massango\Models\Post;
 use Massango\Models\Comment;
 use Massango\Models\Like;
@@ -40,215 +18,25 @@ use Massango\Models\Album;
 use Massango\Models\FeedItem;
 use Massango\Models\Notification;
 
-if (!is_logged_in()) {
-    set_message("Você  precisa estar logado para acessar o perfil.", "danger");
-    redirect(BASE_URL . 'login.php');
-}
+$data = (new ProfileController($pdo))->load($_GET['id'] ?? null);
+extract($data);
+$paymentService = new \Massango\Services\PaymentService($pdo);
 
-/**
- * Retorna o URL completo do thumbnail de um vídeo.
- * Os thumbnails de vídeo ficam em storage/uploads/videos/thumbnails/.
- * Se o campo já contiver a subpasta (legado), evita duplicação.
- */
-function get_video_thumb_url(string $thumbnail_path): string
-{
-    if (empty($thumbnail_path)) return '';
-    // Evita duplicar o prefixo se o caminho já o incluir
-    if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
-        return UPLOAD_URL . $thumbnail_path;
-    }
-    return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
-}
-
-$current_user_id = get_current_user_id();
-
-$profile_user_id = $_GET['id'] ?? null;
-
-if (!$profile_user_id) {
-    if (is_logged_in()) {
-        $profile_user_id = $current_user_id;
-    } else {
-        set_message("usuário não  especificado.", "danger");
-        redirect(BASE_URL);
-    }
-}
-
-$profile_data = User::getUserById($pdo, $profile_user_id);
-
-if (!$profile_data) {
-    set_message("Perfil de usuário não  encontrado.", "danger");
-    redirect(BASE_URL);
-}
-
-$is_owner = (is_logged_in() && $profile_user_id == $current_user_id);
-
-// Verificar se o usuário atual estão  bloqueado pelo dono do perfil ou vice-versa
-$is_blocked_by_me = false;
-$am_i_blocked = false;
-if (is_logged_in() && !$is_owner) {
-    $is_blocked_by_me = User::isBlocking($pdo, $current_user_id, $profile_user_id);
-    $am_i_blocked = User::isBlocking($pdo, $profile_user_id, $current_user_id);
-}
-
+// Bloco bloqueado
 if ($am_i_blocked || $is_blocked_by_me) {
     require_once __DIR__ . '/../includes/header.php';
     echo '<div class="main-content-area full-width"><div class="card" style="padding: 40px; text-align: center;">';
-    echo '<h2>usuário não  encontrado ou acesso restrito.</h2>';
-    echo '<p>Você  não  tem permissão  para visualizar este perfil.</p>';
-    echo '<a href="' . BASE_URL . '" class="btn btn-primary">Voltar ao InÃ­cio</a>';
+    echo '<h2>Utilizador n�o encontrado ou acesso restrito.</h2>';
+    echo '<p>N�o tem permiss�o para visualizar este perfil.</p>';
+    echo '<a href="' . BASE_URL . '" class="btn btn-primary">Voltar ao In�cio</a>';
     echo '</div></div>';
     require_once __DIR__ . '/../includes/footer.php';
     exit;
 }
 
-// Lógica  para seguir/deixar de seguir
-$is_following = false;
-$has_pending_request = false;
-if (is_logged_in() && !$is_owner) {
-    $is_following = User::isFollowing($pdo, $current_user_id, $profile_user_id);
-    if (!$is_following) {
-        $has_pending_request = User::hasPendingFollowRequest($pdo, $current_user_id, $profile_user_id);
-    }
-}
-// Verificar privacidade do perfil
-$can_view_content = true;
-$profile_privacy = $profile_data['profile_privacy'] ?? 'public';
-
-if (!$is_owner && $profile_privacy === 'followers') {
-    if (!is_logged_in()) {
-        $can_view_content = false;
-    } else {
-        // Para perfis privados, o Conteúdo  não  é visé­vel se o utilizador já  estiver a seguir
-        if (!$is_following) {
-            $can_view_content = false;
-        }
-    }
-}
-
-// Registar visita ao perfil (Ãºnica vez por visitante por dia, com controlo de sessÃ£o)
-// TODO: mover esta Lógica  para User::recordProfileVisit($pdo, $profile_user_id, $visitor_identifier)
-if (!$is_owner) {
-    $today = date('Y-m-d');
-    $visitor_identifier = is_logged_in() ? 'user_' . $current_user_id : 'session_' . session_id();
-
-    if (!isset($_SESSION['profile_visits_today'])) {
-        $_SESSION['profile_visits_today'] = [];
-    }
-    if (!isset($_SESSION['profile_visits_today'][$profile_user_id])) {
-        $_SESSION['profile_visits_today'][$profile_user_id] = [];
-    }
-
-    $already_visited_today = isset($_SESSION['profile_visits_today'][$profile_user_id][$visitor_identifier])
-        && $_SESSION['profile_visits_today'][$profile_user_id][$visitor_identifier] === $today;
-
-    if (!$already_visited_today) {
-        $totalViews = ($profile_data['total_profile_views'] ?? 0) + 1;
-        $lastVisitDate = $profile_data['last_daily_visit_date'] ?? null;
-
-        if ($lastVisitDate !== $today) {
-            $dailyCount = 1;
-            $lastVisitDate = $today;
-        } else {
-            $dailyCount = ($profile_data['last_daily_visit_count'] ?? 0) + 1;
-        }
-
-        $updateStmt = $pdo->prepare(
-            "UPDATE users
-             SET total_profile_views   = :total_views,
-                 last_daily_visit_count = :daily_count,
-                 last_daily_visit_date  = :last_date
-             WHERE id = :id"
-        );
-        $updateResult = $updateStmt->execute([
-            ':total_views' => $totalViews,
-            ':daily_count' => $dailyCount,
-            ':last_date'   => $lastVisitDate,
-            ':id'          => $profile_user_id,
-        ]);
-
-        if ($updateResult) {
-            $_SESSION['profile_visits_today'][$profile_user_id][$visitor_identifier] = $today;
-        }
-    }
-}
-
-$profile_data = User::getUserById($pdo, $profile_user_id);
-
-// Obter contagens de seguidores e seguindo
-$followers_count = User::getFollowersCount($pdo, $profile_user_id);
-$following_count = User::getFollowingCount($pdo, $profile_user_id);
-
-$total_visits = $profile_data['total_profile_views'] ?? 0;
-$daily_visits = $profile_data['last_daily_visit_count'] ?? 0;
-
-$star_rating = (int)($profile_data['stars'] ?? 0);
-
-if ($star_rating <= 0) {
-    $s5 = (int)\Massango\Services\PricingRuleService::getSetting($pdo, 'star_5_visits', 6400);
-    $s4 = (int)\Massango\Services\PricingRuleService::getSetting($pdo, 'star_4_visits', 1600);
-    $s3 = (int)\Massango\Services\PricingRuleService::getSetting($pdo, 'star_3_visits', 400);
-    $s2 = (int)\Massango\Services\PricingRuleService::getSetting($pdo, 'star_2_visits', 100);
-    $s1 = (int)\Massango\Services\PricingRuleService::getSetting($pdo, 'star_1_visits', 25);
-
-    if ($daily_visits >= $s5) $star_rating = 5;
-    elseif ($daily_visits >= $s4) $star_rating = 4;
-    elseif ($daily_visits >= $s3) $star_rating = 3;
-    elseif ($daily_visits >= $s2) $star_rating = 2;
-    elseif ($daily_visits >= $s1) $star_rating = 1;
-    else $star_rating = 0;
-}
-
-// --- LÃ“GICA DE FEED PADRONIZADA --- 
-$paymentService = new \Massango\Services\PaymentService($pdo);
-
-// Busca todos os itens do feed do usuário (incluindo reposts) usando o novo método centralizado
-$all_user_content = FeedItem::getFeedItemsByUserId($pdo, $profile_user_id);
-
-// Adiciona informaÃ§Ãµes de acesso para cada item
-foreach ($all_user_content as &$item) {
-    $item['has_access'] = $paymentService->hasAccess($current_user_id ?? 0, $item['item_type'], $item['item_id']);
-}
-unset($item);
-
-$notifications = [];
-if ($current_user_id) {
-    $notifications = Notification::getNotificationsByUserId($pdo, $current_user_id, false, 15);
-}
-
-$suggested_users = [];
-if (is_logged_in()) {
-    $suggested_users = User::getSuggestedUsers($pdo, $current_user_id, 3);
-}
-
-$recent_albums = Album::getRecentAlbums($pdo, 3);
-
-// Alias para compatibilidade com os blocos de Conteúdo  pago
-$logged_in_user_data = User::getUserById($pdo, $current_user_id);
-
-// Garantir que exista um token CSRF para aÃ§Ãµes no front-end
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if (empty($_SESSION['csrf_token'])) {
-    try {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
-    } catch (Exception $e) {
-        // fallback
-        $_SESSION['csrf_token'] = bin2hex(openssl_random_pseudo_bytes(16));
-    }
-}
-$csrf_token = $_SESSION['csrf_token'];
-
-?>
-
-<?php
 $extra_css = ['premium_lightbox.css'];
 require_once __DIR__ . '/../includes/header.php';
-?>
-
-
-
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/profile_layout.css">
+?><link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/profile_layout.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card-modern.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/repost-header.css">
 
@@ -332,7 +120,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 <?php endif; ?>
 
                                 <!-- Bloquear / Desbloquear como Ã­cone discreto -->
-                                <form action="<?= BASE_URL ?>process_block.php" method="POST" style="margin:0;"
+                                <form action="<?= BASE_URL ?>actions/block.php" method="POST" style="margin:0;"
                                     onsubmit="return confirm('<?= $is_blocked_by_me ? 'Deseja desbloquear este usuário?' : 'Tem certeza que deseja bloquear este usuário?' ?>');">
                                     <input type="hidden" name="user_id" value="<?= htmlspecialchars($profile_user_id) ?>">
                                     <input type="hidden" name="action" value="<?= $is_blocked_by_me ? 'unblock' : 'block' ?>">
@@ -604,7 +392,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                             <?php if ($is_owner): ?>
                                                                 <a href="<?= BASE_URL ?>edit_post.php?id=<?= htmlspecialchars($item['item_id']) ?>&redirect_to=profile.php">Editar Publicação</a>
                                                             <?php endif; ?>
-                                                            <form action="<?= BASE_URL ?>process_post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esta Publicações ?');">
+                                                            <form action="<?= BASE_URL ?>actions/post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esta Publicações ?');">
                                                                 <input type="hidden" name="action" value="delete_post">
                                                                 <input type="hidden" name="post_id" value="<?= htmlspecialchars($item['item_id']) ?>">
                                                                 <input type="hidden" name="redirect_to" value="profile.php">
@@ -614,7 +402,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                             <?php if ($is_owner): ?>
                                                                 <a href="<?= BASE_URL ?>edit_video.php?id=<?= htmlspecialchars($item['item_id']) ?>&redirect_to=profile.php">Editar Vídeo </a>
                                                             <?php endif; ?>
-                                                            <form action="<?= BASE_URL ?>process_video_post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este Vídeo ?');">
+                                                            <form action="<?= BASE_URL ?>actions/video.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este Vídeo ?');">
                                                                 <input type="hidden" name="action" value="delete_video">
                                                                 <input type="hidden" name="video_id" value="<?= htmlspecialchars($item['item_id']) ?>">
                                                                 <input type="hidden" name="redirect_to" value="profile.php">
@@ -624,7 +412,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                             <?php if ($is_owner): ?>
                                                                 <a href="<?= BASE_URL ?>edit_album.php?id=<?= htmlspecialchars($item['item_id']) ?>&redirect_to=profile.php">Editar Álbum </a>
                                                             <?php endif; ?>
-                                                            <form action="<?= BASE_URL ?>process_album_post.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este Ã¡lbum?');">
+                                                            <form action="<?= BASE_URL ?>actions/album.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar este Ã¡lbum?');">
                                                                 <input type="hidden" name="action" value="delete_album">
                                                                 <input type="hidden" name="album_id" value="<?= htmlspecialchars($item['item_id']) ?>">
                                                                 <input type="hidden" name="redirect_to" value="profile.php">

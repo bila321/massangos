@@ -50,7 +50,7 @@ include __DIR__ . '/../includes/header.php';
                         <span class="h4 text-success"><?= number_format($price, 2, ',', '.') ?> MT</span>
                     </div>
 
-                    <form action="process_payment_stars.php" method="POST" id="payment-form">
+                    <form action="actions/payment_stars.php" method="POST" id="payment-form">
                         <input type="hidden" name="stars" value="<?= $stars ?>">
                         <input type="hidden" name="duration" value="<?= $duration ?>">
                         <input type="hidden" name="amount" value="<?= $price ?>">

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? window.BASE_URL
                 : '/';
 
-            fetch(baseUrl + 'process_notification.php', {
+            fetch(baseUrl + 'actions/notification.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ action: 'clear_read' })
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ? window.BASE_URL
             : '/';
 
-        return fetch(baseUrl + 'process_notification.php', {
+        return fetch(baseUrl + 'actions/notification.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ action: 'mark_read', notification_id: id })
