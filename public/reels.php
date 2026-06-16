@@ -11,205 +11,20 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Massango\Controllers\ReelsController;
 use Massango\Models\User;
 
+// ← ADICIONAR ESTAS DUAS LINHAS ANTES DO HEADER
+$hide_feed_container = true;   // reels usa layout próprio, sem .feed-container
+$hide_sidebar        = false;  // sidebar mantém-se
+
 $data = (new ReelsController($pdo))->load($_GET);
 extract($data);
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
+
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/premium_lightbox.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/reels.css">
 
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
-
-<style>
-    /* ── reels-filter-bar: layout desktop/tablet (≥ 768px) ─────────────────────── */
-    @media (min-width: 768px) {
-
-        /* O form torna-se o contentor flex da única linha */
-        .reels-filter-bar {
-            position: sticky;
-            top: var(--topbar-height, 56px);
-            z-index: 200;
-            background: var(--bg-main, #1c1e21);
-            padding: 0 10px;
-            width: 100%;
-
-        }
-
-        .reels-filter-bar form#filterForm {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 12px;
-            height: 52px;
-            width: 100%;
-        }
-
-        /* ── Wrappers estruturais dissolvem-se no flex pai ── */
-        .filters-top-row,
-        .filters-panel,
-        .filters-panel-inner {
-            display: contents;
-        }
-
-        /* ── Search ── */
-        .filter-search {
-            display: flex !important;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card, rgba(255, 255, 255, 0.06));
-            border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
-            border-radius: 20px;
-            padding: 0 14px;
-            height: 36px;
-            min-width: 60px;
-            max-width: 240px;
-            flex-shrink: 0;
-            order: 1;
-        }
-
-        .filter-search i {
-            color: var(--text-secondary, #8a8d91);
-            font-size: 0.82rem;
-            flex-shrink: 0;
-        }
-
-        .filter-search input {
-            border: none;
-            background: transparent;
-            outline: none;
-            color: var(--text-main, #e4e6eb);
-            font-size: 0.88rem;
-            font-family: inherit;
-            width: 100%;
-        }
-
-        .filter-search input::placeholder {
-            color: var(--text-light, #8a8d91);
-        }
-
-        /* ── Chips — depois do search, crescem para preencher o espaço ── */
-        .filter-chips {
-            display: flex !important;
-            align-items: center;
-            gap: 8px;
-            flex: 1 1 auto;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
-            order: 2;
-        }
-
-        .filter-chips::-webkit-scrollbar {
-            display: none;
-        }
-
-        .filter-chips .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
-            background: var(--bg-card, rgba(255, 255, 255, 0.05));
-            color: var(--text-secondary, #b0b3b8);
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.18s, border-color 0.18s, color 0.18s;
-            user-select: none;
-        }
-
-        .filter-chips .chip:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main, #e4e6eb);
-        }
-
-        .filter-chips .chip.active {
-            background: var(--primary-gradient);
-            border-color: transparent;
-            color: #303030;
-            font-weight: 600;
-        }
-
-        .filter-chips .chip.adult.active {
-            background: #e41e3f;
-            color: #fff;
-        }
-
-        /* ── Botão Filtros — último item, depois dos chips ── */
-        .btn-filters-toggle {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
-            background: var(--bg-card, rgba(255, 255, 255, 0.05));
-            color: var(--text-secondary, #b0b3b8);
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-            order: 3;
-            transition: background 0.18s, color 0.18s;
-        }
-
-        .btn-filters-toggle:hover,
-        .btn-filters-toggle.is-open {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main, #e4e6eb);
-        }
-
-        .btn-filters-toggle .filters-badge.has-count {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
-            border-radius: 9px;
-            background: var(--danger, #e41e3f);
-            color: #fff;
-            font-size: 0.68rem;
-            font-weight: 700;
-        }
-
-        /* ── Linha secundária (Filtros expandido) — fora do fluxo inline ── */
-        .filters-row-secondary {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--bg-main, #1c1e21);
-            border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-            padding: 12px 20px;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            z-index: 199;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .filters-row-secondary.is-open {
-            display: flex;
-        }
-
-        /* position relative para o dropdown ficar ancorado à barra */
-        .reels-filter-bar {
-            position: sticky;
-            /* já definido acima — só garante o relative */
-            /* sticky já cria contexto de posicionamento */
-        }
-
-        .results-count {
-            display: none !important;
-        }
-    }
-</style>
 
 <div class="reels-page">
 
@@ -532,7 +347,8 @@ require_once __DIR__ . '/../includes/header.php';
 </script>
 
 
+<script src="<?= BASE_URL ?>assets/js/components/premium_lightbox.js"></script>
 <script src="<?= BASE_URL ?>assets/js/pages/reels.js?v=202606161014"></script>
 
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
 <?php require_once __DIR__ . '/../includes/reels_lightbox.php'; ?>
-<?php require_once __DIR__ . '/../includes/footer2.php'; ?>

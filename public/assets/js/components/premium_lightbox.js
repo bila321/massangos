@@ -83,6 +83,13 @@ if (window.reelsManagerInstance) {
                 const trigger = e.target.closest('.lightbox-trigger[data-type="video"], .lightbox-trigger[data-item-type="video"], .video-locked[data-type="video"]');
                 if (!trigger) return;
 
+                // FIX: Ignorar cliques em triggers dentro do lightbox já renderizado.
+                // openReels() reconstrói a lista a partir dos .lightbox-trigger do feed;
+                // se o trigger vier do #lightboxScrollContainer, os itens injectados via JS
+                // não têm os data-* completos e causam reabertura dentro da sidebar.
+                if (this.scrollContainer && this.scrollContainer.contains(trigger)) return;
+                if (this.lightbox && this.lightbox.classList.contains('active') && this.lightbox.contains(trigger)) return;
+
                 const isForSale = trigger.dataset.isForSale === 'true' || trigger.classList.contains('video-locked');
                 const hasAccess = trigger.dataset.hasAccess === 'true';
                 const isPostOwner = trigger.dataset.isPostOwner === 'true';
@@ -240,10 +247,18 @@ if (window.reelsManagerInstance) {
                 const trigger = e.target.closest('.lightbox-trigger');
                 if (trigger && (trigger.dataset.type === 'video' || trigger.querySelector('video'))) {
 
-                    // ✅ NOVO: Na página reels.php, o lightbox funciona normalmente
-                    // (os cards já têm a lógica correcta de acesso no PHP)
-                    // Não bloquear — apenas garantir que não abre modal se não houver lightbox
-                    if (!this.lightbox) return; // sem modal na página = não abre nada
+                    // Sem lightbox na página = não abre nada
+                    if (!this.lightbox) return;
+
+                    // FIX: Não reabrir o lightbox quando o clique vem de dentro do próprio
+                    // lightbox (scroll container ou sidebar). O setupVideoCapture() já trata
+                    // estes cliques na fase de captura com todas as validações correctas.
+                    // Sem esta guarda, um clique num reel-item já renderizado dentro do
+                    // #lightboxScrollContainer disparava openReels() uma segunda vez,
+                    // causando o efeito de "abrir dentro da sidebar".
+                    if (this.scrollContainer && this.scrollContainer.contains(trigger)) return;
+                    if (this.sidebar && this.sidebar.contains(trigger)) return;
+                    if (this.lightbox.classList.contains('active') && this.lightbox.contains(trigger)) return;
 
                     e.preventDefault();
                     e.stopPropagation();

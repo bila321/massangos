@@ -1,3 +1,46 @@
+<!-- Lightbox Portal Fix: garante que o modal é filho directo do <body>
+     e que o position:fixed cobre o viewport inteiro, independentemente
+     de qualquer container com transform/overflow/will-change. -->
+<style>
+    #feedLightbox {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 99999 !important;
+        /* Isolar stacking context próprio */
+        isolation: isolate;
+        /* Reset de qualquer transform herdado */
+        transform: none !important;
+        will-change: auto !important;
+        overflow: hidden !important;
+        /* Escondido por defeito */
+        display: none;
+        background: rgba(0, 0, 0, 0.97);
+    }
+
+    #feedLightbox.active {
+        display: flex !important;
+    }
+</style>
+<script>
+    // Portal: move #feedLightbox para document.body imediatamente após o DOM estar pronto.
+    // Isto quebra qualquer stacking context criado por containers com transform/overflow.
+    (function() {
+        function portalLightbox() {
+            var lb = document.getElementById('feedLightbox');
+            if (lb && lb.parentElement !== document.body) {
+                document.body.appendChild(lb);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', portalLightbox);
+        } else {
+            portalLightbox();
+        }
+    })();
+</script>
+
 <!-- Lightbox Modal -->
 <div id="feedLightbox" class="photo-lightbox-modal">
     <div class="close-lightbox" data-action="close-lightbox">
