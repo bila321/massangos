@@ -44,7 +44,7 @@ $rules = [
 
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/text-editor.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/create-post.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/create-post.css">
 
 <?php
 $extra_css = ['reels.css'];

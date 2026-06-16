@@ -1,4 +1,5 @@
 <?php
+
 /**
  * includes/header.php — Header unificado
  * Substitui header.php, header2.php e header3.php
@@ -45,6 +46,7 @@ if (!function_exists('display_site_messages')) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
@@ -85,6 +87,7 @@ if (!function_exists('display_site_messages')) {
     <?php endif; ?>
     <?php if (!empty($extra_head_html)) echo $extra_head_html; ?>
 </head>
+
 <body data-user-info="<?= is_logged_in() ? htmlspecialchars($_SESSION['username'] . ' (' . $_SERVER['REMOTE_ADDR'] . ')') : htmlspecialchars($_SERVER['REMOTE_ADDR']) ?>">
     <?php include_once __DIR__ . '/topbar.php'; ?>
     <div class="app-container">
@@ -96,6 +99,6 @@ if (!function_exists('display_site_messages')) {
         <main class="main-content" role="main">
             <div class="content-wrapper">
                 <?php if (empty($hide_feed_container)): ?>
-                <div class="feed-container">
-                <?php endif; ?>
-                <?php display_site_messages(); ?>
+                    <div class="feed-container">
+                    <?php endif; ?>
+                    <?php display_site_messages(); ?>

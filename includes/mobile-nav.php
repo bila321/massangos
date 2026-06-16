@@ -338,7 +338,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 aria-label="Reels">
                 <i class="fa-solid fa-clapperboard" aria-hidden="true"></i>
             </a>
-            <a href="<?= BASE_URL ?>create-post.php?tab=album"
+            <a href="<?= BASE_URL ?>create-post.php"
                 class="mobile-item <?= $current_page === 'create-post.php' ? 'active' : '' ?>"
                 aria-label="Criar publicação">
                 <i class="fa-solid fa-plus" aria-hidden="true"></i>

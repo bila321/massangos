@@ -22,7 +22,7 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/premium_lightbox.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/reels.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/reels.css">
 
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
 

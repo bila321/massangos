@@ -28,6 +28,9 @@ if (!isset($recent_albums)) {
 $paymentService = new \Massango\Services\PaymentService($pdo);
 ?>
 
+<?php if (empty($hide_feed_container)): ?>
+    </div><!-- /.feed-container -->
+<?php endif; ?>
 </div><!-- /.content-wrapper -->
 </main>
 

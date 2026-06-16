@@ -375,7 +375,7 @@ require_once __DIR__ . '/../includes/header.php';
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/post.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/comments_modern.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/local_icons.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/view_album.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/view_album.css">
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
 
 

@@ -33,18 +33,8 @@ $current_page    = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             <li>
-                <a href="<?= BASE_URL ?>explore.php" class="nav-link <?= $current_page === 'explore.php' ? 'active' : '' ?>">
-                    <i class="fa-solid fa-compass"></i><span>Explorar</span>
-                </a>
-            </li>
-            <li>
                 <a href="<?= BASE_URL ?>reels.php" class="nav-link <?= $current_page === 'reels.php' ? 'active' : '' ?>">
-                    <i class="fa-solid fa-clapperboard"></i><span>Reels</span>
-                </a>
-            </li>
-            <li>
-                <a href="<?= BASE_URL ?>trending.php" class="nav-link <?= $current_page === 'trending.php' ? 'active' : '' ?>">
-                    <i class="fa-solid fa-fire"></i><span>Tendências</span>
+                    <i class="fa-solid fa-stop"></i><span>Reels</span>
                 </a>
             </li>
             <li>
@@ -73,7 +63,7 @@ $current_page    = basename($_SERVER['PHP_SELF']);
             </li>
             <li>
                 <a href="<?= BASE_URL ?>create-post.php" class="nav-link <?= $current_page === 'create-post.php' ? 'active' : '' ?>">
-                    <i class="fa-solid fa-plus"></i><span>Publicar</span>
+                    <i class="fa-solid fa-circle-plus"></i><span>Publicar</span>
                 </a>
             </li>
         </ul>

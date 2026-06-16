@@ -272,7 +272,7 @@ function notif_group(string $created_at): string
 }
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/notifications.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/notifications.css">
 
 <div class="notif-page">
 
@@ -477,4 +477,3 @@ function notif_group(string $created_at): string
 </script>
 <script src="<?= BASE_URL ?>assets/js/core/notifications.js" defer></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-

@@ -191,7 +191,7 @@ $slides_json = json_encode($carousel_slides, JSON_HEX_TAG | JSON_HEX_APOS | JSON
 
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/variables.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/base.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/auth_premium.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/login-register.css">
 
     <script>
         window.BASE_URL = <?= json_encode(BASE_URL) ?>;
