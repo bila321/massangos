@@ -25,10 +25,10 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/premium_lightbox.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/premium_lightbox.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/index.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card-modern.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/repost-header.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/cards.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/repost-header.css">
 
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
 <script src="<?= BASE_URL ?>assets/js/pages/media-backdrop.js" defer></script>
@@ -63,15 +63,19 @@ require_once __DIR__ . '/../includes/header.php';
             $is_post_owner = $item['is_post_owner'];
             $is_admin      = $item['is_admin'];
             $should_blur   = $item['should_blur'];
-            ?>
 
-            <?php
-            // Repost e blur já vêm resolvidos do FeedController::load()
+            // ✅ ADICIONAR ESTAS LINHAS:
             $isRepost     = $item['isRepost'];
             $sharedData   = $item['sharedData'];
             $sharedType   = $item['sharedType'];
             $sharedAuthor = $item['sharedAuthor'];
             $sharedId     = $item['sharedId'] ?? null;
+
+            $is_shared_owner = $isRepost && isset($sharedData['user_id']) && $sharedData['user_id'] == $current_user_id;
+
+            $can_see_sale_indicator =
+                (isset($item['is_for_sale']) && $item['is_for_sale'] && ($is_post_owner || $is_admin))
+                || ($isRepost && isset($sharedData['is_for_sale']) && $sharedData['is_for_sale'] && ($is_shared_owner || $is_admin));
             ?>
             <article class="post-card card feed-item-wrapper <?= ($item['item_type'] === 'album' ? 'album-card-style' : '') ?>"
                 data-type="all"
@@ -108,11 +112,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                                                                                                                                                                                                                                                                                                             $follow_label_shared = $is_following_shared ? 'Seguindo' : ($has_request_shared ? 'Pendente' : 'Seguir');
                                                                                                                                                                                                                                                                                                                                             $follow_class_shared = $is_following_shared ? 'following' : ($has_request_shared ? 'pending' : ''); ?><button class="follow-btn-mini <?= $follow_class_shared ?>" onclick="App.toggleFollow(<?= (int)$sharedAuthor['id'] ?>, this)" data-user-id="<?= (int)$sharedAuthor['id'] ?>"><?= $follow_label_shared ?></button><?php endif; ?>
                                 <?php endif; ?>
-                                <?php
-                                $is_shared_owner = $isRepost && isset($sharedData['user_id']) && $sharedData['user_id'] == $current_user_id;
-                                $can_see_sale_indicator = (isset($item['is_for_sale']) && $item['is_for_sale'] && ($is_post_owner || $is_admin))
-                                    || ($isRepost && isset($sharedData['is_for_sale']) && $sharedData['is_for_sale'] && ($is_shared_owner || $is_admin));
-                                ?>
+
                                 <?php if ($can_see_sale_indicator): ?>
                                     <div class="sale-indicator" style="background: var(--premium-gradient); color: white; padding: 5px 5px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-flex; align-items: center; gap: 5px;">
                                         <i class="fa-solid fa-tag"></i> À VENDA
@@ -193,9 +193,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php if ($isRepost && $sharedData && $sharedAuthor): ?>
                         <div class="original-content-container">
                             <?php
-                            $paymentService = new \Massango\Services\PaymentService($pdo);
-                            $hasAccessShared = $paymentService->hasAccess($current_user_id ?? 0, $sharedType, $sharedData['id'] ?? $sharedData['item_id'] ?? 0);
-                            if ($is_admin) $hasAccessShared = true;
+                            $hasAccessShared = $item['has_access_shared'];
                             ?>
                             <?php if (isset($sharedData['is_for_sale']) && $sharedData['is_for_sale']): ?>
                                 <div class="paid-content-badge" style="background:  var(--primary-gradient); color: #3b3b3b; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-left: 10px;">
@@ -265,10 +263,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 <?php if (!empty($sharedData['video_path'])): ?>
                                     <?php
                                     // CORREÇÃO: Verifica acesso usando $sharedId (ID do vídeo original)
-                                    $paymentService = new \Massango\Services\PaymentService($pdo);
-                                    $hasAccessShared = $paymentService->hasAccess($current_user_id ?? 0, 'video', $sharedId);
-
-                                    // CORREÇÃO: Verifica se é vídeo pago
+                                    $hasAccessShared = $item['has_access_shared'];
                                     $isForSaleShared = isset($sharedData['is_for_sale']) && $sharedData['is_for_sale'];
                                     ?>
 
@@ -384,8 +379,7 @@ require_once __DIR__ . '/../includes/header.php';
                                         <?php endif; ?>
                                     </div>
                                     <?php
-                                    $paymentService = new \Massango\Services\PaymentService($pdo);
-                                    $hasAccessShared = $paymentService->hasAccess($current_user_id ?? 0, $sharedType, $sharedData['id'] ?? $sharedData['item_id'] ?? 0);
+                                    $hasAccess = $item['has_access'];
                                     if (!empty($sharedData['cover_photo_url']))
                                         if ($hasAccessShared) {
                                             $album_blur_class = $should_blur ? 'album-blur-container' : '';
@@ -449,8 +443,7 @@ require_once __DIR__ . '/../includes/header.php';
                                             </div>
                                         <?php endif; ?>
                                         <?php
-                                        $paymentService = new \Massango\Services\PaymentService($pdo);
-                                        $hasAccess = $paymentService->hasAccess($current_user_id ?? 0, 'post', $item['item_id']);
+                                        $hasAccess = $item['has_access'];
                                         ?>
                                         <?php if ($hasAccess): ?>
                                             <?php if (isset($content_data['post_type']) && $content_data['post_type'] === 'text'): ?>
@@ -507,8 +500,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                                         <?php if (!empty($content_data['video_path'])): ?>
                                             <?php
-                                            $paymentService = new \Massango\Services\PaymentService($pdo);
-                                            $hasAccess = $paymentService->hasAccess($current_user_id ?? 0, 'video', $item['item_id']);
+                                            $hasAccess = $item['has_access'];
                                             ?>
 
                                             <?php if ($hasAccess): ?>
@@ -624,8 +616,7 @@ require_once __DIR__ . '/../includes/header.php';
                                             </div>
 
                                             <?php
-                                            $paymentService = new \Massango\Services\PaymentService($pdo);
-                                            $hasAccess = $paymentService->hasAccess($current_user_id ?? 0, 'album', $item['item_id']);
+                                            $hasAccess = $item['has_access'];
 
                                             if (!empty($content_data['cover_photo_url'])) {
                                                 $album_thumb = !empty($content_data['thumbnail_path']) ? $content_data['thumbnail_path'] : $content_data['cover_photo_url'];
