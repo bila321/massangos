@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 define('SECURE_ACCESS', true);
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
@@ -53,153 +53,25 @@ require_once __DIR__ . '/../includes/header.php';
                 continue;
             }
 
-            // Obter os dados específicos do item de conteúdo (Post, Video, Album)
-            $content_data = null;
-            switch ($item['item_type']) {
-                case 'post':
-                    $content_data = Post::getPostById($pdo, $item['item_id']);
-                    break;
-                case 'video':
-                    $content_data = Video::getVideoById($pdo, $item['item_id']);
-                    break;
-                case 'album':
-                    $content_data = Album::getAlbumById($pdo, $item['item_id']);
-                    break;
-                default:
-                    // Adicione um log ou tratamento para tipos de item desconhecidos
-                    error_log("Tipo de item de feed desconhecido: " . ($item['item_type'] ?? 'N/A') . " para feed_item_id: " . ($item['feed_item_id'] ?? 'N/A'));
-                    continue 2; // Aqui continua sendo 2 porque está dentro do switch e queremos pular o foreach
-            }
-
-            // Se não houver dados específicos para o item, ou o autor não for encontrado, pule este item
-            // Isso pode acontecer se o conteúdo original foi deletado mas o feed_item não.
-            if (!$content_data) {
-                error_log("Feed item ID: " . ($item['feed_item_id'] ?? 'N/A') . " - Sem dados de conteúdo específico encontrados para o tipo " . ($item['item_type'] ?? 'N/A') . " e ID " . ($item['item_id'] ?? 'N/A') . ". Ignorando.");
-                continue;
-            }
-
-            $author = User::getUserById($pdo, $item['user_id'] ?? null);
-            if (!$author) {
-                error_log("Feed item ID: " . ($item['feed_item_id'] ?? 'N/A') . " - Nenhum autor encontrado para user_id " . ($item['user_id'] ?? 'N/A') . ". Ignorando.");
-                continue;
-            }
-
-            // Obter informações de likes e dislikes para o item do feed
-            $like_info = Like::getFeedItemLikesDislikesCount($pdo, $item['feed_item_id']);
-            // Obter o voto do usuário logado para este item, se estiver logado.
-            $user_vote = is_logged_in() ? Like::getUserFeedItemVote($pdo, $item['feed_item_id'], $current_user_id) : null;
-
-            // Obter comentários ANINHADOS para este feed item
-            $comment_tree = Comment::getCommentsForFeedItem($pdo, $item['feed_item_id'], $current_user_id);
-
-            // Obter a contagem total de comentários de forma eficiente.
-            $comment_count = Comment::getCommentCountForFeedItem($pdo, $item['feed_item_id']);
-
-            // --- AI Analysis Logic ---
-            // [AI ALBUM FIX] Usar item_id (album_id para álbuns) como post_id na media_analysis
-            $analysis_id = $item['item_id'];
-
-            // Se for um repost, devemos verificar a análise do conteúdo original
-            if ($item['item_type'] === 'post' && !empty($content_data['is_repost']) && !empty($content_data['shared_post_id'])) {
-                $analysis_id = $content_data['shared_post_id'];
-            }
-
-            // Mapear item_type para o tipo gravado pela IA na media_analysis
-            $analysis_type_map = ['post' => 'image', 'video' => 'video', 'album' => 'album'];
-            $analysis_type = $analysis_type_map[$item['item_type']] ?? $item['item_type'];
-            if ($item['item_type'] === 'post' && !empty($content_data['is_repost']) && !empty($content_data['shared_post_id'])) {
-                $raw_type = $content_data['shared_item_type'] ?? 'post';
-                $analysis_type = $analysis_type_map[$raw_type] ?? $raw_type;
-            }
-            $stmt_analysis = $pdo->prepare(
-                "SELECT risk_level, status, explicit_percentage FROM media_analysis
-                 WHERE post_id = ? AND type = ?
-                 ORDER BY id DESC LIMIT 1"
-            );
-            $stmt_analysis->execute([$analysis_id, $analysis_type]);
-            $ai_analysis = $stmt_analysis->fetch(PDO::FETCH_ASSOC);
-            // -------------------------
-
-            // Determinar se o usuário logado é o dono da publicação principal
-            $is_post_owner = ($current_user_id && $item['user_id'] == $current_user_id);
-            $is_admin = isset($_SESSION['admin_id']);
-
-            // FILTRO DE APROVAÇÃO: Se não estiver aprovado, só mostra se for o dono ou admin
-            $is_approved = isset($content_data['is_approved']) ? (int)$content_data['is_approved'] : 1;
-            if (!$is_approved && !$is_post_owner && !$is_admin) {
-                continue;
-            }
-
-            // FILTRO DE PRIVACIDADE: Se o perfil for privado (followers), verifica se o usuário logado segue o autor ou se é mútuo
-            $author_privacy = $author['profile_privacy'] ?? 'public';
-            if ($author_privacy === 'followers' && !$is_post_owner && !$is_admin) {
-                if (!is_logged_in()) {
-                    continue;
-                }
-                $is_following_author = User::isFollowing($pdo, $current_user_id, $author['id']);
-                $is_mutual_with_author = User::isMutualFollower($pdo, $current_user_id, $author['id']);
-                if (!$is_following_author && !$is_mutual_with_author) {
-                    continue;
-                }
-            }
-
-            // FILTRO DE BLOQUEIO: Se o usuário logado estiver bloqueado pelo autor ou vice-versa, oculta
-            if (is_logged_in() && !$is_post_owner) {
-                $is_blocked_by_me = User::isBlocking($pdo, $current_user_id, $author['id']);
-                $am_i_blocked = User::isBlocking($pdo, $author['id'], $current_user_id);
-                if ($is_blocked_by_me || $am_i_blocked) {
-                    continue;
-                }
-            }
-
-            // FILTRO DE PRIVACIDADE (LINK PRIVADO): Se show_in_feed for 0, oculta do feed global para todos (incluindo o dono)
-            // O dono verá a publicação no seu perfil (profile.php).
-            $show_in_feed = isset($content_data['show_in_feed']) ? (int)$content_data['show_in_feed'] : 1;
-            if ($show_in_feed === 0 && !$is_admin) {
-                continue;
-            }
+            // Todos os dados já vêm enriquecidos pelo FeedController::load()
+            $content_data  = $item['content_data'];
+            $author        = $item['author'];
+            $like_info     = $item['like_info'];
+            $user_vote     = $item['user_vote'];
+            $comment_count = $item['comment_count'];
+            $ai_analysis   = $item['ai_analysis'] ?? null;
+            $is_post_owner = $item['is_post_owner'];
+            $is_admin      = $item['is_admin'];
+            $should_blur   = $item['should_blur'];
             ?>
 
             <?php
-            $isRepost = false;
-            $sharedData = null;
-            $sharedType = null;
-            $sharedAuthor = null;
-
-            if (
-                $item['item_type'] === 'post' &&
-                !empty($content_data['is_repost']) &&
-                !empty($content_data['shared_post_id']) &&
-                !empty($content_data['shared_item_type'])
-            ) {
-                $sharedType = $content_data['shared_item_type'];
-                $sharedId = (int)$content_data['shared_post_id'];
-
-                switch ($sharedType) {
-                    case 'post':
-                        $sharedData = Post::getPostById($pdo, $sharedId);
-                        break;
-                    case 'video':
-                        $sharedData = Video::getVideoById($pdo, $sharedId);
-                        break;
-                    case 'album':
-                        $sharedData = Album::getAlbumById($pdo, $sharedId);
-                        break;
-                }
-
-                if ($sharedData) {
-                    $isRepost = true;
-                    $sharedAuthor = User::getUserById($pdo, $sharedData['user_id']);
-                }
-            }
-            ?>
-            <?php
-            // [AI ALBUM FIX] Blur logic funciona para todos os tipos (post, video, album)
-            $is_high_risk = ($ai_analysis && $ai_analysis['status'] === 'done' && $ai_analysis['risk_level'] === 'high');
-            $is_medium_risk = ($ai_analysis && $ai_analysis['status'] === 'done' && $ai_analysis['risk_level'] === 'medium');
-            // Blur aplica-se a todos incluindo o dono — apenas o admin está isento.
-            // No futuro: o dono poderá desativar com o toggle de preferências.
-            $should_blur = ($is_high_risk || $is_medium_risk) && !$is_admin;
+            // Repost e blur já vêm resolvidos do FeedController::load()
+            $isRepost     = $item['isRepost'];
+            $sharedData   = $item['sharedData'];
+            $sharedType   = $item['sharedType'];
+            $sharedAuthor = $item['sharedAuthor'];
+            $sharedId     = $item['sharedId'] ?? null;
             ?>
             <article class="post-card card feed-item-wrapper <?= ($item['item_type'] === 'album' ? 'album-card-style' : '') ?>"
                 data-type="all"
@@ -218,10 +90,8 @@ require_once __DIR__ . '/../includes/header.php';
                                 <a href="<?= BASE_URL ?>profile.php?id=<?= htmlspecialchars($author['id']) ?>" class="post-author"><?= htmlspecialchars($author['username']) ?></a><?php if (isset($author['is_verified']) && $author['is_verified']): ?><button class="verficacao-btn-mini" title="Conta Verificada"><i class="fa-solid fa-circle-check"></i> VERIFICADO</button><?php endif; ?>
                                 <?php if (is_logged_in() && !$is_post_owner): ?>
                                     <?php
-                                    $is_following = User::isFollowing($pdo, $current_user_id, $author['id']);
-                                    $has_request = User::hasPendingFollowRequest($pdo, $current_user_id, $author['id']);
-                                    $follow_label = $is_following ? 'Seguindo' : ($has_request ? 'Pendente' : 'Seguir');
-                                    $follow_class = $is_following ? 'following' : ($has_request ? 'pending' : '');
+                                    $follow_label = $item['follow_label'];
+                                    $follow_class = $item['follow_class'];
                                     ?>
                                     <button class="follow-btn-mini <?= $follow_class ?>"
                                         onclick="App.toggleFollow(<?= (int)$author['id'] ?>, this)"
@@ -826,19 +696,8 @@ require_once __DIR__ . '/../includes/header.php';
                                                         </a>
 
                                                         <?php
-                                                        // Sistema de Partilha
-                                                        $current_post_id = $item['item_id'];
-                                                        $share_count = 0;
-                                                        if ($item['item_type'] === 'post') {
-                                                            $postData = \Massango\Models\Post::getPostById($pdo, $current_post_id);
-                                                            if ($postData && !empty($postData['is_repost']) && !empty($postData['shared_post_id'])) {
-                                                                $share_count = \Massango\Models\Post::getShareCount($pdo, (int)$postData['shared_post_id']);
-                                                            } else {
-                                                                $share_count = \Massango\Models\Post::getShareCount($pdo, (int)$current_post_id);
-                                                            }
-                                                        } else {
-                                                            $share_count = \Massango\Models\Post::getShareCount($pdo, (int)$current_post_id);
-                                                        }
+                                                        // share_count já vem em batch do FeedController
+                                                        $share_count = $item['share_count'] ?? 0;
                                                         $can_link   = $content_data['allow_share_link']   ?? 1;
                                                         $can_repost = $content_data['allow_share_repost'] ?? 1;
                                                         ?>
@@ -1020,7 +879,7 @@ require_once __DIR__ . '/../includes/header.php';
     window.BASE_URL = "<?php echo BASE_URL; ?>";
     window.UPLOAD_URL = "<?php echo UPLOAD_URL; ?>";
     window.CURRENT_USER_ID = <?php echo is_logged_in() ? get_current_user_id() : 'null'; ?>;
-    window.POST_OWNER_ID = <?php echo json_encode($feed_item['user_id'] ?? $item['user_id'] ?? $profile_user_id ?? null); ?>;
+    window.POST_OWNER_ID = null; // definido por item via lightbox
     window.IS_POST_OWNER = (window.CURRENT_USER_ID !== null && window.POST_OWNER_ID !== null && window.CURRENT_USER_ID == window.POST_OWNER_ID);
     window.CURRENT_USER_PROFILE_PICTURE = "<?php echo htmlspecialchars($_SESSION['user_profile_picture'] ?? UPLOAD_URL . 'profiles/default_profile.png'); ?>";
     window.IS_VERIFIED_CREATOR = <?php echo json_encode((bool)($logged_in_user_data['is_verified_creator'] ?? false)); ?>;
