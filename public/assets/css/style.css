@@ -4,7 +4,7 @@
  */
 
 /* 1. Variáveis e Design Tokens */
-@import url('variables.css');
+@import url('modules/variables.css');
 
 /* 2. Módulos Base e Globais */
 @import url('modules/base.css');

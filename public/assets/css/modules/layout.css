@@ -27,15 +27,12 @@ body {
     width: var(--sidebar-w);
     height: calc(100vh - var(--header-h));
     position: fixed;
-    /* Alinha à esquerda do container centrado em ecrãs grandes */
-    left: max(0px, calc((100vw - var(--container-max)) / 2 + var(--space-md)));
     top: var(--header-h);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 1000;
-    border-right: 1px solid rgba(0, 0, 0, 0.06);
     transition: transform 0.3s ease;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, .12) transparent;
@@ -89,7 +86,6 @@ body {
     top: calc(var(--header-h) + var(--space-l));
     height: fit-content;
     align-self: flex-start;
-    margin-right: var(--space-3xl);
 }
 
 /* ── Overlay Sidebar Mobile ────────────────────────────────────────── */
