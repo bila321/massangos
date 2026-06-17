@@ -24,7 +24,7 @@ $rules = \Massango\Services\PricingRuleService::getRules($pdo, $user_stars);
 <!-- Quill.js para Editor de Texto -->
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/text-editor.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/editor.css">
 <script src="<?= BASE_URL ?>assets/js/components/text-editor.js"></script>
 
 <!-- CSS para os Modais de Publicação -->

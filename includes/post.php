@@ -152,10 +152,10 @@ if (!$is_ajax) {
 }
 ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/post.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/local_icons.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/icons.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/comments_new.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/comment.css">
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/card-modern.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/cards.css">
 
 <section class="single-post-section">
     <div class="main-layout-container">

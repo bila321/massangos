@@ -59,12 +59,12 @@ if (!function_exists('display_site_messages')) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/_consolidated/skeleton.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/explicit-blur.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/media.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/protection.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/publication-icons.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/page-transition.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/sidebar.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/protection.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/publication-icons.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/modules/page-transition.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/components/sidebar.css">
     <?php if (!empty($extra_css)): ?>
         <?php foreach ((array)$extra_css as $css): ?>
             <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/<?= htmlspecialchars($css) ?>">
