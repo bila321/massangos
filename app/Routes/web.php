@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 
-namespace App\Routes;
+namespace Massango\Routes;
 
 /**
  * Massango Web Routes

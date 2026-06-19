@@ -1,110 +1,109 @@
-/* AI Analysis Badges */
-.ai-badge {
+/* ================================================
+   POST-FOOTER — Estilo YouTube (stroke / ghost)
+   Extraído do <style> inline de public/index.php
+   Anexar este conteúdo ao final de assets/css/pages/index.css
+   ================================================ */
+
+.post-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    gap: 8px;
+    border-top: 1px solid var(--border, rgba(255, 255, 255, .08));
+}
+
+.post-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Botão base — ghost, sem background */
+.yt-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-left: 6px;
+    gap: 6px;
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary, #aaa);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s;
+    line-height: 1;
+    white-space: nowrap;
 }
 
-.ai-badge-analyzing {
-    background: #e0e0e0;
-    color: #666;
+.yt-action-btn i {
+    font-size: 1.05rem;
+    flex-shrink: 0;
 }
 
-.ai-badge-safe {
-    color: #2e7d32;
+.yt-action-btn:hover {
+    background: var(--hover-bg, rgba(255, 255, 255, .08));
+    color: var(--text-main, #fff);
 }
 
-.ai-badge-sensitive {
-    color: #ef6c00;
+/* Pill com background subtil */
+.yt-pill {
+    background: var(--pill-bg, rgba(255, 255, 255, .06));
 }
 
-.ai-badge-high {
-    color: #c62828;
+.yt-pill:hover {
+    background: var(--pill-hover, rgba(255, 255, 255, .13));
 }
 
-.media-blur-container {
-    position: relative;
+/* Like + Dislike agrupados num só pill */
+.yt-like-pill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--pill-bg, rgba(255, 255, 255, .06));
+    border-radius: 20px;
     overflow: hidden;
 }
 
-.media-blur {
-    filter: blur(20px);
-    pointer-events: none;
+.yt-like-pill .yt-action-btn {
+    background: transparent;
+    border-radius: 0;
 }
 
-.media-overlay-msg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
-    color: white;
-    z-index: 100;
-    text-align: center;
-    padding: 20px;
+.yt-like-pill .yt-action-btn:hover {
+    background: var(--pill-hover, rgba(255, 255, 255, .13));
 }
 
-.media-overlay-msg button {
-    margin-top: 10px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: none;
-    background: white;
-    color: black;
-    font-weight: bold;
-    cursor: pointer;
-    position: relative;
-    z-index: 101;
+/* Divisor vertical entre like e dislike */
+.yt-pill-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border, rgba(255, 255, 255, .15));
+    flex-shrink: 0;
 }
 
-/* [AI ALBUM FIX] Estilos adicionais para blur em álbuns */
-.album-blur-container {
-    position: relative;
+/* Estados activos */
+.yt-like.active {
+    color: var(--primary-gradient) !important;
 }
 
-.album-blur-container .album-cover,
-.album-blur-container .album-cover-image {
-    filter: blur(20px);
-    pointer-events: none;
+.yt-like.active i {
+    color: inherit;
 }
 
-.album-blur-container .album-overlay-msg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
-    color: white;
-    z-index: 100;
-    text-align: center;
-    padding: 20px;
+.yt-dislike.active {
+    color: var(--danger, #f44336) !important;
 }
 
-.album-blur-container .album-overlay-msg button {
-    margin-top: 10px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: none;
-    background: white;
-    color: black;
-    font-weight: bold;
-    cursor: pointer;
-    position: relative;
-    z-index: 101;
+.yt-dislike.active i {
+    color: inherit;
+}
+
+.btn-save.active {
+    color: var(--primary-gradient) !important;
+}
+
+.btn-save.active i {
+    color: inherit;
 }

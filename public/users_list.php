@@ -49,22 +49,9 @@ try {
     </div>
 </div>
 
-<style>
-.users-list-container { padding: 20px; }
-.modal-header-custom { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-.modal-header-custom h2 { font-size: 1.5rem; color: #1c1e21; margin-bottom: 5px; }
-.modal-header-custom p { color: #65676b; font-size: 0.9rem; }
-.users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-.user-card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 15px; text-align: center; transition: transform 0.2s, box-shadow 0.2s; }
-.user-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-.user-avatar { margin-bottom: 12px; }
-.user-avatar img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f0f2f5; }
-.user-info h3 { font-size: 1rem; color: #1c1e21; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-stars { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.85rem; color: #65676b; margin-bottom: 15px; }
-.btn-view-profile { display: block; background: #e7f3ff; color: #1877f2; text-decoration: none; padding: 8px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; transition: background 0.2s; }
-.btn-view-profile:hover { background: #dbe7f2; }
-.empty-msg { text-align: center; grid-column: 1 / -1; padding: 40px; color: #666; }
-</style>
+
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/users-list.css">
+
 
 <?php
 if (!$is_ajax) {

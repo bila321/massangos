@@ -1,19 +1,10 @@
 /**
  * page-transition.css
  * Page Transition Loader — massangos platform
- * Funciona em: index.php, reels.php, profile.php e qualquer página com header.php
- *
- * Design: barra de progresso no topo (estilo GitHub/YouTube) + 
- *         overlay de saída suave quando o usuário navega para outra página.
- *
- * Cores usam as variáveis já existentes na plataforma:
- *   --reels-accent (#00f576) e --primary-gradient
  */
 
-/* ─── Variáveis locais ───────────────────────────────────────────────── */
 :root {
     --pt-accent: #00f576;
-    /* mesmo que --reels-accent */
     --pt-accent2: #00d1b2;
     --pt-bar-h: 3px;
     --pt-speed-in: 0.18s;
@@ -21,7 +12,7 @@
     --pt-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ─── Barra de progresso (topo da tela) ─────────────────────────────── */
+/* ─── Barra de progresso ─────────────────────────────────────────── */
 #pt-bar {
     position: fixed;
     top: 0;
@@ -41,15 +32,9 @@
     will-change: width, opacity;
 }
 
-/* Animação de shimmer na barra enquanto carrega */
 @keyframes pt-shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-
-    100% {
-        background-position: -200% 0;
-    }
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 #pt-bar.running {
@@ -69,7 +54,7 @@
     width: 100%;
 }
 
-/* ─── Spinner circular (centro, só aparece em cargas longas > 400ms) ── */
+/* ─── Spinner circular ───────────────────────────────────────────── */
 #pt-spinner {
     position: fixed;
     bottom: 24px;
@@ -97,12 +82,10 @@
 }
 
 @keyframes pt-spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
-/* ─── Overlay de saída (fade-out ao navegar) ─────────────────────────── */
+/* ─── Overlay de saída ────────────────────────────────────────────── */
 #pt-overlay {
     position: fixed;
     inset: 0;
@@ -117,13 +100,14 @@
 #pt-overlay.leaving {
     opacity: 0.45;
     pointer-events: none;
-    /* nunca capturar cliques — lightbox e outros handlers ficam acessíveis */
 }
 
-/* ─── Entrada de página: apenas o conteúdo principal faz fade-in ────── */
-/* Nunca animamos o body — partiria sidebar e headers fixos.             */
-/* .main-content  → index.php, profile.php, etc. (header.php)           */
-/* .reels-page    → reels.php (header2.php, estrutura própria)           */
+/* ─── Entrada de página ───────────────────────────────────────────────
+   NOTA: Apenas .reels-page recebe a animação aqui.
+   .main-content é animado apenas quando NÃO existe conflito com
+   layout.css. Se ambos os ficheiros estiverem activos, remover
+   .main-content daqui e manter apenas .reels-page.
+─────────────────────────────────────────────────────────────────── */
 .main-content,
 .reels-page {
     animation: pt-page-in 0.28s var(--pt-ease) both;
@@ -134,15 +118,28 @@
         opacity: 0;
         transform: translateY(6px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Desativa a animação de entrada em navegações via botão Voltar/Avançar */
+/* Desativa a animação em navegações via Voltar/Avançar */
 body.pt-instant .main-content,
 body.pt-instant .reels-page {
     animation: none;
+}
+
+/* Respeita preferência do utilizador por menos movimento */
+@media (prefers-reduced-motion: reduce) {
+    .main-content,
+    .reels-page {
+        animation: none;
+    }
+
+    #pt-bar,
+    #pt-spinner,
+    #pt-overlay {
+        transition: none;
+    }
 }

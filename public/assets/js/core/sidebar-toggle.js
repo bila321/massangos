@@ -26,10 +26,7 @@
     function openSidebar() {
         sidebar.classList.add('active');
         if (overlay) {
-            overlay.style.display = 'block';
-            // força reflow para a transição CSS funcionar
-            overlay.offsetHeight;
-            overlay.style.opacity = '1';
+            overlay.classList.add('is-active');
         }
         document.body.style.overflow = 'hidden';
 
@@ -43,9 +40,7 @@
     function closeSidebar() {
         sidebar.classList.remove('active');
         if (overlay) {
-            overlay.style.opacity = '0';
-            // aguarda transição antes de esconder
-            setTimeout(() => { overlay.style.display = 'none'; }, 250);
+            overlay.classList.remove('is-active');
         }
         document.body.style.overflow = '';
 
@@ -98,10 +93,7 @@
         if (window.innerWidth <= MOBILE_BREAKPOINT) {
             closeSidebar();
         }
-        // Overlay invisível por padrão
-        if (overlay) {
-            overlay.style.cssText = 'display:none; opacity:0; transition:opacity 0.25s ease;';
-        }
+        // Overlay state is fully managed by CSS (.is-active class)
     }
 
     document.readyState === 'loading'

@@ -234,6 +234,47 @@ class PostService
         }
     }
 
+
+    // -----------------------------------------------------------------------
+    // Suporte ao formulário de criação (PostController::showCreate)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Busca as estatísticas do utilizador relevantes para as regras de venda.
+     * Separado do User::getUserById para não misturar concerns no Model.
+     */
+    public function getUserStats(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT stars, balance, is_verified_creator FROM users WHERE id = ?"
+        );
+        $stmt->execute([$userId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [
+            'stars'               => 0,
+            'balance'             => 0,
+            'is_verified_creator' => 0,
+        ];
+    }
+
+    /**
+     * Calcula as permissões e limites de venda com base nas estrelas do utilizador.
+     * Centralizado aqui para não duplicar a lógica na view ou no controller.
+     */
+    public function getSaleRules(array $userStats): array
+    {
+        $stars = (int) ($userStats['stars'] ?? 0);
+
+        return [
+            'can_sell_post'   => $stars >= 1,
+            'can_sell_video'  => $stars >= 2,
+            'can_sell_album'  => $stars >= 3,
+            'max_post_price'  => 1000.00,
+            'max_video_price' => 5000.00,
+            'max_album_price' => 10000.00,
+        ];
+    }
+
     /**
      * Notifica autor original do repost.
      */

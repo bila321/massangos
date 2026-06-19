@@ -1937,20 +1937,64 @@ if (window.reelsManagerInstance) {
         }
 
         async performVote(feedItemId, type, element) {
-            const formData = new FormData();
-            formData.append('feed_item_id', feedItemId);
-            formData.append('action', type);
+            if (!window.CURRENT_USER_ID) {
+                this.showToast('Você precisa estar logado para votar.', 'error');
+                return;
+            }
+
+            const reel = element.closest('.reel-item');
+            const likeBtn = reel?.querySelector('.like-btn');
+            const dislikeBtn = reel?.querySelector('.dislike-btn');
+            const likeCount = reel?.querySelector('.like-count');
 
             try {
-                const res = await fetch('api/photo_interactions.php', { method: 'POST', body: formData });
-                const data = await res.json();
+                // Contrato igual ao handle_vote.php (usado pelo feed principal):
+                // body JSON, { postId, action }, resposta { success, likes, dislikes, user_vote }
+                const res = await fetch((window.BASE_URL || '') + 'api/handle_vote.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId: feedItemId, action: type })
+                });
+
+                // Lê o corpo sempre, mesmo em 4xx/5xx — o backend devolve JSON
+                // mesmo em erro (incluindo erros fatais, via shutdown handler).
+                let data;
+                try {
+                    data = await res.json();
+                } catch {
+                    throw new Error(`HTTP ${res.status} — resposta não é JSON válido`);
+                }
+
+                if (!res.ok) {
+                    console.error('[Lightbox] performVote — erro do servidor:', data);
+                    this.showToast(data.message || `Erro do servidor (HTTP ${res.status})`, 'error');
+                    return;
+                }
+
                 if (data.success) {
-                    const reel = element.closest('.reel-item');
-                    reel?.querySelector('.like-btn')?.classList.toggle('active', data.user_vote === 1);
-                    const count = reel?.querySelector('.like-count');
-                    if (count) count.textContent = data.likes;
+                    // user_vote vem como 'like' | 'dislike' | null
+                    likeBtn?.classList.toggle('active', data.user_vote === 'like');
+                    dislikeBtn?.classList.toggle('active', data.user_vote === 'dislike');
+                    if (likeCount && data.likes !== undefined) {
+                        likeCount.textContent = data.likes;
+                    }
+
+                    // Sincronizar com o card no feed principal (mesmo feed_item_id)
+                    const feedCard = document.querySelector(`.post-card[data-feed-item-id="${feedItemId}"]`);
+                    if (feedCard) {
+                        feedCard.querySelector('.like-btn')?.classList.toggle('active', data.user_vote === 'like');
+                        const feedCount = feedCard.querySelector('.like-count');
+                        if (feedCount && data.likes !== undefined) feedCount.textContent = data.likes;
+                    }
+                } else {
+                    if (data.redirect_to_login) {
+                        window.location.href = (window.BASE_URL || '') + 'login.php';
+                        return;
+                    }
+                    this.showToast(data.message || 'Erro ao votar', 'error');
                 }
             } catch (e) {
+                console.error('[Lightbox] performVote erro:', e);
                 this.showToast('Erro ao votar', 'error');
             }
         }

@@ -8,6 +8,11 @@ use Massango\Models\Notification;
 
 if (!is_logged_in()) return;
 
+// Garante acesso à conexão PDO quando incluído a partir de um método de classe
+// (e.g. CreatePostController::show), contexto em que variáveis globais
+// não são visíveis automaticamente em PHP.
+global $pdo;
+
 $current_user_id = get_current_user_id();
 $user_data       = \Massango\Models\User::getUserById($pdo, $current_user_id);
 $profile_pic     = UPLOAD_URL . htmlspecialchars($user_data['profile_picture'] ?? 'profiles/default_profile.png');
@@ -33,7 +38,7 @@ $current_page    = basename($_SERVER['PHP_SELF']);
         z-index: 1000;
     }
 
-    @media (max-width: 992px) {
+    @media (max-width: 991px) {
         .facebook-topbar {
             display: none !important;
         }

@@ -207,7 +207,7 @@ function dispararEnvioAjax(actionUrl, formData, submitBtn, type) {
                 const res = JSON.parse(xhr.responseText);
                 if (res.success) {
                     progressStatus.textContent = 'Publicado com sucesso!';
-                    window.location.href = '<?= BASE_URL ?>index.php';
+                    window.location.href = BASE_URL + 'index.php';
                 } else {
                     alert('Erro: ' + (res.message || 'Erro desconhecido'));
                     if (submitBtn) submitBtn.disabled = false;

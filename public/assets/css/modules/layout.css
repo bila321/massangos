@@ -1,17 +1,10 @@
 /**
  * massangosu — Layout System
  * Sidebars, feed, widgets e responsividade.
+ *
+ * NOTA: body base (font, color, bg, padding-top) está em base.css.
+ *       Aqui só adicionamos o que é específico do layout estrutural.
  */
-
-/* ── Base ──────────────────────────────────────────────────────────── */
-body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    font-family: var(--fb-font-family);
-    min-height: 100vh;
-    margin: 0;
-    padding-top: var(--header-h);
-}
 
 /* ── App Container ─────────────────────────────────────────────────── */
 .app-container {
@@ -57,8 +50,8 @@ body {
     display: flex;
     justify-content: center;
     min-width: 0;
-    /* Compensar sidebar fixa apenas em desktop largo */
     margin-left: var(--sidebar-w);
+    padding: 0 var(--space-lg);
 }
 
 .content-wrapper {
@@ -66,12 +59,13 @@ body {
     width: 100%;
     max-width: calc(var(--feed-w) + var(--widgets-w) + var(--space-2xl));
     justify-content: center;
+    gap: var(--space-lg);
 }
 
 /* ── Feed ──────────────────────────────────────────────────────────── */
 .feed-container {
     width: 100%;
-    max-width: 90%;
+    max-width: var(--feed-w);
     flex-shrink: 0;
     min-width: 0;
 }
@@ -113,9 +107,10 @@ body {
 
 /* ═══════════════════════════════════════════════════════════════════
    BREAKPOINTS
-   1280px — esconde widgets
+   1350px — esconde widgets
+   1100px — sidebar estreita (entre 993px e 1100px)
     992px — sidebar vira drawer mobile
-    480px — ajustes pequenos
+    480px — ajustes ecrãs muito pequenos
 ═══════════════════════════════════════════════════════════════════ */
 
 /* Tablets largos: esconde widgets, feed ocupa toda a largura */
@@ -125,19 +120,30 @@ body {
     }
 
     .content-wrapper {
-        max-width: 100%;
+        max-width: var(--feed-w);
         justify-content: center;
     }
 }
 
-/* Tablets: sidebar fica mais estreita */
+/* Tablets: sidebar fica mais estreita.
+   Usamos a classe .sidebar--narrow adicionada por JS,
+   ou aplicamos directamente via media query sem tocar em --sidebar-w globalmente.
+*/
 @media (max-width: 1100px) and (min-width: 993px) {
-    :root {
-        --sidebar-w: 80px;
+    .sidebar {
+        width: var(--sidebar-w-narrow); /* 80px — token de variables.css */
+        overflow: visible;              /* permite tooltips saírem da sidebar */
+    }
+
+    .main-content {
+        margin-left: var(--sidebar-w-narrow);
     }
 
     .sidebar .nav-link span {
-        display: none;
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
     .sidebar .nav-link {
@@ -166,16 +172,20 @@ body {
         border-right: none;
     }
 
-    /* Aberta via JS — mobile-nav.php usa .is-open */
+    /* Aberta via JS */
     .sidebar.is-open,
     .sidebar.active {
-        /* compatibilidade com sidebar-toggle.js */
         transform: translateX(0);
     }
 
-    /* Main sem margem — sidebar não ocupa espaço no fluxo */
+    /* Main sem margem (sidebar está fora do fluxo como drawer) */
     .main-content {
         margin-left: 0;
+        padding: 0 var(--space-sm);
+    }
+
+    .content-wrapper {
+        max-width: 100%;
     }
 
     /* Mobile header visível */
@@ -189,7 +199,7 @@ body {
     }
 }
 
-/* Pequenos ajustes para ecrãs muito pequenos */
+/* Ecrãs muito pequenos */
 @media (max-width: 480px) {
     .main-content {
         padding: var(--space-s) var(--space-xs);
@@ -199,6 +209,7 @@ body {
         max-width: 100%;
     }
 
+    /* Cards edge-to-edge em mobile muito pequeno */
     .card {
         border-radius: 0;
         margin-left: calc(-1 * var(--space-xs));

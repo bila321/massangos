@@ -134,41 +134,22 @@ class ProfileController
      */
     private function fetchUserContent(int $profileUserId): array
     {
+        // Apenas os campos necessários para o enrichItems identificar e processar
+        // cada item. Os dados completos de conteúdo são carregados via fetchByIds
+        // (batch) dentro do enrichItems.
         $stmt = $this->pdo->prepare("
             SELECT
-                fi.id           AS feed_item_id,
+                fi.id          AS feed_item_id,
                 fi.item_type,
                 fi.item_id,
                 fi.user_id,
                 fi.created_at,
-                -- posts
-                p.content,
-                p.image_path,
-                p.thumbnail_path,
-                p.post_type,
-                p.is_for_sale   AS is_for_sale,
-                p.price,
-                p.is_approved,
-                p.show_in_feed,
+                -- campos do post necessários para detectar reposts antes do batch
                 p.is_repost,
                 p.shared_post_id,
-                p.shared_item_type,
-                p.allow_share_link,
-                p.allow_share_repost,
-                -- videos
-                v.video_path,
-                v.caption,
-                v.duration_seconds AS duration,
-                v.views_count,
-                -- albums
-                a.name          AS album_name,
-                a.description,
-                a.cover_photo_url,
-                a.thumbnail_path AS album_thumb
+                p.shared_item_type
             FROM feed_items fi
-            LEFT JOIN posts  p ON fi.item_type = 'post'  AND fi.item_id = p.id
-            LEFT JOIN videos v ON fi.item_type = 'video' AND fi.item_id = v.id
-            LEFT JOIN albums a ON fi.item_type = 'album' AND fi.item_id = a.id
+            LEFT JOIN posts p ON fi.item_type = 'post' AND fi.item_id = p.id
             WHERE fi.user_id = :uid
             ORDER BY fi.created_at DESC
         ");

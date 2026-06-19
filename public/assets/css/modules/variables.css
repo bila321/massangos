@@ -37,25 +37,21 @@
     --info: #3b82f6;
 
     /* --- Espaçamento (Grid de 4px/8px) --- */
-    --space-xs: 0.25rem;
-    /*  4px */
-    --space-sm: 0.5rem;
-    /*  8px */
-    --space-s: 0.75rem;
-    /* 12px */
-    /* alias usado em layout.css */
-    --space-md: 1rem;
-    /* 16px */
-    --space-l: 1.25rem;
-    /* 20px */
-    /* alias usado em layout.css */
-    --space-lg: 1.5rem;
-    /* 24px */
-    --space-xl: 1.75rem;
-    /* 28px */
-    --space-2xl: 2.5rem;
-    /* 40px */
+    --space-xs: 0.25rem;   /*  4px */
+    --space-sm: 0.5rem;    /*  8px */
+    --space-s: 0.75rem;    /* 12px */
+    --space-md: 1rem;      /* 16px */
+    --space-l: 1.25rem;    /* 20px */
+    --space-lg: 1.5rem;    /* 24px */
+    --space-xl: 1.75rem;   /* 28px */
+    --space-2xl: 2.5rem;   /* 40px */
     --space-3xl: 4.2rem;
+
+    /* --- ALIAS PARA COMPATIBILIDADE (base.css usa --fb-spacing-m) --- */
+    --fb-spacing-m: var(--space-md); /* 16px — usado em h1–h6 e p */
+
+    /* --- Transições --- */
+    --transition-base: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 
     /* --- Bordas e Sombras --- */
     --radius-sm: 0.375rem;
@@ -70,15 +66,18 @@
 
     /* --- Dimensões de Layout --- */
     --header-h: 60px;
-    /* altura real do topbar desktop e mobile */
-    --topbar-height: 60px;
-    /* alias mobile-nav — mantido em sincronia */
-    --sidebar-w: 280px;
-    /* sidebar esquerda */
+    --topbar-height: 60px;      /* alias mobile-nav */
+    --sidebar-w: 280px;         /* sidebar esquerda — valor desktop */
+    --sidebar-w-narrow: 80px;   /* sidebar estreita (tablet 993–1100px) */
     --widgets-w: 320px;
-    /* sidebar direita */
     --container-max: 1440px;
     --feed-w: 680px;
+
+    /* --- Breakpoints como tokens (referência — não usáveis em @media) --- */
+    /* bp-xl: 1350px — esconde widgets                                     */
+    /* bp-lg: 1100px — sidebar estreita                                    */
+    /* bp-md: 992px  — sidebar vira drawer mobile                          */
+    /* bp-sm: 480px  — ajustes pequenos                                    */
 
     /* --- Tipografia --- */
     --fb-font-family: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -107,7 +106,7 @@
     --weight-bold: 700;
     --weight-extrabold: 800;
 
-    /* Legacy Compatibility */
+    /* --- Legacy Compatibility --- */
     --primary-color: var(--primary);
     --primary-dark: var(--primary-hover);
     --light-bg: var(--bg-main);

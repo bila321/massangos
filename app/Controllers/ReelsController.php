@@ -16,7 +16,7 @@ class ReelsController
     public function load(array $get): array
     {
         if (!is_logged_in()) {
-            set_message("Voc� precisa estar logado para acessar o massangos.", "danger");
+            set_message("Você precisa estar logado para acessar o massangos.", "danger");
             redirect(BASE_URL . 'login.php');
         }
 
@@ -90,13 +90,17 @@ class ReelsController
                 $stmt->bindValue($key, $value);
             }
             $stmt->execute();
-            $reels = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $rawReels = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            $reels = [];
+            $rawReels = [];
             error_log("Reels query error: " . $e->getMessage());
         }
 
         $paymentService = new PaymentService($this->pdo);
+
+        // --- Enriquecer cada reel com os dados/decisões que a View precisa ---
+        // (acesso, urls, blur, etc. — nada disto deve ser calculado no template)
+        $reels = $this->buildReelViewModels($rawReels, $current_user_id, $is_admin, $logged_in_user_data, $paymentService);
 
         if (empty($_SESSION['csrf_token'])) {
             try {
@@ -117,7 +121,86 @@ class ReelsController
             'filter_search', 'filter_sale', 'filter_sensitive',
             'filter_duration', 'filter_price_min', 'filter_price_max',
             'filter_quality', 'filter_sort',
-            'reels', 'paymentService', 'csrf_token', 'active_chip'
+            'reels', 'csrf_token', 'active_chip'
         );
+    }
+
+    /**
+     * Transforma as linhas cruas da query em view-models prontos para a View
+     * imprimir, sem precisar de saber nada sobre acesso pago, blur de IA, etc.
+     *
+     * @param array            $rawReels
+     * @param int|null         $currentUserId
+     * @param bool             $isAdmin
+     * @param array            $loggedInUserData
+     * @param PaymentService   $paymentService
+     * @return array
+     */
+    private function buildReelViewModels(
+        array $rawReels,
+        ?int $currentUserId,
+        bool $isAdmin,
+        array $loggedInUserData,
+        PaymentService $paymentService
+    ): array {
+        // NOTA: isto reflete o comportamento original — usa o estado de
+        // "verificado" do utilizador LOGADO, não do autor de cada reel.
+        // Suspeito que seja um bug pré-existente (provavelmente devia ser
+        // o autor do vídeo), mas mantive o comportamento idêntico ao atual.
+        $viewerIsVerifiedCreator = (bool)($loggedInUserData['is_verified_creator'] ?? false);
+
+        $viewModels = [];
+
+        foreach ($rawReels as $reel) {
+            $reelId      = (int)$reel['id'];
+            $authorId    = (int)$reel['user_id'];
+            $feedItemId  = (int)($reel['feed_item_id'] ?? $reelId);
+            $isPostOwner = ($currentUserId && $authorId === (int)$currentUserId);
+
+            $hasAccess = $isAdmin
+                || $isPostOwner
+                || $paymentService->hasAccess($currentUserId ?? 0, 'video', $reelId);
+
+            $isPaid      = !empty($reel['is_for_sale']);
+            $isSensitive = !empty($reel['is_sensitive']);
+
+            $riskLevel    = $reel['risk_level'] ?? null;
+            $isHighRisk   = ($riskLevel === 'high');
+            $isMediumRisk = ($riskLevel === 'medium');
+            $shouldBlur   = ($isHighRisk || $isMediumRisk) && !$isAdmin;
+
+            $viewModels[] = array_merge($reel, [
+                'feed_item_id'        => $feedItemId,
+                'duration_seconds'    => (int)($reel['duration_seconds'] ?? 0),
+                'views_count'         => (int)($reel['views_count'] ?? 0),
+
+                // Estes três campos não existem no schema de `videos`;
+                // ficam a 0 por omissão tal como no template original.
+                'shares_count'        => (int)($reel['shares_count'] ?? 0),
+                'video_width'         => (int)($reel['video_width'] ?? 0),
+                'video_height'        => (int)($reel['video_height'] ?? 0),
+
+                // URLs já resolvidas (a View só faz htmlspecialchars)
+                'profile_pic_url'     => UPLOAD_URL . ($reel['profile_picture'] ?? 'profiles/default_profile.png'),
+                'video_url'           => UPLOAD_URL . $reel['video_path'],
+                'thumbnail_url'       => UPLOAD_URL . ($reel['thumbnail_path'] ?? ''),
+                'checkout_url'        => BASE_URL . 'checkout.php?type=video&id=' . $reelId,
+
+                // IA
+                'ai_score'            => $reel['ai_score'] ?? 0,
+                'ai_risk'             => $riskLevel ?? '',
+                'ai_status'           => !empty($riskLevel) ? 'done' : '',
+
+                // Permissões / estado calculado
+                'is_post_owner'       => $isPostOwner,
+                'has_access'          => $hasAccess,
+                'is_paid'             => $isPaid,
+                'is_sensitive'        => $isSensitive,
+                'should_blur'         => $shouldBlur,
+                'is_verified_creator' => $viewerIsVerifiedCreator,
+            ]);
+        }
+
+        return $viewModels;
     }
 }

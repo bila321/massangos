@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: _post-footer.php
  *
@@ -18,10 +19,9 @@
         <!-- Like / Dislike pill (estilo YouTube) -->
         <div class="yt-like-pill">
             <button class="yt-action-btn btn-like <?= ($user_vote === 'like'    ? 'active' : '') ?>"
-                    data-feed-item-id="<?= htmlspecialchars($item['feed_item_id']) ?>"
-                    data-action="like"
-                    onclick="handleVote(this)"
-                    title="Gosto">
+                data-feed-item-id="<?= htmlspecialchars($item['feed_item_id']) ?>"
+                data-action="like"
+                title="Gosto">
                 <i class="fa-regular fa-star"></i>
                 <span class="likes-count"><?= $like_info['likes'] ?></span>
             </button>
@@ -29,8 +29,8 @@
 
         <!-- Comentar -->
         <a href="<?= BASE_URL ?>post.php?id=<?= htmlspecialchars($item['feed_item_id']) ?>"
-           class="yt-action-btn yt-pill"
-           title="Comentar">
+            class="yt-action-btn yt-pill"
+            title="Comentar">
             <i class="fa-regular fa-message"></i>
             <span class="comment-count-display"><?= htmlspecialchars($comment_count) ?></span>
         </a>
@@ -44,25 +44,25 @@
         <!-- Partilhar -->
         <div class="share-container" style="position: relative; display: inline-flex;">
             <button type="button"
-                    class="yt-action-btn yt-pill"
-                    onclick="event.stopPropagation(); toggleShareMenu(<?= (int)$item['feed_item_id'] ?>)"
-                    title="Partilhar">
+                class="yt-action-btn yt-pill"
+                onclick="event.stopPropagation(); toggleShareMenu(<?= (int)$item['feed_item_id'] ?>)"
+                title="Partilhar">
                 <i class="fa-regular fa-paper-plane"></i>
                 <span id="share-count-<?= (int)$item['feed_item_id'] ?>"><?= (int)$share_count ?></span>
             </button>
 
             <div id="share-menu-<?= (int)$item['feed_item_id'] ?>"
-                 class="share-dropdown"
-                 style="display:none; position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+                class="share-dropdown"
+                style="display:none; position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
                         background:var(--bg-surface,#1a1a1a); border:1px solid var(--border,#333);
                         border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,.5);
                         z-index:9999; min-width:180px; padding:8px 0;">
 
                 <?php if ($can_link): ?>
                     <button type="button"
-                            onclick="event.stopPropagation(); copyToClipboard('<?= BASE_URL ?>post.php?id=<?= (int)$item['feed_item_id'] ?>', <?= (int)$item['feed_item_id'] ?>)"
-                            class="share-option-btn"
-                            style="width:100%; text-align:left; padding:10px 16px; background:none; border:none;
+                        onclick="event.stopPropagation(); copyToClipboard('<?= BASE_URL ?>post.php?id=<?= (int)$item['feed_item_id'] ?>', <?= (int)$item['feed_item_id'] ?>)"
+                        class="share-option-btn"
+                        style="width:100%; text-align:left; padding:10px 16px; background:none; border:none;
                                    cursor:pointer; color:var(--text-main,#fff); font-size:.9rem;
                                    display:flex; align-items:center; gap:10px; transition:background .2s;">
                         <i class="fa-regular fa-link" style="width:16px;"></i> Copiar Link
@@ -71,9 +71,9 @@
 
                 <?php if ($can_repost): ?>
                     <button type="button"
-                            onclick="event.stopPropagation(); handleRepost(<?= (int)$item['feed_item_id'] ?>)"
-                            class="share-option-btn"
-                            style="width:100%; text-align:left; padding:10px 16px; background:none; border:none;
+                        onclick="event.stopPropagation(); handleRepost(<?= (int)$item['feed_item_id'] ?>)"
+                        class="share-option-btn"
+                        style="width:100%; text-align:left; padding:10px 16px; background:none; border:none;
                                    cursor:pointer; color:var(--text-main,#fff); font-size:.9rem;
                                    display:flex; align-items:center; gap:10px; transition:background .2s;">
                         <i class="fa-solid fa-retweet" style="width:16px;"></i> Repostar
@@ -95,11 +95,11 @@
 
     <!-- Guardar (isolado à direita) -->
     <button class="yt-action-btn yt-pill <?= $save_class ?>"
-            data-item-type="<?= htmlspecialchars($item['item_type']) ?>"
-            data-item-id="<?= (int)$item['item_id'] ?>"
-            data-csrf="<?= htmlspecialchars($csrf_token) ?>"
-            onclick="toggleSave(this)"
-            title="<?= $save_label ?>">
+        data-item-type="<?= htmlspecialchars($item['item_type']) ?>"
+        data-item-id="<?= (int)$item['item_id'] ?>"
+        data-csrf="<?= htmlspecialchars($csrf_token) ?>"
+        onclick="toggleSave(this)"
+        title="<?= $save_label ?>">
         <i class="<?= $save_icon ?>"></i>
         <span><?= $save_label ?></span>
     </button>
@@ -108,6 +108,6 @@
 
 <!-- Secção de comentários (oculta no feed, usada apenas no Lightbox) -->
 <div class="comment-section-full"
-     data-feed-item-id="<?= htmlspecialchars($item['feed_item_id']) ?>"
-     style="display: none;">
+    data-feed-item-id="<?= htmlspecialchars($item['feed_item_id']) ?>"
+    style="display: none;">
 </div>

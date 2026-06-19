@@ -1,27 +1,27 @@
+/* publication-icons.css */
+
 /* Container principal */
 .new-post-form-icons {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 30px;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-2xl);
     justify-content: center;
+    flex-wrap: wrap; /* evita overflow em ecrãs estreitos */
 }
 
 /* Botão + */
 .post-plus-btn {
     width: 30px;
     height: 30px;
-
     border: none;
-
     background: none;
-    padding-right: 30px;
-    padding-left: 30px;
+    padding: 0 var(--space-2xl);
     display: flex;
     align-items: center;
     justify-content: center;
-
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .post-plus-btn i {
@@ -33,56 +33,58 @@
 .post-icons-group {
     display: flex;
     align-items: center;
-    gap: 45px;
-
-    padding: 10px 46px;
-
+    gap: var(--space-2xl);       /* 40px — era 45px fixo */
+    padding: var(--space-sm) var(--space-2xl); /* era 10px 46px fixo */
     background: var(--bg-main);
-
-    border-radius: 50px;
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--glass-border);
+    flex-wrap: nowrap;
 }
 
 .new-post-form-background {
     display: flex;
     align-items: center;
-    padding: 1px;
-    padding-left: 5px;
+    padding: 1px 1px 1px var(--space-s);
     background: #2a2a2a;
-
-    border-radius: 50px;
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--glass-border);
 }
-
 
 /* Botões dos ícones */
 .post-icon-btn {
     background: transparent;
     border: none;
     cursor: pointer;
-
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 /* Ícones verdes */
 .post-icon-btn i {
     font-size: 18px;
-
     background: var(--primary-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-
     background-clip: text;
     color: transparent;
-
-    transition: 0.2s;
+    transition: transform 0.2s ease;
 }
 
 /* Hover */
 .post-icon-btn:hover i {
     transform: scale(1.15);
+}
+
+/* Mobile: compacta o grupo de ícones */
+@media (max-width: 480px) {
+    .post-icons-group {
+        gap: var(--space-lg);            /* 24px */
+        padding: var(--space-sm) var(--space-lg);
+    }
+
+    .post-plus-btn {
+        padding: 0 var(--space-md);
+    }
 }

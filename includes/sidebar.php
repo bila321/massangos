@@ -71,11 +71,6 @@ $current_page    = basename($_SERVER['PHP_SELF']);
         <?php if (!empty($user_data['is_verified_creator'])): ?>
             <ul class="sidebar-menu">
                 <li>
-                    <a href="<?= BASE_URL ?>analytics.php" class="nav-link <?= $current_page === 'analytics.php' ? 'active' : '' ?>">
-                        <i class="fa-solid fa-chart-line"></i><span>Analytics</span>
-                    </a>
-                </li>
-                <li>
                     <a href="<?= BASE_URL ?>wallet.php" class="nav-link <?= $current_page === 'wallet.php' ? 'active' : '' ?>">
                         <i class="fa-solid fa-wallet"></i><span>Carteira</span>
                         <?php if (!empty($user_stats['balance'])): ?>

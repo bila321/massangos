@@ -110,11 +110,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     .mobile-item i {
         font-size: 1rem;
-        background: var(--text-main, #1c1e21);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        color: transparent;
+        color: var(--text-main, #1c1e21);
     }
 
     /* Overlay pesquisa mobile */

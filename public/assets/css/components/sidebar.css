@@ -41,7 +41,7 @@
 }
 
 .sidebar .nav-link {
-    height: 52px;
+    min-height: 52px;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -55,7 +55,7 @@
     margin-bottom: 0;
     transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     white-space: nowrap;
 }
 
