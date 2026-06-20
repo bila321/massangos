@@ -1,19 +1,8 @@
-<?php
-/**
- * @var string $success_message
- * @var array  $errors
- */
-?>
-<?php if (!empty($success_message)): ?>
-    <div class="alert alert-success">
-        <?= htmlspecialchars($success_message) ?>
-    </div>
-<?php endif; ?>
-
+<?php /** @var list<string> $errors */ ?>
 <?php if (!empty($errors)): ?>
     <div class="alert alert-danger">
-        <?php foreach ($errors as $error): ?>
-            <p><?= htmlspecialchars($error) ?></p>
+        <?php foreach ($errors as $err): ?>
+            <p><?= htmlspecialchars($err) ?></p>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
