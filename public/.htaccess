@@ -1,19 +1,15 @@
 DirectoryIndex index.php
-
 RewriteEngine On
+
+# Redirecionar requisições de média para o proxy
+RewriteRule ^media-proxy/(.*)$ media-proxy.php [L,QSA]
 
 # Fallback: se não for arquivo/pasta existente, redireciona para index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-# Proteção Avançada de Mídia - Versão Mínima
-RewriteEngine On
-
-# Redirecionar requisições de mídia para o proxy
-RewriteRule ^media-proxy/(.*)$ media-proxy.php [L,QSA]
-
-# Configurações de segurança gerais (CSP ajustado para http e https  )
+# Configurações de segurança
 Header always set X-Content-Type-Options nosniff
 Header always set X-Frame-Options DENY
 Header always set X-XSS-Protection "1; mode=block"

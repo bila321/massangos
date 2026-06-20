@@ -74,6 +74,7 @@ if (!function_exists('display_site_messages')) {
     <script>
         window.BASE_URL = <?= json_encode(BASE_URL) ?>;
         window.CURRENT_USER_ID = <?= json_encode(is_logged_in() ? (int) get_current_user_id() : null) ?>;
+        window.CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token'] ?? '') ?>;
     </script>
 
     <script src="<?= BASE_URL ?>assets/js/components/lazy-videos.js" defer></script>
