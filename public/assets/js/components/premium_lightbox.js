@@ -634,8 +634,8 @@ if (window.reelsManagerInstance) {
                 // FIX 10: propriedades duplicadas removidas — 'id', 'aiStatus', 'aiRisk', 'aiScore'
                 // estavam definidas duas vezes no objecto; JS usa o último valor,
                 // mas provoca confusão e linting errors.
-                id: trigger.dataset.id || trigger.dataset.feedItemId || '',
-                itemId: trigger.dataset.id || trigger.dataset.feedItemId || '',
+                id: trigger.dataset.feedItemId || trigger.dataset.id || '',
+                itemId: trigger.dataset.itemId || trigger.dataset.id || '',
                 itemType: trigger.dataset.itemType || trigger.dataset.type || 'video',
                 src: src,
                 thumbnail: thumbnail,
@@ -794,7 +794,7 @@ if (window.reelsManagerInstance) {
 
             try {
                 const res = await fetch(
-                    `${window.BASE_URL || ''}ajax/get_comments.php?feed_item_id=${encodeURIComponent(item.id)}`,
+                    `${window.BASE_URL || ''}api/comments.php?feed_item_id=${encodeURIComponent(item.id)}`,
                     { signal: this._commentsAbortController.signal }
                 );
                 const data = await res.json();
@@ -1950,10 +1950,12 @@ if (window.reelsManagerInstance) {
             try {
                 // Contrato igual ao handle_vote.php (usado pelo feed principal):
                 // body JSON, { postId, action }, resposta { success, likes, dislikes, user_vote }
-                const res = await fetch((window.BASE_URL || '') + 'api/handle_vote.php', {
+                // DEPOIS
+                // feed_interactions.php espera FormData/urlencoded com feed_item_id e action
+                const res = await fetch((window.BASE_URL || '') + 'api/feed_interactions.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ postId: feedItemId, action: type })
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ feed_item_id: feedItemId, action: type })
                 });
 
                 // Lê o corpo sempre, mesmo em 4xx/5xx — o backend devolve JSON
@@ -1967,7 +1969,7 @@ if (window.reelsManagerInstance) {
 
                 if (!res.ok) {
                     console.error('[Lightbox] performVote — erro do servidor:', data);
-                    this.showToast(data.message || `Erro do servidor (HTTP ${res.status})`, 'error');
+                    this.showToast(data.message || data.error || `Erro do servidor (HTTP ${res.status})`, 'error');
                     return;
                 }
 
@@ -1991,7 +1993,7 @@ if (window.reelsManagerInstance) {
                         window.location.href = (window.BASE_URL || '') + 'login.php';
                         return;
                     }
-                    this.showToast(data.message || 'Erro ao votar', 'error');
+                    this.showToast(data.message || data.error || 'Erro ao votar', 'error');
                 }
             } catch (e) {
                 console.error('[Lightbox] performVote erro:', e);

@@ -117,8 +117,8 @@
     window.BASE_URL = "<?= BASE_URL ?>";
     window.UPLOAD_URL = "<?= UPLOAD_URL ?>";
     window.CURRENT_USER_ID = <?= $current_user_id ? (int)$current_user_id : 'null' ?>;
-    window.CURRENT_USER_PROFILE_PICTURE = "<?= htmlspecialchars(UPLOAD_URL . $logged_in_user_profile_pic) ?>";
     window.IS_VERIFIED_CREATOR = <?= json_encode((bool)($logged_in_user_data['is_verified_creator'] ?? false)) ?>;
+    window.CSRF_TOKEN = "<?= htmlspecialchars($csrf_token ?? '') ?>";
 </script>
 
 <script src="<?= BASE_URL ?>assets/js/core/common_notifications.js"></script>
