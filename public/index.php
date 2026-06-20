@@ -11,6 +11,7 @@
 
 define('SECURE_ACCESS', true);
 require_once __DIR__ . '/../app/bootstrap.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Massango\Controllers\FeedController;
 use Massango\Core\Database;

@@ -4,10 +4,10 @@ if (!defined('SECURE_ACCESS')) exit;
 
 use Massango\Models\Album;
 
-// Obter Ã¡lbuns recentes que devem aparecer no feed
+// Obter álbuns recentes que devem aparecer no feed
 global $pdo;
 $suggested_albums_list = Album::getRecentAlbums($pdo, 5);
-// Filtrar apenas os que tÃªm show_in_feed = 1
+// Filtrar apenas os que têm show_in_feed = 1
 $suggested_albums_list = array_filter($suggested_albums_list, function ($album) {
     return isset($album['show_in_feed']) && (int)$album['show_in_feed'] === 1;
 });
@@ -42,6 +42,7 @@ if (!empty($suggested_albums_list)): ?>
             gap: 15px;
             overflow-x: auto;
             padding-bottom: 10px;
+            padding-top: 10px;
             scroll-behavior: smooth;
         }
 
@@ -62,7 +63,7 @@ if (!empty($suggested_albums_list)): ?>
         /* Item */
         .suggested-album-item {
             min-width: 130px;
-            min-height: 130px;
+            flex-shrink: 0;
             transition: all 0.25s ease;
         }
 
@@ -71,76 +72,76 @@ if (!empty($suggested_albums_list)): ?>
             transform: translateY(-4px);
         }
 
-        /* Wrapper da capa */
-        .album-cover-wrapper {
-            border-radius: 12px;
-            overflow: hidden;
+        /* Wrapper da capa — mesmo padrão do right-sidebar */
+        .suggested-album-item .album-cover-wrapper {
             position: relative;
-            height: 130px;
+            aspect-ratio: 1;
+            border-radius: var(--radius-md, 12px);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            max-height: 130px;
         }
 
-        /* Imagem */
-        .suggested-album-item img {
-            width: 130px;
-            height: 130px;
+        .suggested-album-item .album-cover-wrapper img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             transition: transform 0.35s ease, filter 0.3s ease;
-            border-radius: 12px;
         }
 
         /* Zoom elegante */
-        .suggested-album-item:hover img {
+        .suggested-album-item:hover .album-cover-wrapper img {
             transform: scale(1.08);
             filter: brightness(0.95);
         }
 
-        /* Overlay suave (preparado para futuro) */
-        .album-cover-wrapper::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top,
-                    rgba(0, 0, 0, 0.35),
-                    rgba(0, 0, 0, 0.05));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .suggested-album-item:hover .album-cover-wrapper::after {
-            opacity: 1;
-        }
-
-        /* Badge preÃ§o */
-        .album-cover-wrapper .badge {
-            font-size: 10px;
-            padding: 4px 6px;
-            border-radius: 6px;
-            backdrop-filter: blur(4px);
-        }
-
-        /* Nome do Ã¡lbum */
-        .suggested-album-item p {
+        /* Nome do álbum — fora do card */
+        .suggested-album-item .album-name {
             font-size: 12px;
             font-weight: 600;
-            color: #c3c3c3;
+            color: var(--text-muted, #c3c3c3);
+            margin-top: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* =========================
-   FUTURO: BACKGROUND IMAGE
-========================= */
+        /* Badge "Adquirido" */
+        .suggested-album-item .album-acquired-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, .6);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+        }
 
-        .suggested-album-item.has-bg .album-cover-wrapper::before {
-            content: "";
+        /* Overlay de bloqueio */
+        .suggested-album-item .album-locked-overlay {
             position: absolute;
             inset: 0;
-            background-size: cover;
-            background-position: center;
-            opacity: 0.15;
-            z-index: 0;
+            background: rgba(0, 0, 0, .7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            gap: 6px;
         }
 
-        /* BLOQUEIO (PAGO) */
-        .album-locked-overlay {
+        .suggested-album-item .album-locked-overlay i {
+            font-size: 1.5rem;
+        }
+
+        .suggested-album-item .album-locked-overlay span {
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Overlay de conteúdo sensível (blur IA) */
+        .suggested-album-item .album-overlay-msg {
             position: absolute;
             inset: 0;
             display: flex;
@@ -148,130 +149,135 @@ if (!empty($suggested_albums_list)): ?>
             align-items: center;
             justify-content: center;
             color: #fff;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
             text-align: center;
+            padding: 8px;
         }
 
-        .album-locked-overlay i {
-            font-size: 20px;
-            margin-bottom: 5px;
+        .suggested-album-item .album-overlay-msg i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
         }
 
-        .album-locked-overlay p {
-            font-size: 12px;
-            font-weight: bold;
+        .suggested-album-item .album-overlay-msg p {
+            font-size: 11px;
+            margin: 0 0 6px;
         }
 
-        /* IMAGEM PADRÃƒO */
-        .album-cover-image-mini {
-            object-fit: cover;
-            border-radius: 12px;
+        .suggested-album-item .album-overlay-msg button {
+            font-size: 10px;
+            padding: 2px 8px;
+            border: 1px solid #fff;
+            background: transparent;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 
     <div class="suggested-albums-card card mb-4">
         <div class="card-header bg-transparent border-0 pb-0">
-            <h6 class="mb-0 font-weight-bold"><i class="fas fa-compact-disc mr-2 text-danger"></i> Ãlbuns em destaque</h6>
+            <h6 class="mb-0 font-weight-bold"><i class="fas fa-images mr-2 text-danger"></i> Álbuns em destaque</h6>
         </div>
         <div class="card-body">
-            <div class="suggested-albums-list d-flex overflow-auto pb-2" style="gap: 15px;">
+            <div class="suggested-albums-list d-flex overflow-auto pb-2">
                 <?php foreach ($suggested_albums_list as $s_album): ?>
                     <?php
-                    $paymentService = new \Massango\Services\PaymentService($pdo);
-                    $current_user_id = $_SESSION['user_id'] ?? 0;
-
-                    // SeguranÃ§a: garantir ID
-                    $album_id = (int)($s_album['id'] ?? 0);
-
-                    // Verificar acesso pago
-                    $hasAccess = $paymentService->hasAccess($current_user_id, 'album', $album_id);
-
-                    // Verificar se Ã© pago
-                    $isForSale = !empty($s_album['is_for_sale']);
-
-                    // Blur IA (compatÃ­vel com teu sistema)
-                    $should_blur = !empty($s_album['risk_level']) && $s_album['risk_level'] === 'high';
-
-                    // Thumbnail seguro
-                    $cover = $s_album['cover_photo_url'] ?? 'default_album.png';
-                    $album_thumb = !empty($s_album['thumbnail_path'])
+                    $paymentService   = new \Massango\Services\PaymentService($pdo);
+                    $current_user_id  = $_SESSION['user_id'] ?? 0;
+                    $album_id         = (int)($s_album['id'] ?? 0);
+                    $hasAccess        = $paymentService->hasAccess($current_user_id, 'album', $album_id);
+                    $isForSale        = !empty($s_album['is_for_sale']);
+                    $should_blur      = !empty($s_album['risk_level']) && $s_album['risk_level'] === 'high';
+                    $cover            = $s_album['cover_photo_url'] ?? 'default_album.png';
+                    $album_thumb      = !empty($s_album['thumbnail_path'])
                         ? $s_album['thumbnail_path']
                         : 'albums/thumbnails/' . basename($cover);
+                    $album_name       = htmlspecialchars($s_album['name'] ?? 'Álbum');
+                    $album_price      = number_format((float)($s_album['price'] ?? 0), 2, ',', '.');
+                    $thumb_url_prot   = get_protected_media_url($album_thumb);
+                    $thumb_url_pub    = UPLOAD_URL . htmlspecialchars($album_thumb);
+                    $is_creator       = !empty($user_data['is_verified_creator']);
                     ?>
 
                     <div class="suggested-album-item">
 
-                        <?php if ($hasAccess): ?>
+                        <!-- Capa -->
+                        <div class="album-cover-wrapper <?= $should_blur ? 'album-blur-container' : '' ?>">
 
-                            <!-- ðŸ”“ TEM ACESSO -->
-                            <div class="<?= $should_blur ? 'album-blur-container' : '' ?>" style="position: relative;">
+                            <?php if ($hasAccess): ?>
 
+                                <!-- 🔓 TEM ACESSO -->
                                 <a href="<?= BASE_URL ?>view_album.php?id=<?= $album_id ?>"
                                     class="album-cover-link"
+                                    style="display:block;width:100%;height:100%;"
                                     data-item-id="<?= $album_id ?>"
                                     data-item-type="album">
 
                                     <?= render_adult_content(
-                                        '<img src="' . get_protected_media_url($album_thumb) . '" 
-                          alt="Capa do Ãlbum" 
-                          class="album-cover-image-mini ' . ($should_blur ? 'album-blur' : '') . '">',
+                                        '<img src="' . $thumb_url_prot . '" alt="Capa do Álbum" class="' . ($should_blur ? 'album-blur' : '') . '">',
                                         $s_album
                                     ); ?>
 
                                 </a>
 
+                                <?php if ($isForSale): ?>
+                                    <div class="album-acquired-badge">
+                                        <i class="fas fa-check-circle"></i> Adquirido
+                                    </div>
+                                <?php endif; ?>
+
                                 <?php if ($should_blur): ?>
                                     <div class="album-overlay-msg">
                                         <i class="fas fa-eye-slash"></i>
-                                        <p>ConteÃºdo sensÃ­vel</p>
+                                        <p>Conteúdo sensível</p>
                                         <button onclick="event.stopPropagation(); unblurAlbum(this)">Ver mesmo assim</button>
                                     </div>
                                 <?php endif; ?>
 
-                            </div>
+                            <?php elseif ($isForSale): ?>
 
-                        <?php elseif ($isForSale): ?>
+                                <!-- 🔒 BLOQUEADO (PAGO) -->
+                                <?php
+                                $click_action = $is_creator
+                                    ? "window.location.href='" . BASE_URL . "checkout.php?type=album&id={$album_id}'"
+                                    : "pageModalLoader.open('checkout.php?type=album&id={$album_id}')";
+                                ?>
+                                <div onclick="<?= $click_action ?>"
+                                    style="cursor:pointer;width:100%;height:100%;"
+                                    data-track-type="album"
+                                    data-track-id="<?= $album_id ?>">
 
-                            <!-- ðŸ”’ BLOQUEADO (PAGO) -->
-                            <div class="album-locked"
-                                data-track-type="album"
-                                data-track-id="<?= $album_id ?>"
-                                onclick="pageModalLoader.open('checkout.php?type=album&id=<?= $album_id ?>')"
-                                style="position: relative; cursor: pointer;">
+                                    <img src="<?= $thumb_url_pub ?>"
+                                        alt="Capa do Álbum"
+                                        style="filter:blur(8px);">
 
-                                <img src="<?= UPLOAD_URL . htmlspecialchars($album_thumb) ?>"
-                                    alt="Capa do Ãlbum"
-                                    class="album-cover-image"
-                                    style="filter: blur(15px);">
+                                    <div class="album-locked-overlay">
+                                        <i class="fas fa-lock"></i>
+                                        <span><?= $album_price ?> MT</span>
+                                    </div>
 
-                                <div class="album-locked-overlay">
-                                    <i class="fas fa-lock"></i>
-                                    <p><?= number_format($s_album['price'] ?? 0, 2, ',', '.') ?> MT</p>
                                 </div>
 
-                            </div>
+                            <?php else: ?>
 
-                        <?php else: ?>
+                                <!-- 🆓 NORMAL -->
+                                <a href="<?= BASE_URL ?>view_album.php?id=<?= $album_id ?>"
+                                    class="album-cover-link"
+                                    style="display:block;width:100%;height:100%;">
+                                    <img src="<?= $thumb_url_pub ?>" alt="Capa do Álbum">
+                                </a>
 
-                            <!-- ðŸ†“ NORMAL -->
-                            <a href="<?= BASE_URL ?>view_album.php?id=<?= $album_id ?>"
-                                class="album-cover-link">
+                            <?php endif; ?>
 
-                                <img src="<?= UPLOAD_URL . htmlspecialchars($album_thumb) ?>"
-                                    alt="Capa do Ãlbum"
-                                    class="album-cover-image">
+                        </div>
+                        <!-- /album-cover-wrapper -->
 
-                            </a>
-
-                        <?php endif; ?>
-
-                        <!-- Nome -->
-                        <p class="album-name text-truncate">
-                            <?= htmlspecialchars($s_album['name'] ?? 'Ãlbum') ?>
-                        </p>
+                        <!-- Nome fora do card -->
+                        <p class="album-name"><?= $album_name ?></p>
 
                     </div>
+                    <!-- /suggested-album-item -->
+
                 <?php endforeach; ?>
             </div>
         </div>
