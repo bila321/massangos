@@ -1,4 +1,5 @@
 <?php
+
 /**
  * public/view_album.php
  *
@@ -14,11 +15,12 @@
 define('SECURE_ACCESS', true);
 define('ENVIRONMENT', 'development');
 
+require_once __DIR__ . '/../app/bootstrap.php';
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security.php';
-require_once __DIR__ . '/../includes/adult-content-helper.php';
+SecurityManager::initSecurity();
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 

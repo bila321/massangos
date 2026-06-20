@@ -33,6 +33,10 @@ class ReelsController
         $filter_quality   = $get['quality']         ?? '';
         $filter_sort      = $get['sort']            ?? 'recent';
 
+        $per_page = 12;
+        $page     = max(1, (int)($get['page'] ?? 1));
+        $offset   = ($page - 1) * $per_page;
+
         $where  = ["v.is_approved = 1"];
         $params = [];
 
@@ -70,6 +74,32 @@ class ReelsController
         $order_sql = $order_map[$filter_sort] ?? 'v.created_at DESC';
         $where_sql = implode(' AND ', $where);
 
+        // ── 1. COUNT — mesmo WHERE, sem ORDER/LIMIT, para calcular total_pages ──
+        $count_sql = "
+            SELECT COUNT(DISTINCT v.id)
+            FROM videos v
+            JOIN users u ON v.user_id = u.id
+            LEFT JOIN media_analysis ma ON ma.post_id = v.id AND ma.type = 'video'
+            WHERE {$where_sql}
+        ";
+
+        try {
+            $stmt_count = $this->pdo->prepare($count_sql);
+            foreach ($params as $key => $value) {
+                $stmt_count->bindValue($key, $value);
+            }
+            $stmt_count->execute();
+            $total = (int)$stmt_count->fetchColumn();
+        } catch (\PDOException $e) {
+            $total = 0;
+            error_log("Reels count error: " . $e->getMessage());
+        }
+
+        $total_pages = $total > 0 ? (int)ceil($total / $per_page) : 1;
+        // Corrigir page caso URL tenha um número superior ao real após filtros mudarem
+        $page = min($page, $total_pages);
+
+        // ── 2. Query paginada ──
         $sql = "
             SELECT v.*,
                    u.username, u.profile_picture,
@@ -81,7 +111,7 @@ class ReelsController
             LEFT JOIN media_analysis ma ON ma.post_id = v.id AND ma.type = 'video'
             WHERE {$where_sql}
             ORDER BY {$order_sql}
-            LIMIT 60
+            LIMIT :limit OFFSET :offset
         ";
 
         try {
@@ -89,6 +119,8 @@ class ReelsController
             foreach ($params as $key => $value) {
                 $stmt->bindValue($key, $value);
             }
+            $stmt->bindValue(':limit',  $per_page, \PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset,   \PDO::PARAM_INT);
             $stmt->execute();
             $rawReels = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
@@ -121,7 +153,8 @@ class ReelsController
             'filter_search', 'filter_sale', 'filter_sensitive',
             'filter_duration', 'filter_price_min', 'filter_price_max',
             'filter_quality', 'filter_sort',
-            'reels', 'csrf_token', 'active_chip'
+            'reels', 'csrf_token', 'active_chip',
+            'total', 'total_pages', 'page', 'per_page'
         );
     }
 

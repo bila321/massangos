@@ -1,0 +1,294 @@
+/* ─── album_partners.css — extraído do <style> inline de manage_album_partners.php ─── */
+
+.manage-partners-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.partners-header {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-light);
+}
+
+.album-info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.album-info img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.album-info-text h2 {
+    margin: 0 0 5px 0;
+    color: var(--text-primary);
+}
+
+.album-info-text p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.percentage-status {
+    background: var(--surface-bg);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.percentage-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--border-light);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.percentage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    transition: width 0.3s ease;
+}
+
+.percentage-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.add-partner-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+}
+
+.add-partner-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.partnership-invite-box {
+    background: #eef2ff;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+    margin-bottom: 20px;
+}
+
+.partnership-invite-box h4 {
+    margin: 0 0 10px 0;
+    color: #1e1b4b;
+}
+
+.partnership-invite-box p {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+.partnership-invite-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.partners-list {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-light);
+}
+
+.partner-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.2s;
+}
+
+.partner-item:last-child {
+    border-bottom: none;
+}
+
+.partner-item:hover {
+    background: var(--surface-bg);
+}
+
+.partner-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.partner-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.partner-details {
+    flex: 1;
+}
+
+.partner-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.partner-status {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-accepted {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.partner-percentage {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 5px 0 0 0;
+}
+
+.partner-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-action {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    color: white;
+}
+
+.btn-accept {
+    background: #28a745;
+}
+
+.btn-reject {
+    background: #dc3545;
+}
+
+.btn-edit {
+    background: var(--primary-color);
+}
+
+.btn-delete {
+    background: #f44336;
+}
+
+.btn-action:hover {
+    opacity: 0.9;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+}
+
+.user-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    margin-top: 5px;
+}
+
+.user-item-search {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.user-item-search:hover {
+    background: var(--surface-bg);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-action-flex {
+    flex: 1;
+}
+
+.empty-state {
+    padding: 30px;
+    text-align: center;
+    color: var(--text-secondary);
+}

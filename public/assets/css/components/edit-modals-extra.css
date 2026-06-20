@@ -1,0 +1,40 @@
+/* ─── edit-modals-extra.css — estilos extraídos do edit_album.php ─────── */
+
+.album-partners-banner {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(33, 150, 243, 0.1);
+    border-left: 3px solid #2196F3;
+    border-radius: 4px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-banner-link {
+    display: inline-block;
+    padding: 8px 16px;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.btn-banner-partners {
+    background: #2196F3;
+}
+
+.btn-banner-history {
+    background: #4CAF50;
+}
+
+.sidebar-divider {
+    margin: 15px 0;
+    border: none;
+    border-top: 1px solid var(--border-light);
+}
+
+.current-video-preview {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}

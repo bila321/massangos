@@ -203,5 +203,3 @@ try {
         <button class="btn-admin btn-delete" onclick="if(confirm('Limpar cache do sistema?')) alert('Cache limpo!')">Limpar Cache</button>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

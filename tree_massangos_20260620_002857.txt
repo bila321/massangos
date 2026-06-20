@@ -1,0 +1,550 @@
+==========================================================================================
+ ARVORE DE DIRETORIOS - DETALHADA
+==========================================================================================
+ Raiz       : C:\xampp\htdocs\massangos
+ Gerado em  : 2026-06-20 00:28:58
+ Host       : BILA  /  Usuario: Bila
+ Ignorados  : venv, vendor, node_modules, __pycache__, .git, storage, uploads, thumbnails, albums, posts, videos, profiles, verifications
+ Hidden     : False
+==========================================================================================
+
+massangos/
++-- [DIR] app/   (67 arq, 6 pastas, 377.8 KB)   [mod: 2026-06-18 10:42]
+|   +-- [DIR] Controllers/   (24 arq, 0 pastas, 95.5 KB)   [mod: 2026-06-19 22:16]
+|   |   +-- AlbumController.php        3.4 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- AlbumViewController.php        4.6 KB   [mod: 2026-06-17 21:05]   .php
+|   |   +-- BlockController.php        1.2 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- CreatePostController.php        1.3 KB   [mod: 2026-06-19 14:43]   .php
+|   |   +-- FeedController.php       19.3 KB   [mod: 2026-06-16 04:26]   .php
+|   |   +-- FeedController.php.bak_20260616_041244        1.8 KB   [mod: 2026-06-16 02:55]   .bak_20260616_041244
+|   |   +-- FollowController.php        1.9 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- HistoryController.php        1.7 KB   [mod: 2026-06-19 08:53]   .php
+|   |   +-- IndexPageController.php        822 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- LoginController.php        3.7 KB   [mod: 2026-06-18 22:14]   .php
+|   |   +-- NotificationController.php        1.5 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- PaymentController.php        1.9 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- PostController.php        1.2 KB   [mod: 2026-06-16 01:37]   .php
+|   |   +-- ProfileController.php       27.6 KB   [mod: 2026-06-19 00:43]   .php
+|   |   +-- ReelsController.php       10.2 KB   [mod: 2026-06-19 10:52]   .php
+|   |   +-- RegisterController.php        3.2 KB   [mod: 2026-06-18 07:59]   .php
+|   |   +-- SalesPerformanceController.php        1.5 KB   [mod: 2026-06-18 01:10]   .php
+|   |   +-- SavedController.php        1.5 KB   [mod: 2026-06-18 01:00]   .php
+|   |   +-- SearchController.php        1.3 KB   [mod: 2026-06-19 20:13]   .php
+|   |   +-- SettingsController.php        594 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- VerificationController.php        535 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- VideoController.php        731 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- ViewTrackingController.php        2.8 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- WalletController.php        1.3 KB   [mod: 2026-06-18 21:33]   .php
+|   +-- [DIR] Core/   (4 arq, 0 pastas, 2.5 KB)   [mod: 2026-05-31 22:11]
+|   |   +-- Auth.php        706 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- Database.php        1.1 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- README.md         47 B    [mod: 2026-06-01 00:11]   .md
+|   |   +-- Security.php        730 B    [mod: 2026-06-02 18:23]   .php
+|   +-- [DIR] Middleware/   (3 arq, 0 pastas, 331 B)   [mod: 2026-06-01 19:48]
+|   |   +-- AuthMiddleware.php        109 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- CSRFMiddleware.php        110 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- RateLimitMiddleware.php        112 B    [mod: 2026-06-02 18:23]   .php
+|   +-- [DIR] Models/   (15 arq, 0 pastas, 123.6 KB)   [mod: 2026-06-15 21:55]
+|   |   +-- Album.php        5.9 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- AlbumPartner.php       11.7 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- Comment.php       18.7 KB   [mod: 2026-06-06 15:53]   .php
+|   |   +-- CommentVote.php        5.5 KB   [mod: 2026-06-02 11:23]   .php
+|   |   +-- FeedItem.php       13.0 KB   [mod: 2026-06-02 11:23]   .php
+|   |   +-- Like.php        7.4 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- Notification.php        8.9 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- Photo.php        2.3 KB   [mod: 2026-06-05 03:36]   .php
+|   |   +-- PhotoComment.php        2.2 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- PhotoLike.php        2.1 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- Post.php        8.0 KB   [mod: 2026-06-16 02:09]   .php
+|   |   +-- README.md         38 B    [mod: 2026-05-31 12:28]   .md
+|   |   +-- SalesReport.php        9.8 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- User.php       20.8 KB   [mod: 2026-06-16 02:22]   .php
+|   |   +-- Video.php        7.3 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- [DIR] Routes/   (2 arq, 0 pastas, 2.0 KB)   [mod: 2026-06-18 11:44]
+|   |   +-- web.php       1010 B    [mod: 2026-06-18 11:44]   .php
+|   |   +-- web.php.bak_20260618_114434       1002 B    [mod: 2026-06-02 18:23]   .bak_20260618_114434
+|   +-- [DIR] Services/   (18 arq, 0 pastas, 151.5 KB)   [mod: 2026-06-19 22:16]
+|   |   +-- AlbumService.php        9.4 KB   [mod: 2026-06-05 03:40]   .php
+|   |   +-- AlbumViewService.php       21.9 KB   [mod: 2026-06-17 18:57]   .php
+|   |   +-- CommentService.php        8.6 KB   [mod: 2026-06-06 15:53]   .php
+|   |   +-- EmolaService.php        1.6 KB   [mod: 2026-06-03 21:17]   .php
+|   |   +-- HistoryService.php        9.6 KB   [mod: 2026-06-19 08:53]   .php
+|   |   +-- LoginService.php        6.3 KB   [mod: 2026-06-18 22:14]   .php
+|   |   +-- MediaProcessor.php        5.5 KB   [mod: 2026-06-03 21:17]   .php
+|   |   +-- MpesaService.php        2.5 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- PaymentService.php       14.5 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- PostService.php       10.5 KB   [mod: 2026-06-17 23:45]   .php
+|   |   +-- PricingRuleService.php        4.7 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- README.md         64 B    [mod: 2026-06-01 00:11]   .md
+|   |   +-- RegisterService.php        5.8 KB   [mod: 2026-06-18 07:59]   .php
+|   |   +-- SalesPerformanceService.php        8.5 KB   [mod: 2026-06-18 01:10]   .php
+|   |   +-- SavedService.php        9.7 KB   [mod: 2026-06-18 01:00]   .php
+|   |   +-- SearchService.php        9.1 KB   [mod: 2026-06-19 20:13]   .php
+|   |   +-- VideoService.php       19.0 KB   [mod: 2026-06-15 10:21]   .php
+|   |   +-- WalletService.php        4.5 KB   [mod: 2026-06-18 21:33]   .php
+|   +-- bootstrap.php        2.5 KB   [mod: 2026-06-18 10:41]   .php
++-- [DIR] architecture/   (6 arq, 0 pastas, 422.3 KB)   [mod: 2026-06-18 02:27]
+|   +-- architecture.txt       69.7 KB   [mod: 2026-06-18 02:32]   .txt
+|   +-- important_files.txt      106.2 KB   [mod: 2026-06-18 02:32]   .txt
+|   +-- js_files.txt      148.5 KB   [mod: 2026-06-18 02:32]   .txt
+|   +-- php_files.txt       87.5 KB   [mod: 2026-06-18 02:32]   .txt
+|   +-- python_files.txt       10.3 KB   [mod: 2026-06-18 02:32]   .txt
+|   +-- sql_files.txt          2 B    [mod: 2026-06-18 02:27]   .txt
++-- [DIR] config/   (4 arq, 0 pastas, 3.8 KB)   [mod: 2026-05-31 22:11]
+|   +-- app.php        2.2 KB   [mod: 2026-06-18 23:21]   .php
+|   +-- database.php        153 B    [mod: 2026-06-02 18:23]   .php
+|   +-- security.php        526 B    [mod: 2026-06-04 02:11]   .php
+|   +-- services.php        961 B    [mod: 2026-06-02 18:23]   .php
++-- [DIR] database/   (5 arq, 1 pastas, 3.6 KB)   [mod: 2026-05-31 15:21]
+|   +-- [DIR] migrations/   (5 arq, 0 pastas, 3.6 KB)   [mod: 2026-06-18 11:44]
+|       +-- 002_add_privacy_column.sql         94 B    [mod: 2026-06-01 00:11]   .sql
+|       +-- 003_create_blocks_table.sql        447 B    [mod: 2026-06-01 00:11]   .sql
+|       +-- 004_create_follow_requests.sql        698 B    [mod: 2026-06-01 00:11]   .sql
+|       +-- 005_update_stars_system.sql        1.0 KB   [mod: 2026-06-01 00:11]   .sql
+|       +-- 006_create_auth_carousel_slides.sql        1.4 KB   [mod: 2026-06-18 11:44]   .sql
++-- [DIR] docs/   (2 arq, 0 pastas, 23.8 KB)   [mod: 2026-05-31 22:11]
+|   +-- verification_page_design.md       11.8 KB   [mod: 2026-06-01 00:11]   .md
+|   +-- VERIFICATION_PAGE_IMPLEMENTATION.md       12.0 KB   [mod: 2026-06-01 00:11]   .md
++-- [DIR] includes/   (115 arq, 17 pastas, 415.0 KB)   [mod: 2026-06-18 14:22]
+|   +-- [DIR] feed/   (6 arq, 0 pastas, 51.2 KB)   [mod: 2026-06-17 21:56]
+|   |   +-- _album-media.php        5.5 KB   [mod: 2026-06-16 20:57]   .php
+|   |   +-- _post-footer.php        5.0 KB   [mod: 2026-06-18 01:30]   .php
+|   |   +-- _post-header.php       10.6 KB   [mod: 2026-06-17 01:02]   .php
+|   |   +-- _post-media.php        4.5 KB   [mod: 2026-06-16 20:57]   .php
+|   |   +-- _repost-content.php       17.5 KB   [mod: 2026-06-16 20:57]   .php
+|   |   +-- _video-media.php        8.1 KB   [mod: 2026-06-16 20:57]   .php
+|   +-- [DIR] templates/   (0 arq, 0 pastas, 0 B)   [mod: 2026-06-01 20:19]
+|   +-- [DIR] views/   (87 arq, 14 pastas, 190.1 KB)   [mod: 2026-06-19 22:14]
+|   |   +-- [DIR] album/   (9 arq, 0 pastas, 27.4 KB)   [mod: 2026-06-17 21:04]
+|   |   |   +-- _actions.php        2.1 KB   [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- _breadcrumb.php        810 B    [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- _comments_section.php        3.3 KB   [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- _header.php        2.8 KB   [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- _photo_comment_item.php        6.6 KB   [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- _photo_grid.php        1.8 KB   [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- _scripts.php        7.1 KB   [mod: 2026-06-19 01:12]   .php
+|   |   |   +-- _upload_modal.php        1.1 KB   [mod: 2026-06-17 18:57]   .php
+|   |   |   +-- view_album.view.php        1.8 KB   [mod: 2026-06-19 01:07]   .php
+|   |   +-- [DIR] auth/   (10 arq, 0 pastas, 12.6 KB)   [mod: 2026-06-19 00:15]
+|   |   |   +-- _alerts.php        449 B    [mod: 2026-06-18 07:59]   .php
+|   |   |   +-- _form_login.php        1.8 KB   [mod: 2026-06-18 22:14]   .php
+|   |   |   +-- _form_register.php        2.6 KB   [mod: 2026-06-18 07:59]   .php
+|   |   |   +-- _head.php        989 B    [mod: 2026-06-18 10:05]   .php
+|   |   |   +-- _panel_left.php        1.3 KB   [mod: 2026-06-18 07:59]   .php
+|   |   |   +-- _panel_mobile.php        834 B    [mod: 2026-06-18 07:59]   .php
+|   |   |   +-- _panel_right.php        959 B    [mod: 2026-06-18 07:59]   .php
+|   |   |   +-- _social_buttons.php        1.3 KB   [mod: 2026-06-18 07:59]   .php
+|   |   |   +-- login.view.php        1.7 KB   [mod: 2026-06-18 22:14]   .php
+|   |   |   +-- register.view.php        786 B    [mod: 2026-06-18 07:59]   .php
+|   |   +-- [DIR] history/   (7 arq, 0 pastas, 6.9 KB)   [mod: 2026-06-19 10:53]
+|   |   |   +-- _db_error.php        504 B    [mod: 2026-06-19 08:53]   .php
+|   |   |   +-- _empty.php        162 B    [mod: 2026-06-19 08:53]   .php
+|   |   |   +-- _filters.php        616 B    [mod: 2026-06-19 08:53]   .php
+|   |   |   +-- _header.php        362 B    [mod: 2026-06-19 08:53]   .php
+|   |   |   +-- _pagination.php        1.7 KB   [mod: 2026-06-19 08:53]   .php
+|   |   |   +-- _reaction_list.php        2.7 KB   [mod: 2026-06-19 08:53]   .php
+|   |   |   +-- history.view.php        997 B    [mod: 2026-06-19 08:53]   .php
+|   |   +-- [DIR] home/   (3 arq, 0 pastas, 9.8 KB)   [mod: 2026-06-18 00:43]
+|   |   |   +-- _feed-lightbox.php        2.3 KB   [mod: 2026-06-17 22:40]   .php
+|   |   |   +-- _verification-invite-modal.php        1.3 KB   [mod: 2026-06-17 22:40]   .php
+|   |   |   +-- index.view.php        6.2 KB   [mod: 2026-06-18 01:40]   .php
+|   |   +-- [DIR] post/   (15 arq, 2 pastas, 18.2 KB)   [mod: 2026-06-19 14:43]
+|   |   |   +-- [DIR] tabs/   (7 arq, 1 pastas, 12.0 KB)   [mod: 2026-06-19 12:32]
+|   |   |   |   +-- [DIR] video/   (3 arq, 0 pastas, 5.8 KB)   [mod: 2026-06-19 12:32]
+|   |   |   |   |   +-- _step1_upload.php        910 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   |   |   +-- _step2_trim.php        3.1 KB   [mod: 2026-06-19 10:24]   .php
+|   |   |   |   |   +-- _step3_compress.php        1.9 KB   [mod: 2026-06-19 10:24]   .php
+|   |   |   |   +-- _tab_album.php        2.5 KB   [mod: 2026-06-19 10:24]   .php
+|   |   |   |   +-- _tab_photo.php        1.2 KB   [mod: 2026-06-19 10:24]   .php
+|   |   |   |   +-- _tab_text.php        734 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   |   +-- _tab_video.php        1.8 KB   [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _post_header.php        117 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _progress_bar.php        391 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _sale_options_album.php        1.6 KB   [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _sale_options_post.php        797 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _sale_options_video.php        797 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _tabs_nav.php        461 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- _user_info.php        338 B    [mod: 2026-06-19 10:24]   .php
+|   |   |   +-- create_view.php        1.8 KB   [mod: 2026-06-19 15:06]   .php
+|   |   +-- [DIR] profile/   (9 arq, 0 pastas, 24.4 KB)   [mod: 2026-06-17 21:56]
+|   |   |   +-- _blocked.php        390 B    [mod: 2026-06-17 19:25]   .php
+|   |   |   +-- _content_tabs.php        764 B    [mod: 2026-06-17 19:25]   .php
+|   |   |   +-- _feed_grid.php        4.3 KB   [mod: 2026-06-17 21:53]   .php
+|   |   |   +-- _grid_item.php        5.7 KB   [mod: 2026-06-17 19:25]   .php
+|   |   |   +-- _lightbox.php        2.2 KB   [mod: 2026-06-17 19:25]   .php
+|   |   |   +-- _profile_header.php        6.4 KB   [mod: 2026-06-17 19:25]   .php
+|   |   |   +-- _scripts.php        1.6 KB   [mod: 2026-06-17 19:25]   .php
+|   |   |   +-- _verification_modals.php        1.2 KB   [mod: 2026-06-17 19:35]   .php
+|   |   |   +-- profile.view.php        1.8 KB   [mod: 2026-06-17 19:35]   .php
+|   |   +-- [DIR] reels/   (8 arq, 0 pastas, 26.7 KB)   [mod: 2026-06-19 12:52]
+|   |   |   +-- _card.php        8.2 KB   [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- _empty.php        304 B    [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- _filter_bar.php        5.8 KB   [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- _grid.php        564 B    [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- _header.php        256 B    [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- _load_more.php        3.0 KB   [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- _scripts.php        7.1 KB   [mod: 2026-06-19 10:52]   .php
+|   |   |   +-- reels.view.php        1.5 KB   [mod: 2026-06-19 10:52]   .php
+|   |   +-- [DIR] sales/   (6 arq, 0 pastas, 15.1 KB)   [mod: 2026-06-18 03:09]
+|   |   |   +-- _chart.php        1.2 KB   [mod: 2026-06-18 01:10]   .php
+|   |   |   +-- _filter_banner.php        1.1 KB   [mod: 2026-06-18 01:10]   .php
+|   |   |   +-- _items_list.php        5.5 KB   [mod: 2026-06-18 01:10]   .php
+|   |   |   +-- _kpis.php        4.0 KB   [mod: 2026-06-18 01:10]   .php
+|   |   |   +-- _topbar.php        2.0 KB   [mod: 2026-06-18 01:10]   .php
+|   |   |   +-- sales_performance.view.php        1.3 KB   [mod: 2026-06-18 01:10]   .php
+|   |   +-- [DIR] saved/   (6 arq, 0 pastas, 7.0 KB)   [mod: 2026-06-18 03:00]
+|   |   |   +-- _empty.php        229 B    [mod: 2026-06-18 01:00]   .php
+|   |   |   +-- _filters.php        790 B    [mod: 2026-06-18 01:00]   .php
+|   |   |   +-- _grid.php        4.0 KB   [mod: 2026-06-18 01:00]   .php
+|   |   |   +-- _header.php        254 B    [mod: 2026-06-18 01:00]   .php
+|   |   |   +-- _pagination.php        813 B    [mod: 2026-06-18 01:00]   .php
+|   |   |   +-- saved.view.php        979 B    [mod: 2026-06-18 01:00]   .php
+|   |   +-- [DIR] search/   (7 arq, 0 pastas, 7.9 KB)   [mod: 2026-06-19 22:15]
+|   |   |   +-- _content_card.php        3.7 KB   [mod: 2026-06-19 20:13]   .php
+|   |   |   +-- _content_results.php        340 B    [mod: 2026-06-19 20:13]   .php
+|   |   |   +-- _filter_bar.php        1.6 KB   [mod: 2026-06-19 20:13]   .php
+|   |   |   +-- _header.php        329 B    [mod: 2026-06-19 20:13]   .php
+|   |   |   +-- _no_results.php        276 B    [mod: 2026-06-19 20:13]   .php
+|   |   |   +-- _user_results.php        854 B    [mod: 2026-06-19 20:13]   .php
+|   |   |   +-- search.view.php        943 B    [mod: 2026-06-19 22:25]   .php
+|   |   +-- [DIR] settings/   (6 arq, 0 pastas, 21.5 KB)   [mod: 2026-06-18 02:51]
+|   |   |   +-- _card_blocked.php        2.2 KB   [mod: 2026-06-18 00:51]   .php
+|   |   |   +-- _card_edit_profile.php        6.6 KB   [mod: 2026-06-18 00:51]   .php
+|   |   |   +-- _card_privacy.php        2.0 KB   [mod: 2026-06-18 00:51]   .php
+|   |   |   +-- _card_verification.php        2.2 KB   [mod: 2026-06-18 00:51]   .php
+|   |   |   +-- _modal_verification.php        7.3 KB   [mod: 2026-06-18 00:51]   .php
+|   |   |   +-- settings.view.php        1.2 KB   [mod: 2026-06-18 00:51]   .php
+|   |   +-- [DIR] wallet/   (1 arq, 0 pastas, 12.4 KB)   [mod: 2026-06-18 23:52]
+|   |       +-- wallet.view.php       12.4 KB   [mod: 2026-06-19 12:03]   .php
+|   +-- _render_comment_html.php        4.8 KB   [mod: 2026-06-06 15:13]   .php
+|   +-- adult-content-helper.php        2.7 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- auth.php        1.5 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- config.php        836 B    [mod: 2026-06-02 18:23]   .php
+|   +-- db.php        3.2 KB   [mod: 2026-06-18 22:26]   .php
+|   +-- db.php.bak_20260618_114434        5.5 KB   [mod: 2026-06-13 19:09]   .bak_20260618_114434
+|   +-- face_api_helper.php        2.3 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- footer.php        2.9 KB   [mod: 2026-06-16 11:34]   .php
+|   +-- functions.php       14.8 KB   [mod: 2026-06-16 01:57]   .php
+|   +-- header.php        5.4 KB   [mod: 2026-06-19 14:30]   .php
+|   +-- mobile-nav.php       13.6 KB   [mod: 2026-06-19 21:10]   .php
+|   +-- p-right-sidebar.php        338 B    [mod: 2026-06-03 21:17]   .php
+|   +-- profile-footer.php        2.8 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- publication-icons-component.php        1.5 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- publication-modals.php       33.1 KB   [mod: 2026-06-16 21:48]   .php
+|   +-- reels_lightbox.php        3.8 KB   [mod: 2026-06-16 13:22]   .php
+|   +-- right-sidebar.php        8.2 KB   [mod: 2026-06-03 21:17]   .php
+|   +-- security.php       15.1 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- sidebar.php        7.0 KB   [mod: 2026-06-17 11:27]   .php
+|   +-- topbar.php       14.3 KB   [mod: 2026-06-19 19:54]   .php
+|   +-- verificationmodal.php       26.4 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- verificationmodal_redirect.php        3.6 KB   [mod: 2026-06-03 21:17]   .php
++-- [DIR] public/   (167 arq, 24 pastas, 1.4 MB)   [mod: 2026-06-19 22:16]
+|   +-- [DIR] actions/   (12 arq, 0 pastas, 11.6 KB)   [mod: 2026-06-16 01:43]
+|   |   +-- album.php        1.1 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- block.php        993 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- follow_request.php        876 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- notification.php        913 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- partnership.php        936 B    [mod: 2026-06-16 00:10]   .php
+|   |   +-- payment.php        1.2 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- payment_stars.php        1.2 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- post.php        1.1 KB   [mod: 2026-06-16 01:18]   .php
+|   |   +-- settings.php        500 B    [mod: 2026-06-15 23:39]   .php
+|   |   +-- verification.php        519 B    [mod: 2026-06-15 23:39]   .php
+|   |   +-- video.php        1.1 KB   [mod: 2026-06-16 00:10]   .php
+|   |   +-- view.php        1.1 KB   [mod: 2026-06-16 00:10]   .php
+|   +-- [DIR] admin/   (16 arq, 3 pastas, 161.0 KB)   [mod: 2026-06-13 19:18]
+|   |   +-- [DIR] assets/   (2 arq, 2 pastas, 9.5 KB)   [mod: 2026-05-29 17:53]
+|   |   |   +-- [DIR] css/   (1 arq, 0 pastas, 8.5 KB)   [mod: 2026-05-31 22:11]
+|   |   |   |   +-- admin-style.css        8.5 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   +-- [DIR] js/   (1 arq, 0 pastas, 1.0 KB)   [mod: 2026-05-31 22:11]
+|   |   |       +-- admin-main.js        1.0 KB   [mod: 2026-06-01 00:11]   .js
+|   |   +-- admin_functions.php        4.6 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- carousel.php       32.1 KB   [mod: 2026-06-14 15:50]   .php
+|   |   +-- content.php       18.8 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- header.php        4.0 KB   [mod: 2026-06-15 19:53]   .php
+|   |   +-- index.php        3.5 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- login.php        4.4 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- logout.php        154 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- README_ADMIN.md        3.0 KB   [mod: 2026-06-01 00:11]   .md
+|   |   +-- reports.php        3.0 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- sales.php        3.2 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- settings.php       12.0 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- users.php       15.0 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- verifications.php       11.9 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- verifications_review.php       35.9 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- [DIR] ajax/   (5 arq, 0 pastas, 21.2 KB)   [mod: 2026-06-18 12:24]
+|   |   +-- follow_toggle.php        1.9 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- hide_post.php        1.5 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- register_share.php        5.0 KB   [mod: 2026-06-16 09:34]   .php
+|   |   +-- toggle_save.php        6.9 KB   [mod: 2026-06-06 22:47]   .php
+|   |   +-- verification_actions.php        5.9 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- [DIR] api/   (12 arq, 0 pastas, 70.1 KB)   [mod: 2026-06-18 12:23]
+|   |   +-- ai-health-check.php        3.4 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- album_partners.php        7.5 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- check_payment_status.php        638 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- comments.php        8.8 KB   [mod: 2026-06-12 21:07]   .php
+|   |   +-- emola_callback.php        1.0 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- feed_interactions.php        2.7 KB   [mod: 2026-06-16 03:10]   .php
+|   |   +-- handle_photo_comment.php        7.8 KB   [mod: 2026-06-12 21:08]   .php
+|   |   +-- mpesa_callback.php        1.1 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- photo_interactions.php       20.8 KB   [mod: 2026-06-14 22:51]   .php
+|   |   +-- search_users.php        850 B    [mod: 2026-06-02 18:23]   .php
+|   |   +-- verification-status.php        3.6 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- verification-submit.php       12.1 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- [DIR] assets/   (73 arq, 13 pastas, 845.3 KB)   [mod: 2026-05-29 17:54]
+|   |   +-- [DIR] css/   (38 arq, 4 pastas, 410.4 KB)   [mod: 2026-06-16 22:09]
+|   |   |   +-- [DIR] components/   (10 arq, 0 pastas, 130.2 KB)   [mod: 2026-06-16 21:39]
+|   |   |   |   +-- cards.css       17.7 KB   [mod: 2026-06-19 21:44]   .css
+|   |   |   |   +-- comments.css       20.6 KB   [mod: 2026-06-12 20:06]   .css
+|   |   |   |   +-- edit-modals.css        4.6 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- editor.css        6.0 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- media.css        4.3 KB   [mod: 2026-06-16 18:28]   .css
+|   |   |   |   +-- modals.css       16.6 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- premium_lightbox.css       48.9 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- protection.css        1.6 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- repost-header.css        1.2 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- sidebar.css        8.6 KB   [mod: 2026-06-19 22:06]   .css
+|   |   |   +-- [DIR] modules/   (6 arq, 0 pastas, 20.9 KB)   [mod: 2026-06-18 14:22]
+|   |   |   |   +-- base.css        964 B    [mod: 2026-06-19 19:37]   .css
+|   |   |   |   +-- icons.css        4.3 KB   [mod: 2026-06-18 12:05]   .css
+|   |   |   |   +-- layout.css        5.8 KB   [mod: 2026-06-19 20:42]   .css
+|   |   |   |   +-- page-transition.css        3.7 KB   [mod: 2026-06-18 12:05]   .css
+|   |   |   |   +-- publication-icons.css        2.0 KB   [mod: 2026-06-18 12:05]   .css
+|   |   |   |   +-- variables.css        4.2 KB   [mod: 2026-06-18 12:05]   .css
+|   |   |   +-- [DIR] pages/   (19 arq, 0 pastas, 227.0 KB)   [mod: 2026-06-19 22:17]
+|   |   |   |   +-- album_distribution_history.css        4.1 KB   [mod: 2026-06-18 12:35]   .css
+|   |   |   |   +-- create-post.css       25.8 KB   [mod: 2026-06-19 21:20]   .css
+|   |   |   |   +-- forgot_password.css       13.8 KB   [mod: 2026-06-18 12:42]   .css
+|   |   |   |   +-- history.css        5.5 KB   [mod: 2026-06-19 21:21]   .css
+|   |   |   |   +-- index.css        2.3 KB   [mod: 2026-06-18 00:48]   .css
+|   |   |   |   +-- login-register.css       13.0 KB   [mod: 2026-06-14 16:38]   .css
+|   |   |   |   +-- notifications.css       10.4 KB   [mod: 2026-06-19 21:19]   .css
+|   |   |   |   +-- partner_sales_dashboard.css        4.4 KB   [mod: 2026-06-19 21:22]   .css
+|   |   |   |   +-- pesquisar.css        2.4 KB   [mod: 2026-06-19 21:23]   .css
+|   |   |   |   +-- post.css        6.4 KB   [mod: 2026-06-16 20:07]   .css
+|   |   |   |   +-- profile_layout.css       17.9 KB   [mod: 2026-06-19 22:07]   .css
+|   |   |   |   +-- reels.css       26.5 KB   [mod: 2026-06-19 21:40]   .css
+|   |   |   |   +-- sales_performance.css       15.3 KB   [mod: 2026-06-19 21:07]   .css
+|   |   |   |   +-- saved.css        6.8 KB   [mod: 2026-06-19 21:46]   .css
+|   |   |   |   +-- search.css        3.8 KB   [mod: 2026-06-19 22:32]   .css
+|   |   |   |   +-- settings.css       18.0 KB   [mod: 2026-06-19 21:50]   .css
+|   |   |   |   +-- users-list.css        1.7 KB   [mod: 2026-06-19 21:50]   .css
+|   |   |   |   +-- view_album.css       35.7 KB   [mod: 2026-06-19 21:49]   .css
+|   |   |   |   +-- wallet.css       12.9 KB   [mod: 2026-06-19 21:48]   .css
+|   |   |   +-- [DIR] verification/   (2 arq, 0 pastas, 31.2 KB)   [mod: 2026-05-31 22:11]
+|   |   |   |   +-- verification.css       20.8 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   |   +-- verification-responsive.css       10.4 KB   [mod: 2026-06-01 00:11]   .css
+|   |   |   +-- style.css        1.1 KB   [mod: 2026-06-16 20:44]   .css
+|   |   +-- [DIR] images/   (0 arq, 0 pastas, 0 B)   [mod: 2025-08-10 01:09]
+|   |   +-- [DIR] img/   (0 arq, 0 pastas, 0 B)   [mod: 2026-02-15 17:30]
+|   |   +-- [DIR] js/   (35 arq, 5 pastas, 434.9 KB)   [mod: 2026-06-17 01:38]
+|   |       +-- [DIR] components/   (10 arq, 0 pastas, 175.2 KB)   [mod: 2026-06-18 12:29]
+|   |       |   +-- comments.js       43.9 KB   [mod: 2026-06-16 03:09]   .js
+|   |       |   +-- description-truncate.js        4.9 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- edit-modals.js        5.2 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- lazy-videos.js        3.7 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- modern-interactions.js        1.5 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- post-modal-new.js        6.5 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- premium_lightbox.js      101.6 KB   [mod: 2026-06-17 10:20]   .js
+|   |       |   +-- publication-icons.js        1.6 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- save.js        1.9 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- text-editor.js        4.4 KB   [mod: 2026-06-01 00:11]   .js
+|   |       +-- [DIR] core/   (6 arq, 0 pastas, 37.8 KB)   [mod: 2026-06-18 14:22]
+|   |       |   +-- common_notifications.js        3.9 KB   [mod: 2026-06-15 23:44]   .js
+|   |       |   +-- main.js        7.5 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- notifications.js        6.7 KB   [mod: 2026-06-15 23:44]   .js
+|   |       |   +-- page-transition.js       11.3 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- sidebar-toggle.js        4.2 KB   [mod: 2026-06-18 12:24]   .js
+|   |       |   +-- track_views.js        4.2 KB   [mod: 2026-06-15 23:44]   .js
+|   |       +-- [DIR] pages/   (12 arq, 0 pastas, 158.9 KB)   [mod: 2026-06-19 00:14]
+|   |       |   +-- create-post.js       22.4 KB   [mod: 2026-06-17 23:16]   .js
+|   |       |   +-- home.js        8.8 KB   [mod: 2026-06-18 00:53]   .js
+|   |       |   +-- login.js        5.0 KB   [mod: 2026-06-18 22:14]   .js
+|   |       |   +-- media-backdrop.js        8.5 KB   [mod: 2026-06-15 19:47]   .js
+|   |       |   +-- post.js        3.6 KB   [mod: 2026-06-16 20:10]   .js
+|   |       |   +-- profile.js       12.0 KB   [mod: 2026-06-06 17:54]   .js
+|   |       |   +-- reels.js        9.2 KB   [mod: 2026-06-16 18:47]   .js
+|   |       |   +-- register.js        4.9 KB   [mod: 2026-06-16 19:59]   .js
+|   |       |   +-- sales_performance.js        4.7 KB   [mod: 2026-06-16 19:57]   .js
+|   |       |   +-- saved.js        2.0 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- settings.js       11.3 KB   [mod: 2026-06-16 19:41]   .js
+|   |       |   +-- view_album.js       66.4 KB   [mod: 2026-06-15 23:44]   .js
+|   |       +-- [DIR] protection/   (4 arq, 0 pastas, 20.5 KB)   [mod: 2026-06-16 03:51]
+|   |       |   +-- adult-content.js        3.1 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- advanced-media-protection.js        4.7 KB   [mod: 2026-06-01 00:11]   .js
+|   |       |   +-- click-handler.js        6.4 KB   [mod: 2026-06-15 23:44]   .js
+|   |       |   +-- content-protection.js        6.4 KB   [mod: 2026-06-01 00:11]   .js
+|   |       +-- [DIR] verification/   (3 arq, 0 pastas, 42.6 KB)   [mod: 2026-05-31 22:11]
+|   |           +-- verification-api.js       15.5 KB   [mod: 2026-06-01 00:11]   .js
+|   |           +-- verification-main.js       19.9 KB   [mod: 2026-06-01 00:11]   .js
+|   |           +-- verification-media.js        7.2 KB   [mod: 2026-06-01 00:11]   .js
+|   +-- [DIR] components/   (6 arq, 1 pastas, 75.7 KB)   [mod: 2026-06-01 19:48]
+|   |   +-- [DIR] profile/   (3 arq, 0 pastas, 59.7 KB)   [mod: 2026-05-31 22:11]
+|   |   |   +-- widget-album-premium.php       15.6 KB   [mod: 2026-06-02 18:23]   .php
+|   |   |   +-- widget-info.php        8.1 KB   [mod: 2026-06-02 18:23]   .php
+|   |   |   +-- widgets-destaque.php       36.1 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- album_partners_display.php        1.4 KB   [mod: 2026-06-02 18:23]   .php
+|   |   +-- suggested_albums.php        9.3 KB   [mod: 2026-06-14 21:03]   .php
+|   |   +-- suggested_users.php        5.2 KB   [mod: 2026-06-14 21:53]   .php
+|   +-- [DIR] verification/   (1 arq, 0 pastas, 27.3 KB)   [mod: 2026-05-31 22:11]
+|   |   +-- index.php       27.3 KB   [mod: 2026-06-16 21:46]   .php
+|   +-- .htaccess        1.2 KB   [mod: 2026-06-18 22:28]   .htaccess
+|   +-- album.php        5.2 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- album_distribution_history.php        6.8 KB   [mod: 2026-06-18 12:38]   .php
+|   +-- auth_callback.php        1.9 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- buy_stars.php        4.1 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- checkout.php        5.2 KB   [mod: 2026-06-15 23:42]   .php
+|   +-- checkout_stars.php        4.0 KB   [mod: 2026-06-19 02:31]   .php
+|   +-- create-post.php        581 B    [mod: 2026-06-19 14:39]   .php
+|   +-- dbtest.php        129 B    [mod: 2026-06-18 22:19]   .php
+|   +-- edit_album.php       10.2 KB   [mod: 2026-06-16 21:47]   .php
+|   +-- edit_post.php        7.8 KB   [mod: 2026-06-16 21:47]   .php
+|   +-- edit_video.php        7.8 KB   [mod: 2026-06-16 21:47]   .php
+|   +-- error.php        1.8 KB   [mod: 2026-06-18 22:24]   .php
+|   +-- followers.php        6.2 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- following.php        6.2 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- forgot_password.php       28.1 KB   [mod: 2026-06-18 12:50]   .php
+|   +-- history.php        746 B    [mod: 2026-06-19 08:53]   .php
+|   +-- index.php        1.3 KB   [mod: 2026-06-18 22:27]   .php
+|   +-- login.php        735 B    [mod: 2026-06-18 22:14]   .php
+|   +-- logout.php        596 B    [mod: 2026-06-02 18:23]   .php
+|   +-- manage_album_partners.php       17.4 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- marketplace.php        4.0 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- media-proxy.php        6.1 KB   [mod: 2026-06-15 19:38]   .php
+|   +-- modal_lightbox.php        5.1 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- notifications.php       23.3 KB   [mod: 2026-06-16 20:42]   .php
+|   +-- partner_sales_dashboard.php        8.2 KB   [mod: 2026-06-18 18:20]   .php
+|   +-- pesquisar.php        680 B    [mod: 2026-06-19 20:13]   .php
+|   +-- post.php        8.8 KB   [mod: 2026-06-16 20:11]   .php
+|   +-- profile.php        3.1 KB   [mod: 2026-06-18 10:43]   .php
+|   +-- profile.php.bak_20260617_020038       32.6 KB   [mod: 2026-06-17 01:44]   .bak_20260617_020038
+|   +-- reels.php        856 B    [mod: 2026-06-19 10:52]   .php
+|   +-- register.php        450 B    [mod: 2026-06-18 07:59]   .php
+|   +-- sales_performance.php        717 B    [mod: 2026-06-18 01:10]   .php
+|   +-- saved.php        668 B    [mod: 2026-06-18 01:00]   .php
+|   +-- settings.php        1.7 KB   [mod: 2026-06-18 00:51]   .php
+|   +-- sw.js        6.4 KB   [mod: 2026-06-01 00:11]   .js
+|   +-- upgrade.php        4.4 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- upload.php        269 B    [mod: 2026-06-02 18:23]   .php
+|   +-- users_list.php        2.1 KB   [mod: 2026-06-17 21:18]   .php
+|   +-- view_album.php        912 B    [mod: 2026-06-17 18:57]   .php
+|   +-- waiting_payment.php        2.7 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- wallet.php        1.5 KB   [mod: 2026-06-18 21:33]   .php
++-- [DIR] scripts/   (17 arq, 0 pastas, 72.4 KB)   [mod: 2026-06-06 21:11]
+|   +-- _render_comment_html.php        4.8 KB   [mod: 2026-06-06 15:13]   .php
+|   +-- apply_optimistic_ui.ps1        2.7 KB   [mod: 2026-06-06 15:14]   .ps1
+|   +-- consolidacao_comments_v2.php        5.6 KB   [mod: 2026-06-06 17:04]   .php
+|   +-- consolidate_comments_and_likes_v2.ps1        7.8 KB   [mod: 2026-06-06 17:54]   .ps1
+|   +-- fix_endpoints_safe.ps1        2.7 KB   [mod: 2026-06-06 18:16]   .ps1
+|   +-- fix_feed_item_id.ps1        2.1 KB   [mod: 2026-06-06 21:10]   .ps1
+|   +-- fix_vaNavPhoto.ps1        2.5 KB   [mod: 2026-06-06 20:08]   .ps1
+|   +-- patch_api_comments.ps1        4.1 KB   [mod: 2026-06-06 15:32]   .ps1
+|   +-- patch_comment_model.ps1        1.5 KB   [mod: 2026-06-06 15:13]   .ps1
+|   +-- patch_comment_service.ps1        3.7 KB   [mod: 2026-06-06 15:30]   .ps1
+|   +-- patch_functions_include.ps1        1.3 KB   [mod: 2026-06-06 15:13]   .ps1
+|   +-- patch_view_album_js.ps1       10.4 KB   [mod: 2026-06-06 15:36]   .ps1
+|   +-- patch_view_album_php.ps1        3.8 KB   [mod: 2026-06-06 15:14]   .ps1
+|   +-- photo_interactions_unified.php        7.3 KB   [mod: 2026-06-06 21:03]   .php
+|   +-- replace_view_album_comments.ps1        2.1 KB   [mod: 2026-06-06 00:32]   .ps1
+|   +-- unify_likes_endpoints.ps1        3.3 KB   [mod: 2026-06-06 20:27]   .ps1
+|   +-- view_album_comments_block.php        6.7 KB   [mod: 2026-06-06 00:17]   .php
++-- [DIR] services/   (30 arq, 7 pastas, 141.9 KB)   [mod: 2026-05-31 17:24]
+|   +-- [DIR] ai/   (30 arq, 6 pastas, 141.9 KB)   [mod: 2026-06-01 19:48]
+|       +-- [DIR] identity/   (18 arq, 5 pastas, 110.0 KB)   [mod: 2026-05-31 22:11]
+|       |   +-- [DIR] logs/   (0 arq, 0 pastas, 0 B)   [mod: 2026-05-31 09:57]
+|       |   +-- [DIR] routes/   (1 arq, 0 pastas, 5.0 KB)   [mod: 2026-05-31 22:11]
+|       |   |   +-- php_autostart.php        5.0 KB   [mod: 2026-06-02 18:23]   .php
+|       |   +-- [DIR] services/   (5 arq, 0 pastas, 34.3 KB)   [mod: 2026-05-31 22:11]
+|       |   |   +-- face_detector.py        4.6 KB   [mod: 2026-05-31 22:11]   .py
+|       |   |   +-- face_matcher.py        9.1 KB   [mod: 2026-05-31 22:11]   .py
+|       |   |   +-- face_service.py        3.4 KB   [mod: 2026-05-31 22:11]   .py
+|       |   |   +-- face_verification_service.py        3.4 KB   [mod: 2026-05-31 22:11]   .py
+|       |   |   +-- liveness_detector.py       13.8 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- [DIR] tests/   (1 arq, 0 pastas, 8.4 KB)   [mod: 2026-05-31 22:11]
+|       |   |   +-- test_identity_system.py        8.4 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- [DIR] utils/   (3 arq, 0 pastas, 11.3 KB)   [mod: 2026-05-31 22:11]
+|       |   |   +-- image_quality.py        3.6 KB   [mod: 2026-05-31 22:11]   .py
+|       |   |   +-- logger.py        2.3 KB   [mod: 2026-05-31 22:11]   .py
+|       |   |   +-- video_utils.py        5.4 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- api_endpoint.py        7.9 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- config.py        3.5 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- face_routes.py        1.8 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- face_verify.py        7.7 KB   [mod: 2026-05-31 22:11]   .py
+|       |   +-- php_trigger.php        9.7 KB   [mod: 2026-06-02 18:23]   .php
+|       |   +-- README.md        5.5 KB   [mod: 2026-05-31 22:11]   .md
+|       |   +-- requirements_identity.txt        1.6 KB   [mod: 2026-05-31 22:11]   .txt
+|       |   +-- verify_identity.py       13.3 KB   [mod: 2026-05-31 22:11]   .py
+|       +-- config.py        109 B    [mod: 2026-05-31 22:11]   .py
+|       +-- db.py        126 B    [mod: 2026-05-31 22:11]   .py
+|       +-- detector.py        2.6 KB   [mod: 2026-05-31 22:11]   .py
+|       +-- main.py        4.9 KB   [mod: 2026-05-31 22:11]   .py
+|       +-- requirements.txt          0 B    [mod: 2026-05-31 22:11]   .txt
+|       +-- start_ai_service.bat        2.1 KB   [mod: 2026-05-31 22:11]   .bat
+|       +-- stop_ai_service.bat        681 B    [mod: 2026-05-31 22:11]   .bat
+|       +-- test.py        137 B    [mod: 2026-05-31 22:11]   .py
+|       +-- test_face.py        187 B    [mod: 2026-05-31 22:11]   .py
+|       +-- test_imports.py        5.0 KB   [mod: 2026-05-31 22:11]   .py
+|       +-- video_processor.py        3.0 KB   [mod: 2026-05-31 22:11]   .py
+|       +-- worker.py       13.0 KB   [mod: 2026-06-01 19:48]   .py
++-- [DIR] tests/   (2 arq, 0 pastas, 2.9 KB)   [mod: 2026-05-31 22:11]
+|   +-- test_media_proxy.php        1.0 KB   [mod: 2026-06-02 18:23]   .php
+|   +-- test_pricing_rules.php        1.9 KB   [mod: 2026-06-02 18:23]   .php
++-- [DIR] tools/   (3 arq, 0 pastas, 27.3 KB)   [mod: 2026-06-18 13:08]
+|   +-- find_namespace_usages.ps1        3.8 KB   [mod: 2026-06-18 10:54]   .ps1
+|   +-- fix_connection_issues.ps1       20.2 KB   [mod: 2026-06-18 13:06]   .ps1
+|   +-- generate_missing_thumbnails.php        3.3 KB   [mod: 2026-06-05 03:48]   .php
++-- .ai_memory.json        575 B    [mod: 2026-06-01 03:59]   .json
++-- .gitattributes        520 B    [mod: 2026-06-01 00:11]   .gitattributes
++-- .gitignore        4.7 KB   [mod: 2026-06-16 04:29]   .gitignore
++-- .htaccess        4.5 KB   [mod: 2026-06-16 00:44]   .htaccess
++-- 0          2 B    [mod: 2026-06-18 15:39]   (sem ext)
++-- composer.json        502 B    [mod: 2026-06-02 16:39]   .json
++-- css-audit.md        149 B    [mod: 2026-05-22 03:00]   .md
++-- debug_profile.ps1        421 B    [mod: 2026-06-17 02:03]   .ps1
++-- extract_architecture.ps1          0 B    [mod: 2026-06-18 02:30]   .ps1
++-- fix_profile_lightbox.ps1        4.6 KB   [mod: 2026-06-17 02:02]   .ps1
++-- gitignore.txt        4.6 KB   [mod: 2026-06-04 21:11]   .txt
++-- iniciar-massango-ai.bat        2.0 KB   [mod: 2026-05-11 03:40]   .bat
++-- README.md        230 B    [mod: 2026-06-01 00:11]   .md
++-- refactor_feed_n1.ps1       41.6 KB   [mod: 2026-06-16 04:11]   .ps1
++-- Show-Tree.ps1        7.7 KB   [mod: 2026-06-16 03:47]   .ps1
++-- tree_massangos_20260617_203614.txt       55.8 KB   [mod: 2026-06-17 20:36]   .txt
++-- tree_massangos_20260617_214208.txt       57.7 KB   [mod: 2026-06-17 21:42]   .txt
++-- tree_massangos_20260617_232541.txt       60.1 KB   [mod: 2026-06-17 23:25]   .txt
++-- tree_massangos_20260618_001828.txt       61.8 KB   [mod: 2026-06-18 00:18]   .txt
++-- tree_massangos_20260618_135928.txt       66.4 KB   [mod: 2026-06-18 13:59]   .txt
++-- tree_massangos_20260618_154004.txt       66.6 KB   [mod: 2026-06-18 15:40]   .txt
++-- tree_massangos_20260618_171127.txt       66.7 KB   [mod: 2026-06-18 17:11]   .txt
+
+==========================================================================================
+ RESUMO
+==========================================================================================
+ Total de pastas        : 66
+ Total de arquivos      : 440
+ Tamanho total          : 3.4 MB  (3525224 bytes)
+ Itens ignorados (match): 6
+
+ TOP EXTENSOES (por contagem):
+ Extensao          Qtd       Tamanho
+ --------------------------------------
+ .php              277        1.3 MB
+ .css               39      418.9 KB
+ .js                37      442.3 KB
+ .py                23      117.3 KB
+ .ps1               20      126.3 KB
+ .txt               16      863.5 KB
+ .md                 9       32.9 KB
+ .sql                5        3.6 KB
+ .bat                3        4.8 KB
+ .htaccess           2        5.7 KB
+ .json               2        1.1 KB
+ .bak_20260618_114434        2        6.5 KB
+ .gitignore          1        4.7 KB
+ .bak_20260617_020038        1       32.6 KB
+ .bak_20260616_041244        1        1.8 KB
+ .gitattributes        1         520 B
+ (sem ext)           1           2 B
+
+==========================================================================================
+ Arquivo salvo em: C:\xampp\htdocs\massangos\tree_massangos_20260620_002857.txt
+==========================================================================================

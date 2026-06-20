@@ -48,7 +48,7 @@ $chartData = get_sales_chart_data($pdo);
         <h3>Desempenho de Vendas (Últimos 7 dias)</h3>
         <canvas id="salesChart" height="100"></canvas>
     </div>
-    
+
     <div class="admin-card">
         <h3>Ações Rápidas</h3>
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -63,30 +63,32 @@ $chartData = get_sales_chart_data($pdo);
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ctx = document.getElementById('salesChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: <?= json_encode(array_column($chartData, 'label')) ?>,
-        datasets: [{
-            label: 'Volume de Vendas (MT)',
-            data: <?= json_encode(array_column($chartData, 'total')) ?>,
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode(array_column($chartData, 'label')) ?>,
+            datasets: [{
+                label: 'Volume de Vendas (MT)',
+                data: <?= json_encode(array_column($chartData, 'total')) ?>,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
         },
-        scales: {
-            y: { beginAtZero: true }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
-    }
-});
+    });
 </script>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

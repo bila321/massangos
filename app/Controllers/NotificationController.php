@@ -1,48 +1,45 @@
 <?php
 // app/Controllers/NotificationController.php
+
 namespace Massango\Controllers;
 
-use Massango\Models\Notification;
+use Massango\Services\NotificationService;
 
 class NotificationController
 {
     private \PDO $pdo;
-    private int  $userId;
 
-    public function __construct(\PDO $pdo, int $userId)
+    public function __construct(\PDO $pdo)
     {
-        $this->pdo    = $pdo;
-        $this->userId = $userId;
+        $this->pdo = $pdo;
     }
 
-    public function handle(array $post): array
+    public function handle(): void
     {
-        $action = $post['action'] ?? '';
-
-        switch ($action) {
-            case 'mark_read':
-                $id = (int)($post['notification_id'] ?? 0);
-                if ($id <= 0) {
-                    return ['success' => false, 'message' => 'ID invalido.'];
-                }
-                $ok = Notification::markAsRead($this->pdo, $id, $this->userId);
-                return $ok
-                    ? ['success' => true,  'message' => 'Notificacao marcada como lida.']
-                    : ['success' => false, 'message' => 'Erro ao marcar notificacao.'];
-
-            case 'clear_read':
-                $ok = Notification::clearReadNotifications($this->pdo, $this->userId);
-                return $ok
-                    ? ['success' => true,  'message' => 'Notificacoes lidas removidas.']
-                    : ['success' => false, 'message' => 'Erro ao limpar notificacoes.'];
-
-            default:
-                return ['success' => false, 'message' => 'Acao invalida.'];
+        // ===== AUTENTICAÇÃO =====
+        if (!is_logged_in()) {
+            set_message('Você precisa estar logado para ver suas notificações.', 'danger');
+            redirect(BASE_URL . 'login.php');
         }
-    }
 
-    public function unreadCount(): int
-    {
-        return (int) Notification::getUnreadNotificationCount($this->pdo, $this->userId);
+        $current_user_id = (int) get_current_user_id();
+
+        // ===== DADOS =====
+        $service       = new NotificationService($this->pdo);
+        $notifications = $service->getForUser($current_user_id);
+
+        // ===== HEADER (não em modo AJAX) =====
+        $is_ajax = isset($_GET['ajax']) && $_GET['ajax'] === '1';
+        if (!$is_ajax) {
+            require_once __DIR__ . '/../../includes/header.php';
+        }
+
+        // ===== VIEW =====
+        require __DIR__ . '/../../includes/views/notifications/notifications.view.php';
+
+        // ===== FOOTER (não em modo AJAX) =====
+        if (!$is_ajax) {
+            require_once __DIR__ . '/../../includes/footer.php';
+        }
     }
 }

@@ -42,6 +42,7 @@
     padding: 0;
     margin: 0;
     background: transparent;
+    padding-top: var(--header-h);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -896,4 +897,234 @@
     .reels-grid {
         grid-template-columns: repeat(var(--r-cols), 1fr);
     }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   8. HEADER DA PÁGINA
+   ═══════════════════════════════════════════════════════════ */
+.reels-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px var(--r-pad-grid) 8px;
+    gap: 10px;
+}
+
+.reels-header h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.reels-header h1 i {
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.reels-count {
+    font-size: .82rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .reels-header {
+        padding: 20px 16px 10px;
+    }
+
+    .reels-header h1 {
+        font-size: 1.3rem;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   9. INFINITE SCROLL — LOAD MORE
+   ═══════════════════════════════════════════════════════════ */
+
+/* Wrapper geral */
+#reels-load-more-wrapper {
+    width: 100%;
+    padding: 8px var(--r-pad-grid) 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    min-height: 80px;
+    /* garante espaço para o sentinel */
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+.reels-loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 0;
+    color: var(--text-muted);
+    font-size: .85rem;
+}
+
+.spinner-ring {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: reel-spin .7s linear infinite;
+}
+
+@keyframes reel-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Banner de confirmação ────────────────────────────────── */
+.reels-continue-banner {
+    width: 100%;
+    max-width: 480px;
+    margin: 16px auto 0;
+    animation: banner-in .3s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+@keyframes banner-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.continue-inner {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl, 16px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .10);
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+}
+
+.continue-msg {
+    font-size: .92rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0;
+}
+
+.continue-msg i {
+    color: var(--primary);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.continue-msg strong {
+    color: var(--primary);
+}
+
+.continue-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-continue-yes {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 22px;
+    background: var(--primary-gradient, var(--primary));
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: .9rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity .18s;
+}
+
+.btn-continue-yes:hover {
+    opacity: .88;
+}
+
+.btn-continue-no {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    font-size: .88rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color .18s, color .18s;
+}
+
+.btn-continue-no:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ── Mensagem de fim ─────────────────────────────────────── */
+.reels-end-msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 0 8px;
+    color: var(--text-muted);
+    font-size: .85rem;
+    animation: banner-in .3s ease both;
+}
+
+.reels-end-msg i {
+    color: var(--success, #48bb78);
+    font-size: 1rem;
+}
+
+/* ── Animação de entrada dos novos cards ─────────────────── */
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.reel-card--entering {
+    animation: card-enter .28s ease both;
+}
+
+/* ── Sentinel invisível no fundo ─────────────────────────── */
+#reels-sentinel {
+    width: 100%;
+    height: 1px;
+    pointer-events: none;
 }

@@ -8,6 +8,10 @@
  *
  * Variáveis disponíveis (via extract no Controller):
  *   @var array  $reels
+ *   @var int    $total
+ *   @var int    $total_pages
+ *   @var int    $page
+ *   @var int    $per_page
  *   @var int    $current_user_id
  *   @var bool   $is_admin
  *   @var array  $logged_in_user_data
@@ -29,12 +33,14 @@
 <script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
 
 <div class="reels-page">
+    <?php require __DIR__ . '/_header.php'; ?>
     <?php require __DIR__ . '/_filter_bar.php'; ?>
 
     <?php if (empty($reels)): ?>
         <?php require __DIR__ . '/_empty.php'; ?>
     <?php else: ?>
         <?php require __DIR__ . '/_grid.php'; ?>
+        <?php require __DIR__ . '/_load_more.php'; ?>
     <?php endif; ?>
 </div><!-- /.reels-page -->
 

@@ -6,10 +6,11 @@
     /* Layout */
     .stg-wrap {
         min-height: 110vh;
-        max-width: 950px;
-        margin: 28px auto;
+        max-width: 100%;
+        margin: 10px auto;
         padding: 0 16px 60px;
         width: 100%;
+        padding-top: var(--header-h);
     }
 
     /* Título de página */

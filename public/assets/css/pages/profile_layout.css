@@ -5,13 +5,13 @@
 
 /* ── Wrapper principal do perfil ── */
 .profile-header {
-    padding: 0 !important;
     overflow: hidden;
-    border-radius: var(--radius-xl, 16px) !important;
+    border-radius: var(--radius-xl, 16px);
     margin-bottom: var(--space-md, 12px);
-    background: var(--bg-card, #1e1e2e) !important;
+    background: var(--bg-card, #1e1e2e);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
     position: relative;
+    margin-top: 15px;
 }
 
 /* ── Foto de capa ── */
@@ -36,19 +36,44 @@
    ============================================ */
 
 /* Wrapper da página de perfil — limita largura e centra */
+/* (movido de sidebar.css / sidebars_layout.css — exclusivo do perfil) */
 .main-layout-container,
 .profile-page-container {
-    max-width: 1035px;
+    display: grid;
+    grid-template-columns: 1fr var(--right-sidebar-width);
+    max-width: 100%;
     margin: 0 auto;
-    padding: 16px 16px 0;
-    box-sizing: border-box;
+    align-items: start;
     width: 100%;
+    box-sizing: border-box;
+    padding: 0 20px;
+    padding-top: var(--header-h);
+    margin-left: 0;
+    transition: margin-left 0.3s ease, padding 0.3s ease;
+}
+
+/* Sem sidebar direita no perfil — ocupa coluna única */
+.main-layout-container:has(.full-width),
+.main-layout-container.full-width-container {
+    grid-template-columns: 1fr;
+    max-width: none;
+    margin: 0;
 }
 
 /* Garante que a área de conteúdo não quebre o layout */
 .main-content-area {
     width: 100%;
     min-width: 0;
+}
+
+.main-content-area.full-width {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+/* Sidebar direita — oculta no perfil */
+.right-sidebar {
+    display: none;
 }
 
 /* Remove padding extra que possa existir no feed-section */
@@ -71,26 +96,10 @@
     gap: var(--space-md, 10px);
 }
 
-/* Responsive */
-@media (max-width: 935px) {
-
-    .main-layout-container,
-    .profile-page-container {
-        padding: 12px 8px 0;
-    }
-}
 
 @media (max-width: 600px) {
     #profileContentFiltered.grid-mode {
         grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-
-    .main-layout-container,
-    .profile-page-container {
-        padding: 8px 4px 0;
     }
 }
 

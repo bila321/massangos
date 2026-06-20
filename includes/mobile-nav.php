@@ -36,10 +36,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             display: flex;
         }
 
-        /* Em sincronia com --header-h: 60px em variables.css */
-        body {
-            padding-top: var(--header-h, 60px);
-        }
     }
 
     /* Hambúrguer */

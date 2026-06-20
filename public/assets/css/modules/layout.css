@@ -26,7 +26,6 @@
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 1000;
-    transition: transform 0.3s ease;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, .12) transparent;
 }
@@ -51,7 +50,6 @@
     justify-content: center;
     min-width: 0;
     margin-left: var(--sidebar-w);
-    padding: 0 var(--space-lg);
 }
 
 .content-wrapper {
@@ -65,7 +63,6 @@
 /* ── Feed ──────────────────────────────────────────────────────────── */
 .feed-container {
     width: 100%;
-    max-width: var(--feed-w);
     flex-shrink: 0;
     min-width: 0;
 }
@@ -90,7 +87,6 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 90;
     opacity: 0;
-    transition: opacity 0.25s ease;
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
 }
@@ -119,10 +115,6 @@
         display: none;
     }
 
-    .content-wrapper {
-        max-width: var(--feed-w);
-        justify-content: center;
-    }
 }
 
 /* Tablets: sidebar fica mais estreita.
@@ -131,8 +123,10 @@
 */
 @media (max-width: 1100px) and (min-width: 993px) {
     .sidebar {
-        width: var(--sidebar-w-narrow); /* 80px — token de variables.css */
-        overflow: visible;              /* permite tooltips saírem da sidebar */
+        width: var(--sidebar-w-narrow);
+        /* 80px — token de variables.css */
+        overflow: visible;
+        /* permite tooltips saírem da sidebar */
     }
 
     .main-content {

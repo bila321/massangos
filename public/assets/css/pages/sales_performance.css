@@ -4,7 +4,7 @@
    .sp-page {
        min-height: 150vh;
        background: var(--bg-main);
-       padding-top: var(--space-xl);
+       padding-top: var(--header-h);
    }
 
    .sp-inner {

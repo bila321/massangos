@@ -857,5 +857,3 @@ $editImgStored = $editing['image_url'] ?? '';
         }, 3000);
     }
 </script>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

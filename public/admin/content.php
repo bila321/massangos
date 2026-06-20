@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'approve_content') {
     $item_id = (int)($_POST['item_id'] ?? 0);
     $item_type = $_POST['item_type'] ?? '';
-    
+
     $table = '';
     if ($item_type === 'post') $table = 'posts';
     elseif ($item_type === 'video') $table = 'videos';
@@ -137,109 +137,109 @@ $contents = $pdo->query("
 
     <div class="table-responsive">
         <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Conteúdo</th>
-                <th>Autor</th>
-                <th>Status</th>
-                <th>Data</th>
-                <th class="text-right">Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($contents as $item): ?>
-            <tr id="row-<?= $item['feed_item_id'] ?>">
-                <td>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="position: relative;">
-                            <?php if ($item['preview_img']): ?>
-                                <img src="<?= UPLOAD_URL . $item['preview_img'] ?>" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 2px solid #eee;" onerror="this.src='<?= UPLOAD_URL ?>default_profile.png';">
-                            <?php else: ?>
-                                <div style="width: 60px; height: 60px; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #ccc; border: 2px solid #eee;">
-                                    <i class="fas fa-image fa-lg"></i>
-                                </div>
-                            <?php endif; ?>
-                            <span class="badge badge-info" style="position: absolute; bottom: -5px; right: -5px; font-size: 0.6rem; padding: 2px 6px;"><?= ucfirst($item['item_type']) ?></span>
-                        </div>
-                        <div>
-                            <div style="font-weight: bold; color: var(--admin-primary); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <?= htmlspecialchars($item['title'] ?? 'Sem título') ?>
-                            </div>
-                            <?php if ($item['is_for_sale']): ?>
-                                <div style="margin-top: 4px;">
-                                    <span class="badge badge-warning" style="font-size: 0.65rem;"><i class="fas fa-tag"></i> À VENDA: <?= number_format($item['price'], 2) ?> MT</span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <img src="<?= UPLOAD_URL . ($item['profile_picture'] ?: 'default_profile.png') ?>" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-                        <strong><?= htmlspecialchars($item['username']) ?></strong>
-                    </div>
-                </td>
-                <td>
-                    <?php if ($item['is_approved']): ?>
-                        <span class="badge badge-success"><i class="fas fa-check-circle"></i> Aprovado</span>
-                    <?php else: ?>
-                        <span class="badge badge-warning"><i class="fas fa-clock"></i> Pendente</span>
-                    <?php endif; ?>
-                </td>
-                <td style="font-size: 0.85rem; color: #7f8c8d;">
-                    <?= date('d/m/Y', strtotime($item['created_at'])) ?><br>
-                    <?= date('H:i', strtotime($item['created_at'])) ?>
-                </td>
-                <td class="text-right">
-                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <button onclick="openQuickView(<?= htmlspecialchars(json_encode($item)) ?>)" class="btn-admin btn-edit" style="background: #f1f3f5; color: #495057;" title="Visualização Rápida">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                        
-                        <?php 
-                        $view_url = BASE_URL . 'post.php?id=' . $item['feed_item_id'];
-                        if ($item['item_type'] === 'album') {
-                            $view_url = BASE_URL . 'view_album.php?id=' . $item['item_id'];
-                        }
-                        ?>
-                        <a href="<?= $view_url ?>" target="_blank" class="btn-admin btn-edit" title="Ver no Site">
-                            <i class="fas fa-external-link-alt"></i>
-                        </a>
-                        
-                        <?php if (!$item['is_approved']): ?>
-                            <form method="POST" style="display: inline;">
-                                <input type="hidden" name="action" value="approve_content">
-                                <input type="hidden" name="item_id" value="<?= $item['item_id'] ?>">
-                                <input type="hidden" name="item_type" value="<?= $item['item_type'] ?>">
-                                <button type="submit" class="btn-admin" style="background-color: var(--admin-success); color: white;" title="Aprovar Agora">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            </form>
-                        <?php endif; ?>
-
-                        <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja apagar este conteúdo?');">
-                            <input type="hidden" name="action" value="delete_content">
-                            <input type="hidden" name="feed_item_id" value="<?= $item['feed_item_id'] ?>">
-                            <input type="hidden" name="item_id" value="<?= $item['item_id'] ?>">
-                            <input type="hidden" name="item_type" value="<?= $item['item_type'] ?>">
-                            <button type="submit" class="btn-admin btn-delete" title="Apagar Conteúdo">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-            <?php if (empty($contents)): ?>
+            <thead>
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 50px; color: #95a5a6;">
-                        <i class="fas fa-inbox fa-3x" style="display: block; margin-bottom: 15px; opacity: 0.3;"></i>
-                        Nenhum conteúdo encontrado para este filtro.
-                    </td>
+                    <th>Conteúdo</th>
+                    <th>Autor</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th class="text-right">Ações</th>
                 </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php foreach ($contents as $item): ?>
+                    <tr id="row-<?= $item['feed_item_id'] ?>">
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="position: relative;">
+                                    <?php if ($item['preview_img']): ?>
+                                        <img src="<?= UPLOAD_URL . $item['preview_img'] ?>" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 2px solid #eee;" onerror="this.src='<?= UPLOAD_URL ?>default_profile.png';">
+                                    <?php else: ?>
+                                        <div style="width: 60px; height: 60px; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #ccc; border: 2px solid #eee;">
+                                            <i class="fas fa-image fa-lg"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    <span class="badge badge-info" style="position: absolute; bottom: -5px; right: -5px; font-size: 0.6rem; padding: 2px 6px;"><?= ucfirst($item['item_type']) ?></span>
+                                </div>
+                                <div>
+                                    <div style="font-weight: bold; color: var(--admin-primary); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <?= htmlspecialchars($item['title'] ?? 'Sem título') ?>
+                                    </div>
+                                    <?php if ($item['is_for_sale']): ?>
+                                        <div style="margin-top: 4px;">
+                                            <span class="badge badge-warning" style="font-size: 0.65rem;"><i class="fas fa-tag"></i> À VENDA: <?= number_format($item['price'], 2) ?> MT</span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <img src="<?= UPLOAD_URL . ($item['profile_picture'] ?: 'default_profile.png') ?>" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                                <strong><?= htmlspecialchars($item['username']) ?></strong>
+                            </div>
+                        </td>
+                        <td>
+                            <?php if ($item['is_approved']): ?>
+                                <span class="badge badge-success"><i class="fas fa-check-circle"></i> Aprovado</span>
+                            <?php else: ?>
+                                <span class="badge badge-warning"><i class="fas fa-clock"></i> Pendente</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="font-size: 0.85rem; color: #7f8c8d;">
+                            <?= date('d/m/Y', strtotime($item['created_at'])) ?><br>
+                            <?= date('H:i', strtotime($item['created_at'])) ?>
+                        </td>
+                        <td class="text-right">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button onclick="openQuickView(<?= htmlspecialchars(json_encode($item)) ?>)" class="btn-admin btn-edit" style="background: #f1f3f5; color: #495057;" title="Visualização Rápida">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+
+                                <?php
+                                $view_url = BASE_URL . 'post.php?id=' . $item['feed_item_id'];
+                                if ($item['item_type'] === 'album') {
+                                    $view_url = BASE_URL . 'view_album.php?id=' . $item['item_id'];
+                                }
+                                ?>
+                                <a href="<?= $view_url ?>" target="_blank" class="btn-admin btn-edit" title="Ver no Site">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+
+                                <?php if (!$item['is_approved']): ?>
+                                    <form method="POST" style="display: inline;">
+                                        <input type="hidden" name="action" value="approve_content">
+                                        <input type="hidden" name="item_id" value="<?= $item['item_id'] ?>">
+                                        <input type="hidden" name="item_type" value="<?= $item['item_type'] ?>">
+                                        <button type="submit" class="btn-admin" style="background-color: var(--admin-success); color: white;" title="Aprovar Agora">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja apagar este conteúdo?');">
+                                    <input type="hidden" name="action" value="delete_content">
+                                    <input type="hidden" name="feed_item_id" value="<?= $item['feed_item_id'] ?>">
+                                    <input type="hidden" name="item_id" value="<?= $item['item_id'] ?>">
+                                    <input type="hidden" name="item_type" value="<?= $item['item_type'] ?>">
+                                    <button type="submit" class="btn-admin btn-delete" title="Apagar Conteúdo">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php if (empty($contents)): ?>
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 50px; color: #95a5a6;">
+                            <i class="fas fa-inbox fa-3x" style="display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                            Nenhum conteúdo encontrado para este filtro.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -286,50 +286,53 @@ $contents = $pdo->query("
 </div>
 
 <script>
-function openQuickView(item) {
-    const modal = document.getElementById('quickViewModal');
-    const mediaContainer = document.getElementById('modalMedia');
-    
-    // Set text details
-    document.getElementById('modalType').innerText = item.item_type.toUpperCase();
-    document.getElementById('modalAuthor').innerText = item.username;
-    document.getElementById('modalDescription').innerText = item.title || 'Sem descrição';
-    document.getElementById('modalDate').innerText = item.created_at;
-    
-    if (item.is_for_sale) {
-        document.getElementById('modalPriceRow').style.display = 'block';
-        document.getElementById('modalPrice').innerText = parseFloat(item.price).toLocaleString('pt-PT', { style: 'currency', currency: 'MZN' }).replace('MZN', 'MT');
-    } else {
-        document.getElementById('modalPriceRow').style.display = 'none';
-    }
-    
-    // Set media
-    mediaContainer.innerHTML = '';
-    if (item.item_type === 'video' && item.video_path) {
-        const video = document.createElement('video');
-        video.src = '<?= UPLOAD_URL ?>' + item.video_path;
-        video.controls = true;
-        video.style.width = '100%';
-        video.style.maxHeight = '400px';
-        video.style.borderRadius = '10px';
-        video.poster = item.preview_img ? '<?= UPLOAD_URL ?>' + item.preview_img : '';
-        mediaContainer.appendChild(video);
-    } else if (item.preview_img) {
-        const img = document.createElement('img');
-        img.src = '<?= UPLOAD_URL ?>' + item.preview_img;
-        img.style.width = '100%';
-        img.style.borderRadius = '10px';
-        mediaContainer.appendChild(img);
-    } else {
-        mediaContainer.innerHTML = '<div style="height: 300px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #ccc;"><i class="fas fa-image fa-4x"></i></div>';
-    }
-    
-    // Set actions
-    const footer = document.getElementById('modalActions');
-    footer.innerHTML = '';
-    
-    if (!item.is_approved) {
-        const approveForm = `
+    function openQuickView(item) {
+        const modal = document.getElementById('quickViewModal');
+        const mediaContainer = document.getElementById('modalMedia');
+
+        // Set text details
+        document.getElementById('modalType').innerText = item.item_type.toUpperCase();
+        document.getElementById('modalAuthor').innerText = item.username;
+        document.getElementById('modalDescription').innerText = item.title || 'Sem descrição';
+        document.getElementById('modalDate').innerText = item.created_at;
+
+        if (item.is_for_sale) {
+            document.getElementById('modalPriceRow').style.display = 'block';
+            document.getElementById('modalPrice').innerText = parseFloat(item.price).toLocaleString('pt-PT', {
+                style: 'currency',
+                currency: 'MZN'
+            }).replace('MZN', 'MT');
+        } else {
+            document.getElementById('modalPriceRow').style.display = 'none';
+        }
+
+        // Set media
+        mediaContainer.innerHTML = '';
+        if (item.item_type === 'video' && item.video_path) {
+            const video = document.createElement('video');
+            video.src = '<?= UPLOAD_URL ?>' + item.video_path;
+            video.controls = true;
+            video.style.width = '100%';
+            video.style.maxHeight = '400px';
+            video.style.borderRadius = '10px';
+            video.poster = item.preview_img ? '<?= UPLOAD_URL ?>' + item.preview_img : '';
+            mediaContainer.appendChild(video);
+        } else if (item.preview_img) {
+            const img = document.createElement('img');
+            img.src = '<?= UPLOAD_URL ?>' + item.preview_img;
+            img.style.width = '100%';
+            img.style.borderRadius = '10px';
+            mediaContainer.appendChild(img);
+        } else {
+            mediaContainer.innerHTML = '<div style="height: 300px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #ccc;"><i class="fas fa-image fa-4x"></i></div>';
+        }
+
+        // Set actions
+        const footer = document.getElementById('modalActions');
+        footer.innerHTML = '';
+
+        if (!item.is_approved) {
+            const approveForm = `
             <form method="POST" style="display: inline;">
                 <input type="hidden" name="action" value="approve_content">
                 <input type="hidden" name="item_id" value="${item.item_id}">
@@ -339,10 +342,10 @@ function openQuickView(item) {
                 </button>
             </form>
         `;
-        footer.innerHTML += approveForm;
-    }
-    
-    const deleteForm = `
+            footer.innerHTML += approveForm;
+        }
+
+        const deleteForm = `
         <form method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja apagar este conteúdo?');">
             <input type="hidden" name="action" value="delete_content">
             <input type="hidden" name="feed_item_id" value="${item.feed_item_id}">
@@ -353,34 +356,32 @@ function openQuickView(item) {
             </button>
         </form>
     `;
-    footer.innerHTML += deleteForm;
-    
-    modal.style.display = 'block';
-}
+        footer.innerHTML += deleteForm;
 
-function closeQuickView() {
-    const modal = document.getElementById('quickViewModal');
-    const mediaContainer = document.getElementById('modalMedia');
-    
-    // Parar vídeos se existirem
-    const videos = mediaContainer.getElementsByTagName('video');
-    for (let v of videos) {
-        v.pause();
-        v.src = "";
-        v.load();
+        modal.style.display = 'block';
     }
-    
-    modal.style.display = 'none';
-    mediaContainer.innerHTML = '';
-}
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('quickViewModal');
-    if (event.target == modal) {
-        closeQuickView();
+    function closeQuickView() {
+        const modal = document.getElementById('quickViewModal');
+        const mediaContainer = document.getElementById('modalMedia');
+
+        // Parar vídeos se existirem
+        const videos = mediaContainer.getElementsByTagName('video');
+        for (let v of videos) {
+            v.pause();
+            v.src = "";
+            v.load();
+        }
+
+        modal.style.display = 'none';
+        mediaContainer.innerHTML = '';
     }
-}
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('quickViewModal');
+        if (event.target == modal) {
+            closeQuickView();
+        }
+    }
 </script>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * includes/views/wallet/wallet.view.php
  *
@@ -14,6 +15,7 @@
 ?>
 
 <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/pages/wallet.css">
+<script src="<?= BASE_URL ?>assets/js/components/description-truncate.js" defer></script>
 
 <div class="wallet-page">
     <div class="wallet-inner">
@@ -159,9 +161,13 @@
                                     <td>
                                         <span class="tipo-badge <?= $isVenda ? 'tipo-venda' : 'tipo-compra' ?>">
                                             <?php if ($isVenda): ?>
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                                </svg>
                                             <?php else: ?>
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                                                </svg>
                                             <?php endif; ?>
                                             <?= $tx['tipo'] ?>
                                         </span>

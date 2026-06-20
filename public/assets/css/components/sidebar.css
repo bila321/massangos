@@ -262,73 +262,8 @@
 }
 
 /* === sidebars_layout.css === */
-.main-layout-container {
-    margin-left: 0;
-    grid-template-columns: 1fr;
-}
-
-.main-layout-container {
-    grid-template-columns: 1fr;
-    max-width: 800px;
-}
-
-.right-sidebar {
-    display: none;
-}
-
-.main-layout-container {
-    display: grid;
-    grid-template-columns: 1fr var(--right-sidebar-width);
-    max-width: 100%;
-    margin: 0 auto;
-    align-items: start;
-    width: 100%;
-
-    margin-left: 0;
-    transition: margin-left 0.3s ease, padding 0.3s ease;
-
-}
-
-.main-layout-container:has(.full-width),
-.main-layout-container.full-width-container {
-    grid-template-columns: 1fr;
-    max-width: none;
-    margin: 0;
-}
-
-.main-content-area.full-width {
-    grid-column: 1 / -1;
-    width: 100%;
-}
-
-/* @BLOCK */
-
-
-.right-sidebar {
-    background-color: var(--card-bg);
-    padding: 1rem;
-    box-shadow: var(--shadow-light);
-    height: calc(125vh - var(--header-height) - 2rem);
-    position: sticky;
-    top: 0.0rem;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) transparent;
-    width: var(--right-sidebar-width);
-    border: 1px solid var(--border-light);
-}
-
-/* @BLOCK */
-
-
-.right-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-
-.right-sidebar::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
+/* Nota: .main-layout-container, .main-content-area e .right-sidebar
+   foram movidos para profile_layout.css — são exclusivos da página de perfil. */
 
 .sidebar-section {
     background: var(--card-bg);
@@ -511,11 +446,7 @@
 }
 
 /* === layout\sidebars_layout.css === */
-.main-layout-container {
-    margin-left: 0;
-    grid-template-columns: 1fr;
-    padding-top: 80px;
-}
+/* Nota: .main-layout-container movido para profile_layout.css */
 
 .sidebar-section {
     border-radius: var(--border-radius-lg);

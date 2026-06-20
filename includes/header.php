@@ -89,8 +89,8 @@ if (!function_exists('display_site_messages')) {
 </head>
 
 <body data-user-info="<?= is_logged_in() ? htmlspecialchars($_SESSION['username'] . ' (' . $_SERVER['REMOTE_ADDR'] . ')') : htmlspecialchars($_SERVER['REMOTE_ADDR']) ?>">
-    <?php include_once __DIR__ . '/topbar.php'; ?>
     <div class="app-container">
+        <?php include_once __DIR__ . '/topbar.php'; ?>
         <?php include_once __DIR__ . '/mobile-nav.php'; ?>
         <?php if (empty($hide_sidebar)): ?>
             <?php include_once __DIR__ . '/sidebar.php'; ?>

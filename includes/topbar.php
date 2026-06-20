@@ -27,14 +27,14 @@ $current_page    = basename($_SERVER['PHP_SELF']);
         top: 0;
         left: 0;
         right: 0;
-        height: var(--topbar-height);
+        height: var(--topbar-height, 52px);
         border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
         background: var(--bg-card, #1c1e21);
         box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
         display: flex;
         align-items: center;
         padding: 0 max(16px, calc((100vw - var(--container-max)) / 2 + 16px));
-        gap: 0;
+        gap: 4px;
         z-index: 1000;
     }
 

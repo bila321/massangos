@@ -384,5 +384,3 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </table>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

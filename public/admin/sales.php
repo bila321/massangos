@@ -43,48 +43,46 @@ $total_commission = array_sum(array_column($sales, 'commission_amount'));
     <h3>Histórico de Transações</h3>
     <div class="table-responsive">
         <table class="admin-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Data</th>
-                <th>Comprador</th>
-                <th>Vendedor</th>
-                <th>Conteúdo</th>
-                <th>Valor</th>
-                <th>Comissão</th>
-                <th>Método</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($sales as $sale): ?>
-            <tr>
-                <td>#<?= $sale['id'] ?></td>
-                <td><?= date('d/m/Y H:i', strtotime($sale['created_at'])) ?></td>
-                <td><?= htmlspecialchars($sale['buyer_name']) ?></td>
-                <td><?= htmlspecialchars($sale['seller_name']) ?></td>
-                <td>
-                    <span class="badge badge-info"><?= ucfirst($sale['content_type']) ?></span>
-                    <small>(ID: <?= $sale['content_id'] ?>)</small>
-                </td>
-                <td><strong><?= number_format($sale['amount'], 2) ?> MT</strong></td>
-                <td><span style="color: var(--admin-success);"><?= number_format($sale['commission_amount'], 2) ?> MT</span></td>
-                <td><?= strtoupper($sale['payment_method']) ?></td>
-                <td>
-                    <span class="badge badge-<?= $sale['status'] == 'completed' ? 'success' : ($sale['status'] == 'pending' ? 'warning' : 'danger') ?>">
-                        <?= ucfirst($sale['status']) ?>
-                    </span>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-            <?php if (empty($sales)): ?>
-            <tr>
-                <td colspan="9" style="text-align: center; padding: 20px;">Nenhuma venda registada.</td>
-            </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Comprador</th>
+                    <th>Vendedor</th>
+                    <th>Conteúdo</th>
+                    <th>Valor</th>
+                    <th>Comissão</th>
+                    <th>Método</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($sales as $sale): ?>
+                    <tr>
+                        <td>#<?= $sale['id'] ?></td>
+                        <td><?= date('d/m/Y H:i', strtotime($sale['created_at'])) ?></td>
+                        <td><?= htmlspecialchars($sale['buyer_name']) ?></td>
+                        <td><?= htmlspecialchars($sale['seller_name']) ?></td>
+                        <td>
+                            <span class="badge badge-info"><?= ucfirst($sale['content_type']) ?></span>
+                            <small>(ID: <?= $sale['content_id'] ?>)</small>
+                        </td>
+                        <td><strong><?= number_format($sale['amount'], 2) ?> MT</strong></td>
+                        <td><span style="color: var(--admin-success);"><?= number_format($sale['commission_amount'], 2) ?> MT</span></td>
+                        <td><?= strtoupper($sale['payment_method']) ?></td>
+                        <td>
+                            <span class="badge badge-<?= $sale['status'] == 'completed' ? 'success' : ($sale['status'] == 'pending' ? 'warning' : 'danger') ?>">
+                                <?= ucfirst($sale['status']) ?>
+                            </span>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php if (empty($sales)): ?>
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 20px;">Nenhuma venda registada.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>

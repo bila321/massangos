@@ -6,10 +6,10 @@
 
 /* ── Container Principal ─────────────────────────────────────────── */
 .create-post-container {
+    min-height: 150vh;
     width: 100%;
-    max-width: 680px;
-    margin: var(--space-2xl) auto;
-    padding: 0 var(--space-md);
+    padding-top: var(--header-h);
+    margin-top: 10px;
 }
 
 /* ── Header da Página ────────────────────────────────────────────── */

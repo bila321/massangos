@@ -38,6 +38,6 @@ class CreatePostController
         // Expor aqui mantém compatibilidade sem alterar os includes legados.
         $GLOBALS['pdo'] = $this->pdo;
 
-        require_once __DIR__ . '/../../includes/views/post/create.view.php';
+        require_once __DIR__ . '/../../includes/views/post/create_view.php';
     }
 }

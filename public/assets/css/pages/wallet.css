@@ -5,10 +5,12 @@
 
 /* ── Página ── */
 .wallet-page {
-    min-height: calc(100vh - var(--header-h));
+    min-height: calc(150vh - var(--header-h));
     background: var(--bg-main);
-    padding: var(--space-xl) 0 var(--space-2xl);
     width: 100%;
+    min-height: 150vh;
+    padding-top: var(--header-h);
+    margin-top: 10px;
 }
 
 .wallet-inner {

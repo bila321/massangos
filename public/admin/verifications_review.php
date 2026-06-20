@@ -1118,5 +1118,3 @@ function get_client_ip()
         }
     };
 </script>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
