@@ -1511,14 +1511,45 @@ if (window.reelsManagerInstance) {
 
             this.stopAllPreviews();
 
+            // Janela de pré-carga: anterior, atual, seguinte. Os restantes
+            // ficam sempre sem src real — é aqui que a poupança de dados
+            // acontece de facto (antes, todos os vídeos da lista tinham src).
+            const preloadIndexes = new Set([
+                this.state.currentIndex - 1,
+                this.state.currentIndex,
+                this.state.currentIndex + 1,
+            ]);
+
             videos.forEach((v, idx) => {
-                if (idx !== this.state.currentIndex) {
-                    v.pause();
-                    v.removeAttribute('src');
-                    v.load();
+                const shouldPreload = preloadIndexes.has(idx);
+
+                if (!shouldPreload) {
+                    // Fora da janela: garantir que não tem src real carregado.
+                    if (v.hasAttribute('src') || v.src) {
+                        v.pause();
+                        v.removeAttribute('src');
+                        v.load();
+                    }
                     v.currentTime = 0;
                     v.style.filter = '';
                     v.ontimeupdate = null;
+                    return;
+                }
+
+                if (idx === this.state.currentIndex) {
+                    // O item ativo é tratado em detalhe mais abaixo (play, eventos, etc.)
+                    return;
+                }
+
+                // Vizinho (anterior ou seguinte): só garante que tem o src real
+                // atribuído, SEM dar play. Fica pronto para quando o utilizador
+                // avançar/recuar, sem novo round-trip de rede nesse momento.
+                const neighborItem = this.state.currentItems[idx];
+                if (neighborItem && (!v.src || v.src !== neighborItem.src)) {
+                    v.pause();
+                    v.src = neighborItem.src;
+                    v.load();
+                    v.muted = true; // vizinhos nunca tocam som
                 }
             });
 
@@ -1539,7 +1570,6 @@ if (window.reelsManagerInstance) {
 
                 this.sendViewRequest(currentItem.itemType, currentItem.itemId);
 
-                // ✅ FIX: Carregar comentários mesmo para vídeos bloqueados
                 if (this.state.sidebarOpen) {
                     this.loadComments();
                 }
@@ -1554,106 +1584,99 @@ if (window.reelsManagerInstance) {
             currentVideo.muted = this.state.isMuted;
 
             currentVideo.onloadedmetadata = () => {
-                // Aplicar estilos inline no wrapper assim que as dimensões são conhecidas.
-                // Inline style sobrepõe qualquer CSS externo sem precisar de !important.
+                // ── (inalterado a partir daqui — mesma lógica de aspect-ratio/wrapper) ──
                 const wrapper = currentVideo.closest('.reel-video-wrapper');
                 const isMobile = window.innerWidth <= 767;
                 const isLandscapeVideo = currentVideo.videoWidth > currentVideo.videoHeight;
 
                 if (wrapper && currentVideo.videoWidth && currentVideo.videoHeight) {
                     if (isLandscapeVideo && !isMobile) {
-                        // DESKTOP landscape — caixa 16:9 centrada
                         const gutter = '200px';
                         wrapper.classList.add('is-landscape');
                         wrapper.style.cssText = `
-                            aspect-ratio: 16/9;
-                            width: min(calc(100vw - ${gutter}), calc(90vh * 16 / 9));
-                            height: min(90vh, calc((100vw - ${gutter}) * 9 / 16));
-                            max-width: calc(100vw - ${gutter});
-                            max-height: 90vh;
-                            flex-shrink: 0;
-                            position: relative;
-                            overflow: hidden;
-                            border-radius: 12px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        `;
+                    aspect-ratio: 16/9;
+                    width: min(calc(100vw - ${gutter}), calc(90vh * 16 / 9));
+                    height: min(90vh, calc((100vw - ${gutter}) * 9 / 16));
+                    max-width: calc(100vw - ${gutter});
+                    max-height: 90vh;
+                    flex-shrink: 0;
+                    position: relative;
+                    overflow: hidden;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
                         currentVideo.style.cssText = `
-                            width: 100%;
-                            height: 100%;
-                            max-width: 100%;
-                            max-height: 100%;
-                            object-fit: cover;
-                            object-position: center;
-                            display: block;
-                            background: #000;
-                            border-radius: 0;
-                            margin: 0;
-                            padding: 0;
-                            border: none;
-                        `;
+                    width: 100%;
+                    height: 100%;
+                    max-width: 100%;
+                    max-height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                    background: #000;
+                    border-radius: 0;
+                    margin: 0;
+                    padding: 0;
+                    border: none;
+                `;
                     } else if (isLandscapeVideo && isMobile) {
-                        // MOBILE landscape — fullscreen cover, igual ao portrait.
-                        // A caixa 16:9 em ~375px daria só ~211px de altura (inaceitável).
-                        // Actions ficam absolutas sobre o vídeo via CSS (posição: absolute em mobile).
-                        wrapper.classList.remove('is-landscape'); // sem a classe 16:9 em mobile
+                        wrapper.classList.remove('is-landscape');
                         wrapper.style.cssText = `
-                            width: 100%;
-                            max-width: 100%;
-                            height: 100svh;
-                            height: 100dvh;
-                            max-height: 100svh;
-                            border-radius: 0;
-                            overflow: hidden;
-                            position: relative;
-                        `;
+                    width: 100%;
+                    max-width: 100%;
+                    height: 100svh;
+                    height: 100dvh;
+                    max-height: 100svh;
+                    border-radius: 0;
+                    overflow: hidden;
+                    position: relative;
+                `;
                         currentVideo.style.cssText = `
-                            width: 100%;
-                            height: 100%;
-                            max-height: none;
-                            object-fit: cover;
-                            object-position: center;
-                            display: block;
-                            background: #000;
-                            margin: 0;
-                            padding: 0;
-                            border: none;
-                        `;
+                    width: 100%;
+                    height: 100%;
+                    max-height: none;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                    background: #000;
+                    margin: 0;
+                    padding: 0;
+                    border: none;
+                `;
                     } else {
-                        // Portrait (mobile e desktop)
                         wrapper.classList.remove('is-landscape');
                         if (isMobile) {
                             wrapper.style.cssText = `
-                                width: 100%;
-                                max-width: 100%;
-                                height: 100svh;
-                                height: 100dvh;
-                                max-height: 100svh;
-                                border-radius: 0;
-                                overflow: hidden;
-                                position: relative;
-                            `;
+                        width: 100%;
+                        max-width: 100%;
+                        height: 100svh;
+                        height: 100dvh;
+                        max-height: 100svh;
+                        border-radius: 0;
+                        overflow: hidden;
+                        position: relative;
+                    `;
                             currentVideo.style.cssText = `
-                                width: 100%;
-                                height: 100%;
-                                max-height: none;
-                                object-fit: cover;
-                                background: #000;
-                                margin: 0;
-                                padding: 0;
-                                border: none;
-                            `;
+                        width: 100%;
+                        height: 100%;
+                        max-height: none;
+                        object-fit: cover;
+                        background: #000;
+                        margin: 0;
+                        padding: 0;
+                        border: none;
+                    `;
                         } else {
-                            // Desktop portrait: repor estilos
                             wrapper.style.cssText = '';
                             currentVideo.style.cssText = `
-                                display: block;
-                                background: #000;
-                                margin: 0;
-                                padding: 0;
-                                border: none;
-                            `;
+                        display: block;
+                        background: #000;
+                        margin: 0;
+                        padding: 0;
+                        border: none;
+                    `;
                         }
                     }
                 }
@@ -1661,8 +1684,6 @@ if (window.reelsManagerInstance) {
             };
 
             this.setupProgressBar(currentVideo);
-            // FIX 11: ontimeupdate para loop de 5s de conteúdo sensível agora é
-            // gerido dentro de setupProgressBar, eliminando a race condition.
 
             currentVideo.onplay = () => {
                 this.sendViewRequest(currentItem.itemType, currentItem.itemId);
@@ -1672,6 +1693,7 @@ if (window.reelsManagerInstance) {
                 this.loadComments();
             }
         }
+
 
         initPreview(item) {
             const previewId = `preview-${item.itemId}`;

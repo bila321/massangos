@@ -1,4 +1,5 @@
 <?php
+
 /**
  * public/partner_sales_dashboard.php
  *
@@ -10,7 +11,11 @@
  */
 
 define('SECURE_ACCESS', true);
+define('ENVIRONMENT', 'development');
+
 require_once __DIR__ . '/../app/bootstrap.php';
+
+SecurityManager::initSecurity();
 
 use Massango\Controllers\PartnerSalesDashboardController;
 use Massango\Core\Database;

@@ -10,10 +10,10 @@
  */
 
 define('SECURE_ACCESS', true);
+define('ENVIRONMENT', 'development');
 
 require_once __DIR__ . '/../app/bootstrap.php';
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+
 SecurityManager::initSecurity();
 
 use Massango\Controllers\ProfileController;

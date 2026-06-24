@@ -7,6 +7,10 @@
  * e, ao fim de cada batch, mostra o banner de confirmação em vez de
  * continuar a carregar automaticamente (comportamento tipo Facebook).
  *
+ * Durante o fetch, em vez do spinner de texto simples, são clonados
+ * skeletons reais (a partir de #reels-skeleton-template) dentro do
+ * grid, dando feedback visual consistente com o carregamento inicial.
+ *
  *   @var int    $total_pages
  *   @var int    $page
  *   @var int    $total
@@ -44,11 +48,12 @@ $next_page_url = 'reels.php?' . http_build_query(array_merge($filter_params, ['p
     data-total="<?= $total ?>"
     data-url-template="<?= htmlspecialchars($next_page_url) ?>">
 
-    <!-- Estado: a carregar -->
-    <div class="reels-loading-spinner" id="reels-loading-spinner" hidden>
-        <span class="spinner-ring"></span>
-        <span>A carregar mais reels…</span>
-    </div>
+    <!-- Template do skeleton — o JS clona o conteúdo deste <template>
+         (que nunca é renderizado por si só) para inserir no grid real
+         durante o fetch. Mantém o HTML do skeleton num único sítio. -->
+    <template id="reels-skeleton-template">
+        <?php require __DIR__ . '/_skeleton_card.php'; ?>
+    </template>
 
     <!-- Estado: banner de confirmação (aparece ao fim de cada batch) -->
     <div class="reels-continue-banner" id="reels-continue-banner" hidden>

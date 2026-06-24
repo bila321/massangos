@@ -4,8 +4,8 @@
 
 /* ── Wrapper geral ── */
 .va-page {
-    width: 100%;
-    margin: 0 auto;
+    min-height: 150vh;
+   background: var(--bg-main);
     padding-top: var(--header-h);
     margin-top: 10px;
 }
@@ -339,6 +339,12 @@
     --v3-dark-btn: rgba(255, 255, 255, 0.1);
     --v3-text-gray: #a0a0a0;
     --v3-sidebar-bg: #1a1a1a;
+
+    /* Alias: --accent é usado em vários pontos deste ficheiro (header,
+       breadcrumb, badges) como sinónimo do verde do lightbox. Mantido
+       como variável própria do módulo em vez de --primary global,
+       porque tem um valor diferente (#00f28f vs #07c95b). */
+    --accent: var(--v3-green);
 }
 
 .va-lb-overlay {

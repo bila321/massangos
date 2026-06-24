@@ -327,13 +327,15 @@ if (!function_exists('get_quality_badge')) {
  * Os thumbnails ficam em storage/uploads/videos/thumbnails/.
  * Evita duplicar o prefixo se o caminho j� o incluir.
  */
-function get_video_thumb_url(string $thumbnail_path): string
-{
-    if (empty($thumbnail_path)) return '';
-    if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
-        return UPLOAD_URL . $thumbnail_path;
+if (!function_exists('get_video_thumb_url')) {
+    function get_video_thumb_url(string $thumbnail_path): string
+    {
+        if (empty($thumbnail_path)) return '';
+        if (str_starts_with($thumbnail_path, 'videos/thumbnails/')) {
+            return UPLOAD_URL . $thumbnail_path;
+        }
+        return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
     }
-    return UPLOAD_URL . 'videos/thumbnails/' . ltrim($thumbnail_path, '/');
 }
 /**
  * Adicionar a includes/functions.php

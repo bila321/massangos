@@ -2,7 +2,6 @@
 // includes/topbar.php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../vendor/autoload.php';
 
 use Massango\Models\Notification;
 

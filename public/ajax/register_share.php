@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/security.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
 
 header('Content-Type: application/json; charset=utf-8');
 

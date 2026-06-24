@@ -1,4 +1,5 @@
 <?php
+
 /**
  * View: profile.view.php
  *

@@ -9,8 +9,14 @@ SecurityManager::initSecurity();
 
 use Massango\Controllers\AlbumController;
 
-if (!is_logged_in()) { redirect(BASE_URL . 'login.php'); exit(); }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(BASE_URL); exit(); }
+if (!is_logged_in()) {
+    redirect(BASE_URL . 'login.php');
+    exit();
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(BASE_URL);
+    exit();
+}
 
 try {
     $ctrl   = new AlbumController($pdo, get_current_user_id());

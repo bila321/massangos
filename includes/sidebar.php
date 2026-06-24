@@ -4,7 +4,6 @@
 // includes/topbar.php
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../vendor/autoload.php';
 
 use Massango\Models\Notification;
 
@@ -19,7 +18,28 @@ $current_page    = basename($_SERVER['PHP_SELF']);
 
 <aside class="sidebar" id="appSidebar" role="navigation" aria-label="Menu principal">
 
-    <nav class="sidebar-nav">
+    <!-- ── Skeleton da sidebar (só no 1.º carregamento da sessão) ──────
+         O JS esconde-o imediatamente se sessionStorage já tiver a flag.
+         Assim elimina-se o piscar em navegações subsequentes. -->
+    <div id="sidebarSkeleton" class="sidebar-skeleton" aria-hidden="true">
+        <!-- Avatar skeleton -->
+        <div class="ssk-profile">
+            <div class="ssk ssk-avatar"></div>
+            <div class="ssk-lines">
+                <div class="ssk ssk-line" style="width:55%;"></div>
+                <div class="ssk ssk-line" style="width:35%;"></div>
+            </div>
+        </div>
+        <!-- Nav items skeleton -->
+        <?php for ($i = 0; $i < 7; $i++): ?>
+            <div class="ssk-nav-item">
+                <div class="ssk ssk-icon"></div>
+                <div class="ssk ssk-line" style="width:<?= [55, 70, 48, 65, 42, 60, 50][$i] ?>%;"></div>
+            </div>
+        <?php endfor; ?>
+    </div><!-- /#sidebarSkeleton -->
+
+    <nav class="sidebar-nav" id="sidebarNav" style="opacity:0;">
 
         <ul class="sidebar-menu">
             <li>
@@ -82,7 +102,7 @@ $current_page    = basename($_SERVER['PHP_SELF']);
                 </li>
                 <li>
                     <a href="<?= BASE_URL ?>sales_performance.php" class="nav-link <?= $current_page === 'sales_performance.php' ? 'active' : '' ?>">
-                        <i class="fa-solid fa-chart-bar"></i><span>Vendas</span>
+                        <i class="fa-solid fa-credit-card"></i><span>Vendas</span>
                     </a>
                 </li>
                 <li>
@@ -143,16 +163,51 @@ $current_page    = basename($_SERVER['PHP_SELF']);
 
 <script>
     (function() {
+        var STORAGE_KEY = 'msng_sidebar_ready';
+        var skeleton = document.getElementById('sidebarSkeleton');
+        var nav = document.getElementById('sidebarNav');
+
+        /* ── Ver mais / Ver menos ─────────────────────────────────────── */
         var btn = document.getElementById('sidebarVerMais');
         var extra = document.getElementById('sidebarExtra');
         var label = btn ? btn.querySelector('.ver-mais-label') : null;
+        if (btn && extra) {
+            btn.addEventListener('click', function() {
+                var expanded = extra.classList.toggle('open');
+                btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                if (label) label.textContent = expanded ? 'Ver menos' : 'Ver mais';
+            });
+        }
 
-        if (!btn || !extra) return;
+        /* ── Skeleton anti-piscar ─────────────────────────────────────── */
+        if (!skeleton || !nav) return;
 
-        btn.addEventListener('click', function() {
-            var expanded = extra.classList.toggle('open');
-            btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-            if (label) label.textContent = expanded ? 'Ver menos' : 'Ver mais';
-        });
+        if (sessionStorage.getItem(STORAGE_KEY)) {
+            /* Sessão já vista — mostra o nav directamente, sem skeleton */
+            skeleton.style.display = 'none';
+            nav.style.opacity = '1';
+            return;
+        }
+
+        /* 1.ª visita da sessão — revela com transição suave */
+        function revealSidebar() {
+            skeleton.style.transition = 'opacity 0.18s';
+            skeleton.style.opacity = '0';
+            setTimeout(function() {
+                skeleton.style.display = 'none';
+                nav.style.transition = 'opacity 0.22s';
+                nav.style.opacity = '1';
+                /* Guarda flag — nas próximas páginas não pisca */
+                try {
+                    sessionStorage.setItem(STORAGE_KEY, '1');
+                } catch (_) {}
+            }, 180);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', revealSidebar);
+        } else {
+            requestAnimationFrame(revealSidebar);
+        }
     })();
 </script>

@@ -10,7 +10,34 @@
      Conteúdo do Perfil
      ============================================================ -->
 <div class="profile-feed-col">
-    <div id="profileContentFiltered">
+
+    <!-- ── Skeleton de loading (visível até JS esconder) ─────────────── -->
+    <div id="profileFeedSkeleton" class="profile-feed-skeleton" aria-hidden="true">
+        <?php for ($s = 0; $s < 3; $s++): ?>
+        <div class="psk-card">
+            <!-- Header: avatar + nome/data -->
+            <div class="psk-header">
+                <div class="psk psk-avatar"></div>
+                <div class="psk-header-lines">
+                    <div class="psk psk-line" style="width:42%;"></div>
+                    <div class="psk psk-line" style="width:26%;"></div>
+                </div>
+            </div>
+            <!-- Linha de texto do post -->
+            <div class="psk psk-text-line" style="width:70%;"></div>
+            <!-- Bloco de media -->
+            <div class="psk psk-media"></div>
+            <!-- Footer: botões like/comentário/partilha -->
+            <div class="psk-footer">
+                <div class="psk psk-btn"></div>
+                <div class="psk psk-btn"></div>
+                <div class="psk psk-btn"></div>
+            </div>
+        </div>
+        <?php endfor; ?>
+    </div><!-- /#profileFeedSkeleton -->
+
+    <div id="profileContentFiltered" style="display:none;">
 
         <?php if (!$can_view_content): ?>
 
@@ -96,3 +123,38 @@
     </div>
 
 </div><!-- /.profile-feed-col -->
+
+<script>
+(function () {
+    /* Assim que o DOM estiver pronto, troca skeleton -> conteúdo.
+       Usa requestAnimationFrame para garantir que o paint do skeleton
+       já ocorreu antes de mostrarmos o conteúdo real. */
+    var skeleton = document.getElementById('profileFeedSkeleton');
+    var content  = document.getElementById('profileContentFiltered');
+    if (!skeleton || !content) return;
+
+    function reveal() {
+        /* Fade-out do skeleton */
+        skeleton.style.transition = 'opacity 0.2s';
+        skeleton.style.opacity    = '0';
+        setTimeout(function () {
+            skeleton.style.display  = 'none';
+            /* Remove o inline display:none — o CSS do profile_layout.css
+               define display:block por omissão, pelo que o elemento fica visível */
+            content.style.removeProperty('display');
+            content.style.opacity    = '0';
+            content.style.transition = 'opacity 0.25s';
+            requestAnimationFrame(function () {
+                content.style.opacity = '1';
+            });
+        }, 200);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', reveal);
+    } else {
+        /* DOMContentLoaded já disparou — revela no próximo frame */
+        requestAnimationFrame(reveal);
+    }
+})();
+</script>

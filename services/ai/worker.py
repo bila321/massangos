@@ -31,7 +31,8 @@ def resolve_path(relative_path):
     clean_filename = os.path.basename(relative_path.replace("\\", "/"))
 
     # ROOT correcto do storage
-    STORAGE_ROOT = r"C:\xampp\htdocs\massangos\storage"  # <-- Ajusta este caminho conforme necessário
+    STORAGE_ROOT = os.path.join(BASE_PATH, "..", "storage")
+    STORAGE_ROOT = os.path.abspath(STORAGE_ROOT)
 
     # 1. tentar caminho directo dentro de storage
     direct_path = os.path.abspath(os.path.join(STORAGE_ROOT, relative_path.replace("\\", "/")))

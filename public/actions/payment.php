@@ -9,8 +9,14 @@ SecurityManager::initSecurity();
 
 use Massango\Controllers\PaymentController;
 
-if (!is_logged_in()) { redirect(BASE_URL . 'login.php'); exit(); }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(BASE_URL . 'index.php'); exit(); }
+if (!is_logged_in()) {
+    redirect(BASE_URL . 'login.php');
+    exit();
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(BASE_URL . 'index.php');
+    exit();
+}
 
 $contentType = $_POST['content_type'] ?? '';
 $contentId   = (int)($_POST['content_id'] ?? 0);

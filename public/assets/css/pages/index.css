@@ -3,107 +3,115 @@
    Extraído do <style> inline de public/index.php
    Anexar este conteúdo ao final de assets/css/pages/index.css
    ================================================ */
+.post-list {
+  min-height: 150vh;
+  background: var(--bg-main);
+  padding-top: var(--header-h);
+  margin-top: 10px;
+}
 
 .post-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    gap: 8px;
-    border-top: 1px solid var(--border, rgba(255, 255, 255, .08));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  gap: 8px;
+  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
 }
 
 .post-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Botão base — ghost, sem background */
 .yt-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary, #aaa);
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.18s, color 0.18s;
-    line-height: 1;
-    white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #aaa);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.18s,
+    color 0.18s;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .yt-action-btn i {
-    font-size: 1.05rem;
-    flex-shrink: 0;
+  font-size: 1.05rem;
+  flex-shrink: 0;
 }
 
 .yt-action-btn:hover {
-    background: var(--hover-bg, rgba(255, 255, 255, .08));
-    color: var(--text-main, #fff);
+  background: var(--hover-bg, rgba(255, 255, 255, 0.08));
+  color: var(--text-main, #fff);
 }
 
 /* Pill com background subtil */
 .yt-pill {
-    background: var(--pill-bg, rgba(255, 255, 255, .06));
+  background: var(--pill-bg, rgba(255, 255, 255, 0.06));
 }
 
 .yt-pill:hover {
-    background: var(--pill-hover, rgba(255, 255, 255, .13));
+  background: var(--pill-hover, rgba(255, 255, 255, 0.13));
 }
 
 /* Like + Dislike agrupados num só pill */
 .yt-like-pill {
-    display: inline-flex;
-    align-items: center;
-    background: var(--pill-bg, rgba(255, 255, 255, .06));
-    border-radius: 20px;
-    overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  background: var(--pill-bg, rgba(255, 255, 255, 0.06));
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .yt-like-pill .yt-action-btn {
-    background: transparent;
-    border-radius: 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .yt-like-pill .yt-action-btn:hover {
-    background: var(--pill-hover, rgba(255, 255, 255, .13));
+  background: var(--pill-hover, rgba(255, 255, 255, 0.13));
 }
 
 /* Divisor vertical entre like e dislike */
 .yt-pill-divider {
-    width: 1px;
-    height: 18px;
-    background: var(--border, rgba(255, 255, 255, .15));
-    flex-shrink: 0;
+  width: 1px;
+  height: 18px;
+  background: var(--border, rgba(255, 255, 255, 0.15));
+  flex-shrink: 0;
 }
 
 /* Estados activos */
 .yt-like.active {
-    color: var(--primary-gradient) !important;
+  color: var(--primary-color, #6c63ff) !important;
 }
 
 .yt-like.active i {
-    color: inherit;
+  color: inherit;
 }
 
 .yt-dislike.active {
-    color: var(--danger, #f44336) !important;
+  color: var(--danger, #f44336) !important;
 }
 
 .yt-dislike.active i {
-    color: inherit;
+  color: inherit;
 }
 
 .btn-save.active {
-    color: var(--primary-gradient) !important;
+  color: var(--primary-color, #6c63ff) !important;
 }
 
 .btn-save.active i {
-    color: inherit;
+  color: inherit;
 }

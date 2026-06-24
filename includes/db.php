@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * includes/db.php

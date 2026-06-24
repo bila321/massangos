@@ -1,11 +1,12 @@
 {
-    "name": "massangos/app",
-    "description": "Uma descrição do seu projeto massangos",
+    "name": "massango/app",
+    "description": "Massango - rede social com marketplace de criadores",
     "type": "project",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "massangos\\Core\\": "core/"
+            "Massango\\": "app/",
+            "App\\": "app/"
         },
         "files": [
             "includes/functions.php",

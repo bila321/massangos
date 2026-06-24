@@ -2,8 +2,11 @@
  * massangosu — Layout System
  * Sidebars, feed, widgets e responsividade.
  *
- * NOTA: body base (font, color, bg, padding-top) está em base.css.
- *       Aqui só adicionamos o que é específico do layout estrutural.
+ * NOTA: body base (font, color, bg) está em base.css.
+ *       O scroll da app vive em #app-scroll-root (base.css).
+ *       html/body têm overflow:hidden permanente — sem salto de layout.
+ *       position:fixed ancora ao viewport do browser (comportamento normal,
+ *       pois #app-scroll-root não cria bloco de contenção para fixed).
  */
 
 /* ── App Container ─────────────────────────────────────────────────── */
@@ -52,48 +55,88 @@
     margin-left: var(--sidebar-w);
 }
 
+/* ── Content Wrapper ───────────────────────────────────────────────── */
+/* Estratégia anti-salto com ::after fantasma:
+   O wrapper tem largura total (feed + gap + widgets) desde o 1.º paint.
+   O ::after reserva o espaço da coluna direita como flex-item fantasma,
+   sem depender do DOM do widgets-container. O feed fica sempre limitado
+   ao espaço esquerdo, mesmo antes dos widgets carregarem. */
 .content-wrapper {
     display: flex;
     width: 100%;
-    max-width: calc(var(--feed-w) + var(--widgets-w) + var(--space-2xl));
-    justify-content: center;
+    max-width: calc(var(--feed-w) + var(--space-lg) + var(--widgets-w));
     gap: var(--space-lg);
+    align-items: flex-start;
+    position: relative;
+}
+
+/* Fantasma: reserva o espaço da coluna de widgets mesmo sem DOM.
+   Quando o widgets-container existe, ele sobrepõe-se a este espaço.
+   Quando não existe (a carregar, erro, mobile), o feed não se expande. */
+.content-wrapper::after {
+    content: '';
+    display: block;
+    width: var(--widgets-w);
+    min-width: var(--widgets-w);
+    flex-shrink: 0;
+    flex-grow: 0;
 }
 
 /* ── Feed ──────────────────────────────────────────────────────────── */
 .feed-container {
-    width: 100%;
-    flex-shrink: 0;
+    flex: 1;
     min-width: 0;
+    width: 100%;
+    margin: var(--space-lg) 0;
 }
 
 /* ── Sidebar Direita (Widgets) ─────────────────────────────────────── */
+/* Volta ao fluxo flex normal — o ::after já reservou o espaço.
+   O widgets-container sobrepõe o ::after com margin-left negativo,
+   ocupando exactamente a mesma célula sem deslocar o feed. */
 .widgets-container {
     width: var(--widgets-w);
+    min-width: var(--widgets-w);
     flex-shrink: 0;
+    flex-grow: 0;
+    /* Recua sobre o ::after fantasma — ocupa a mesma coluna */
+    margin-left: calc(-1 * var(--widgets-w));
     display: flex;
     flex-direction: column;
+    gap: var(--space-lg);
     position: sticky;
     top: calc(var(--header-h) + var(--space-l));
-    height: fit-content;
     align-self: flex-start;
+    height: fit-content;
+}
+
+/* .widgets-inner já não é necessário — removemos a div extra.
+   O próprio .widgets-container faz sticky correctamente. */
+.widgets-inner {
+    display: contents;
+    /* transparente — não afecta layout */
 }
 
 /* ── Overlay Sidebar Mobile ────────────────────────────────────────── */
 #sidebarOverlay {
-    display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 90;
+    /* visibility+opacity em vez de display:none — sem reflow ao abrir/fechar */
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #sidebarOverlay.is-active {
-    display: block;
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 /* ── Mobile Header ─────────────────────────────────────────────────── */
@@ -115,6 +158,19 @@
         display: none;
     }
 
+    /* Sem widgets: wrapper volta à largura do feed, ::after some */
+    .content-wrapper {
+        max-width: var(--feed-w);
+        gap: 0;
+    }
+
+    .content-wrapper::after {
+        display: none;
+    }
+
+    .feed-container {
+        margin: var(--space-lg) auto;
+    }
 }
 
 /* Tablets: sidebar fica mais estreita.
@@ -163,6 +219,8 @@
         background: var(--bg-card);
         box-shadow: var(--shadow-lg);
         transform: translateX(-100%);
+        /* transition só em transform — fica na GPU, sem reflow */
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         border-right: none;
     }
 

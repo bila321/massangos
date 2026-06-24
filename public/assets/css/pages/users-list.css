@@ -1,10 +1,8 @@
     .user-list-container {
-        max-width: 800px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: var(--card-bg);
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-height: 150vh;
+           background: var(--bg-main);
+            padding-top: var(--header-h);
+            margin-top: 10px;
     }
 
     .user-list-item {

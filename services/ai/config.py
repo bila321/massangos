@@ -1,6 +1,6 @@
 DB_CONFIG = {
     "host": "localhost",
-    "user": "root",
-    "password": "",
+    "user": "massango_app",
+    "password": "MassangoDev2026",
     "database": "amassangos"
 }

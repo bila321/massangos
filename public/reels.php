@@ -1,5 +1,4 @@
 <?php
-
 /**
  * public/reels.php
  *
@@ -7,44 +6,34 @@
  *
  * Lógica de negócio → app/Controllers/ReelsController.php
  * Templates HTML    → includes/views/reels/reels.view.php
+ *
+ * NOTA (2026-06-21): a view deixou de mostrar grid/filtros — abre
+ * directamente no lightbox. O Controller continua a aceitar $_GET por
+ * retrocompatibilidade (ex: se algures ainda existir um link com
+ * ?sale=1), mas a view actual ignora esses filtros. Quando os filtros
+ * forem movidos para dentro do lightbox (sidebar), este Controller
+ * provavelmente precisará de ajustes — não é necessário agora.
  */
 
 define('SECURE_ACCESS', true);
 require_once __DIR__ . '/../app/bootstrap.php';
-require_once __DIR__ . '/../vendor/autoload.php';
 
 use Massango\Controllers\ReelsController;
 use Massango\Core\Database;
 
 // reels usa layout próprio, sem .feed-container
 $hide_feed_container = true;
-$hide_sidebar         = false;
+$hide_sidebar        = false;
 
 // ── Controller: toda a lógica de negócio ─────────────────────────────────────
 $data = (new ReelsController(Database::getInstance()))->load($_GET);
 
 // ── Desempacotar explicitamente (mais seguro que extract) ─────────────────────
-$current_user_id     = $data['current_user_id'];
-$is_admin             = $data['is_admin'];
-$logged_in_user_data  = $data['logged_in_user_data'];
-
-$filter_search        = $data['filter_search'];
-$filter_sale           = $data['filter_sale'];
-$filter_sensitive      = $data['filter_sensitive'];
-$filter_duration       = $data['filter_duration'];
-$filter_price_min      = $data['filter_price_min'];
-$filter_price_max      = $data['filter_price_max'];
-$filter_quality        = $data['filter_quality'];
-$filter_sort           = $data['filter_sort'];
-
-$reels                 = $data['reels'];
-$csrf_token            = $data['csrf_token'];
-$active_chip           = $data['active_chip'];
-
-$total                 = $data['total'];
-$total_pages           = $data['total_pages'];
-$page                  = $data['page'];
-$per_page              = $data['per_page'];
+// Só as variáveis que reels.view.php (versão "direct open") realmente usa.
+$current_user_id    = $data['current_user_id'];
+$logged_in_user_data = $data['logged_in_user_data'];
+$reels               = $data['reels'];
+$csrf_token          = $data['csrf_token'];
 
 // ── Render ────────────────────────────────────────────────────────────────────
 require_once __DIR__ . '/../includes/header.php';

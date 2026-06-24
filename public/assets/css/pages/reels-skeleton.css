@@ -1,0 +1,174 @@
+/* ============================================
+   SKELETON — Cards de Reels
+   Placeholder de loading no formato vertical (9:16),
+   usado tanto no carregamento inicial (PHP) como no
+   infinite scroll (gerado via JS em reels-load-more.js).
+   Qualquer alteração visual aqui deve ser replicada lá.
+   ============================================ */
+
+/* Necessário para a variante overlay (position:absolute) funcionar
+   sem precisar de editar reels.css diretamente. Seguro mesmo se
+   .reels-page já tiver outras regras de posicionamento — só define
+   position se ainda não tiver sido definido como algo diferente de
+   'static' (comportamento por defeito do browser). */
+.reels-page {
+    position: relative;
+}
+
+@keyframes skel-reel-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Grid — mesma estrutura do .reels-grid real, para a transição
+   skeleton -> conteúdo real não causar salto de layout. */
+.skel-reels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+/* Variante overlay: sobrepõe-se ao .reels-grid real, no mesmo espaço,
+   em vez de ficar sequencial no fluxo do documento. Necessário porque
+   o grid real já vem completo no mesmo HTML (sem fetch assíncrono) —
+   o skeleton aqui cobre o tempo de RENDERIZAÇÃO VISUAL (imagens a
+   carregar), não tempo de espera de dados. O wrapper pai (.reels-page)
+   precisa de position:relative para isto funcionar. */
+.skel-reels-grid--overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+}
+
+@media (max-width: 600px) {
+    .skel-reels-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+/* Card individual — formato vertical 9:16 (estilo reel) */
+.skel-reel-card {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card, #1c1e21);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+/* Bloco shimmer base — preenche o card todo (simula vídeo/thumbnail) */
+.skel-reel-card__media {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        var(--bg-surface, #242526) 25%,
+        var(--border, rgba(255, 255, 255, 0.12)) 50%,
+        var(--bg-surface, #242526) 75%
+    );
+    background-size: 200% 100%;
+    animation: skel-reel-shimmer 1.4s ease infinite;
+}
+
+/* Badges genéricos (topo) — reutilizável para qualquer canto */
+.skel-reel-card__badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 28px;
+    height: 16px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 1;
+}
+
+/* Badge de duração — canto superior direito, um pouco mais largo */
+.skel-reel-card__badge--duration {
+    left: auto;
+    right: 8px;
+    width: 36px;
+}
+
+/* Ícone de play central — sugere vídeo mesmo no estado de loading */
+.skel-reel-card__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.skel-reel-card__play::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 9px;
+    border-color: transparent transparent transparent rgba(255, 255, 255, 0.45);
+    margin-left: 2px;
+}
+
+/* Overlay inferior — simula avatar + nome de utilizador + legenda */
+.skel-reel-card__overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+    z-index: 1;
+}
+
+.skel-reel-card__avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.skel-reel-card__line {
+    height: 10px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.skel-reel-card__line--name {
+    width: 55%;
+}
+
+/* Estado de transição: o skeleton sai suavemente em vez de
+   desaparecer de forma abrupta quando o conteúdo real chega. */
+.skel-reels-grid.is-leaving {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+/* Skeletons inseridos durante o infinite scroll (sem grid próprio,
+   inseridos diretamente dentro do .reels-grid real existente) */
+.reels-grid .skel-reel-card {
+    animation: skel-reel-fade-in 0.2s ease;
+}
+
+@keyframes skel-reel-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}

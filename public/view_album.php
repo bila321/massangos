@@ -16,14 +16,10 @@ define('SECURE_ACCESS', true);
 define('ENVIRONMENT', 'development');
 
 require_once __DIR__ . '/../app/bootstrap.php';
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
-require_once __DIR__ . '/../includes/security.php';
+
 SecurityManager::initSecurity();
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-require_once __DIR__ . '/../vendor/autoload.php';
 
 (new \Massango\Controllers\AlbumViewController($pdo))->show();

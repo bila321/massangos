@@ -90,16 +90,18 @@ if (!function_exists('display_site_messages')) {
 </head>
 
 <body data-user-info="<?= is_logged_in() ? htmlspecialchars($_SESSION['username'] . ' (' . $_SERVER['REMOTE_ADDR'] . ')') : htmlspecialchars($_SERVER['REMOTE_ADDR']) ?>">
-    <div class="app-container">
-        <?php include_once __DIR__ . '/topbar.php'; ?>
-        <?php include_once __DIR__ . '/mobile-nav.php'; ?>
-        <?php if (empty($hide_sidebar)): ?>
-            <?php include_once __DIR__ . '/sidebar.php'; ?>
-        <?php endif; ?>
-        <div id="sidebarOverlay" role="presentation"></div>
-        <main class="main-content" role="main">
-            <div class="content-wrapper">
-                <?php if (empty($hide_feed_container)): ?>
-                    <div class="feed-container">
-                    <?php endif; ?>
-                    <?php display_site_messages(); ?>
+    <div id="app-scroll-root">
+        <div class="app-container">
+            <?php require_once __DIR__ . '/../vendor/autoload.php'; ?>
+            <?php include_once __DIR__ . '/topbar.php'; ?>
+            <?php include_once __DIR__ . '/mobile-nav.php'; ?>
+            <?php if (empty($hide_sidebar)): ?>
+                <?php include_once __DIR__ . '/sidebar.php'; ?>
+            <?php endif; ?>
+            <div id="sidebarOverlay" role="presentation"></div>
+            <main class="main-content" role="main">
+                <div class="content-wrapper">
+                    <?php if (empty($hide_feed_container)): ?>
+                        <div class="feed-container">
+                        <?php endif; ?>
+                        <?php display_site_messages(); ?>

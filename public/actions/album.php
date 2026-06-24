@@ -9,8 +9,14 @@ SecurityManager::initSecurity();
 
 use Massango\Controllers\AlbumController;
 
-if (!is_logged_in()) { redirect(BASE_URL . 'login.php'); exit(); }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(BASE_URL . 'index.php'); exit(); }
+if (!is_logged_in()) {
+    redirect(BASE_URL . 'login.php');
+    exit();
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(BASE_URL . 'index.php');
+    exit();
+}
 
 $redirectTo = $_POST['redirect_to'] ?? 'index.php';
 

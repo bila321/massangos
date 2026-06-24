@@ -35,21 +35,22 @@
    Max-width 935px, centrado, com padding lateral
    ============================================ */
 
-/* Wrapper da página de perfil — limita largura e centra */
+/* ── Wrapper da página de perfil ── */
 /* (movido de sidebar.css / sidebars_layout.css — exclusivo do perfil) */
 .main-layout-container,
 .profile-page-container {
-    display: grid;
-    grid-template-columns: 1fr var(--right-sidebar-width);
     max-width: 100%;
     margin: 0 auto;
     align-items: start;
     width: 100%;
     box-sizing: border-box;
     padding: 0 20px;
+    /* padding-top fixo — sem transition. O valor é conhecido antes do
+       primeiro paint (igual a --header-h), por isso não há salto. */
     padding-top: var(--header-h);
     margin-left: 0;
-    transition: margin-left 0.3s ease, padding 0.3s ease;
+    /* SEM transition: margin-left/padding animados causam o "salto"
+       visível ao carregar — exactamente o que queremos eliminar */
 }
 
 /* Sem sidebar direita no perfil — ocupa coluna única */
@@ -836,4 +837,99 @@
     .grid-item-wrapper {
         border-radius: 6px;
     }
+}
+/* ============================================
+   PROFILE FEED — SKELETON DE LOADING
+   Namespaced em .profile-feed-skeleton para não
+   colidir com .skel do right-sidebar.php
+   ============================================ */
+
+@keyframes profile-skel-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.profile-feed-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg, 1.5rem);
+}
+
+/* Card skeleton */
+.psk-card {
+    background: var(--bg-card, #1e1e2e);
+    border: 1px solid var(--border, #292929);
+    border-radius: var(--radius-xl, 16px);
+    overflow: hidden;
+    padding: var(--space-lg, 1.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md, 1rem);
+}
+
+/* Elemento shimmer base */
+.psk {
+    background: linear-gradient(
+        90deg,
+        var(--bg-surface, #262626) 25%,
+        var(--border,     #292929) 50%,
+        var(--bg-surface, #262626) 75%
+    );
+    background-size: 200% 100%;
+    animation: profile-skel-shimmer 1.4s ease infinite;
+    border-radius: var(--radius-sm, 6px);
+}
+
+/* Header do post: avatar + linhas */
+.psk-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md, 1rem);
+}
+
+.psk-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.psk-header-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.psk-line {
+    height: 10px;
+    border-radius: 4px;
+}
+
+/* Corpo: placeholder de imagem — proporção 4:3 */
+.psk-media {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md, 8px);
+}
+
+/* Linha de texto do post */
+.psk-text-line {
+    height: 10px;
+    border-radius: 4px;
+}
+
+/* Footer: botões de reacção */
+.psk-footer {
+    display: flex;
+    gap: var(--space-md, 1rem);
+    padding-top: var(--space-xs, 0.25rem);
+    border-top: 1px solid var(--border, #292929);
+    margin-top: var(--space-xs, 0.25rem);
+}
+
+.psk-btn {
+    width: 60px;
+    height: 26px;
+    border-radius: var(--radius-full, 9999px);
 }

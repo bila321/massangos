@@ -1,9 +1,6 @@
 <?php
 define('SECURE_ACCESS', true);
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
-require_once __DIR__ . '/../includes/security.php';
+define('ENVIRONMENT', 'development');
 
 $provider = $_GET['provider'] ?? '';
 $code = $_GET['code'] ?? '';

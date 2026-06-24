@@ -7,8 +7,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Massango\Controllers\FollowController;
 
-if (!is_logged_in()) { redirect(BASE_URL . 'login.php'); exit(); }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(BASE_URL); exit(); }
+if (!is_logged_in()) {
+    redirect(BASE_URL . 'login.php');
+    exit();
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(BASE_URL);
+    exit();
+}
 
 $redirectUrl = $_POST['redirect_url'] ?? BASE_URL . 'notifications.php';
 

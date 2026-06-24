@@ -341,7 +341,6 @@
     background: transparent;
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
-    margin-bottom: var(--space-xl);
 }
 
 .widget-title {
@@ -453,4 +452,85 @@
     padding: 0.8rem;
     margin-bottom: 1.5rem;
     box-shadow: var(--shadow-light);
+}
+
+/* ============================================================
+   SIDEBAR SKELETON — anti-piscar entre páginas
+   Namespace ssk- (sidebar skeleton) para não colidir com
+   psk- (profile) nem skel (right-sidebar).
+   ============================================================ */
+
+@keyframes ssk-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.sidebar-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s, 0.75rem);
+    padding: var(--space-md, 1rem) var(--space-s, 0.75rem);
+    /* ocupa o mesmo espaço visual que o nav real */
+    flex: 1;
+}
+
+/* Elemento shimmer base */
+.ssk {
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.04) 25%,
+            rgba(255, 255, 255, 0.10) 50%,
+            rgba(255, 255, 255, 0.04) 75%);
+    background-size: 200% 100%;
+    animation: ssk-shimmer 1.5s ease infinite;
+    border-radius: var(--radius-sm, 6px);
+}
+
+/* Mini-profile no topo */
+.ssk-profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-md, 1rem);
+    padding: var(--space-s, 0.75rem) var(--space-sm, 0.5rem);
+}
+
+.ssk-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.ssk-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Item de nav skeleton */
+.ssk-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 var(--space-md, 1rem);
+    height: 52px;
+    border-radius: 14px;
+}
+
+.ssk-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-sm, 6px);
+    flex-shrink: 0;
+}
+
+.ssk-line {
+    height: 10px;
+    border-radius: 4px;
 }

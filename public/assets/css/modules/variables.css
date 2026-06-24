@@ -37,18 +37,27 @@
     --info: #3b82f6;
 
     /* --- Espaçamento (Grid de 4px/8px) --- */
-    --space-xs: 0.25rem;   /*  4px */
-    --space-sm: 0.5rem;    /*  8px */
-    --space-s: 0.75rem;    /* 12px */
-    --space-md: 1rem;      /* 16px */
-    --space-l: 1.25rem;    /* 20px */
-    --space-lg: 1.5rem;    /* 24px */
-    --space-xl: 1.75rem;   /* 28px */
-    --space-2xl: 2.5rem;   /* 40px */
+    --space-xs: 0.25rem;
+    /*  4px */
+    --space-sm: 0.5rem;
+    /*  8px */
+    --space-s: 0.75rem;
+    /* 12px */
+    --space-md: 1rem;
+    /* 16px */
+    --space-l: 1.25rem;
+    /* 20px */
+    --space-lg: 1.5rem;
+    /* 24px */
+    --space-xl: 1.75rem;
+    /* 28px */
+    --space-2xl: 2.5rem;
+    /* 40px */
     --space-3xl: 4.2rem;
 
     /* --- ALIAS PARA COMPATIBILIDADE (base.css usa --fb-spacing-m) --- */
-    --fb-spacing-m: var(--space-md); /* 16px — usado em h1–h6 e p */
+    --fb-spacing-m: var(--space-md);
+    /* 16px — usado em h1–h6 e p */
 
     /* --- Transições --- */
     --transition-base: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
@@ -66,12 +75,15 @@
 
     /* --- Dimensões de Layout --- */
     --header-h: 60px;
-    --topbar-height: 60px;      /* alias mobile-nav */
-    --sidebar-w: 280px;         /* sidebar esquerda — valor desktop */
-    --sidebar-w-narrow: 80px;   /* sidebar estreita (tablet 993–1100px) */
-    --widgets-w: 320px;
+    --topbar-height: 60px;
+    /* alias mobile-nav */
+    --sidebar-w: 280px;
+    /* sidebar esquerda — valor desktop */
+    --sidebar-w-narrow: 80px;
+    /* sidebar estreita (tablet 993–1100px) */
+    --widgets-w: 350px;
     --container-max: 1440px;
-    --feed-w: 680px;
+    --feed-w: 700px;
 
     /* --- Breakpoints como tokens (referência — não usáveis em @media) --- */
     /* bp-xl: 1350px — esconde widgets                                     */
@@ -115,6 +127,33 @@
     --border-light: var(--border);
     --border-radius: var(--radius-md);
     --border-radius-lg: var(--radius-lg);
+
+    /* --- Aliases de Unificação (vars "órfãs" usadas em cards.css,
+       sidebar.css, view_album.css sem definição local — ver
+       css_analise: SECCAO 4, "VARIAVEIS USADAS SEM DEFINICAO LOCAL").
+       Cada alias aponta para o token oficial mais próximo em valor
+       e função. Não remover sem migrar os usos primeiro. --- */
+    --surface-bg: var(--bg-surface);
+    --hover-bg: rgba(255, 255, 255, 0.08);
+    --text-primary: var(--text-main);
+    --text-secondary: var(--text-muted);
+    --text: var(--text-main);
+    --border-color: var(--border);
+    --primary-light: var(--primary-glow);
+    --left-sidebar-width: var(--sidebar-w);
+
+    /* --- Aliases de Unificação (lote 2 — profile_layout.css,
+       settings.css, notifications.css, editor.css, users-list.css,
+       album_distribution_history.css, album_partners.css,
+       partner_sales_dashboard.css) --- */
+    --danger-color: var(--danger);
+    --font-display: var(--fb-font-family);
+    --font-main: var(--fb-font-family);
+    --primary-dark-color: var(--primary-dark);
+    --right-sidebar-width: var(--widgets-w);
+    --shadow-light: var(--shadow-sm);
+    --pill-bg: rgba(255, 255, 255, 0.06);
+    --pill-hover: rgba(255, 255, 255, 0.13);
 }
 
 /* Dark Mode */

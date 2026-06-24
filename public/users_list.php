@@ -1,4 +1,5 @@
 <?php
+
 /**
  * public/users_list.php
  *
@@ -9,10 +10,11 @@
  * Orquestração      → app/Controllers/UsersListController.php
  * Templates HTML    → includes/views/users_list/
  */
+define('SECURE_ACCESS', true);
+define('ENVIRONMENT', 'development');
 
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/bootstrap.php';
+
+SecurityManager::initSecurity();
 
 (new \Massango\Controllers\UsersListController($pdo))->show();

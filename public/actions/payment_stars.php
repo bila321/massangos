@@ -9,8 +9,14 @@ SecurityManager::initSecurity();
 
 use Massango\Controllers\PaymentController;
 
-if (!is_logged_in()) { redirect(BASE_URL . 'login.php'); exit(); }
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { redirect(BASE_URL . 'buy_stars.php'); exit(); }
+if (!is_logged_in()) {
+    redirect(BASE_URL . 'login.php');
+    exit();
+}
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    redirect(BASE_URL . 'buy_stars.php');
+    exit();
+}
 
 $stars    = (int)($_POST['stars']    ?? 0);
 $duration = $_POST['duration']       ?? '';

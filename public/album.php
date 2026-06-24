@@ -14,7 +14,6 @@ require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/security.php';
-require_once __DIR__ . '/../vendor/autoload.php';
 
 use Massango\Models\User;
 use Massango\Models\Album;

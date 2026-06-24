@@ -9,14 +9,16 @@
    ============================================ */
 
 .post-card {
+    display: flex;
+    flex-direction: column;
     background: var(--card-bg);
     border: 1px solid var(--border);
     max-width: var(--feed-w);
     border-radius: 12px;
     padding: 0;
-    margin: 10px auto;
     width: 100%;
     overflow: hidden;
+    margin-top: 8px;
 }
 
 .post-card:hover {
@@ -623,12 +625,19 @@
    FEED — Lista e Animação
    ============================================ */
 
+/* .feed-wrapper envolve skeleton + posts-list — tem o padding-top do header.
+   Assim skeleton e feed ficam alinhados sem duplicar o offset. */
+.feed-wrapper {
+    padding-top: var(--header-h);
+}
+
 .posts-list {
     display: flex;
     flex-direction: column;
     gap: 0;
-    margin: 10px auto;
-    padding-top: var(--header-h);
+    margin: 0 auto;
+    /* padding-top movido para .feed-wrapper — evitava desalinhamento
+       com .feed-skeletons que não tinha o mesmo offset */
 }
 
 .posts-list-scrollable {
@@ -644,19 +653,8 @@
 }
 
 .feed-item-wrapper {
-    animation: fadeInUp 0.3s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    /* Sem animação de entrada — os cards já estão na posição final
+       desde o primeiro paint, sem deslocar o layout */
 }
 
 /* ============================================
@@ -969,4 +967,173 @@
     .post-author {
         max-width: 120px;
     }
+}
+
+/* ============================================
+   SKELETON — Cards de Feed
+   Reserva o espaço dos cards enquanto as
+   imagens e dados carregam, sem layout shift.
+   Usa CSS puro — sem JS necessário.
+   ============================================ */
+
+/* Keyframe partilhado (reutiliza o da sidebar se ambos estiverem na página) */
+@keyframes card-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Base do elemento skeleton */
+.skel-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+    max-width: var(--feed-w);
+    margin-bottom: 8px;
+}
+
+/* Bloco shimmer genérico */
+.skel-block {
+    background: linear-gradient(90deg,
+            var(--bg-surface) 25%,
+            var(--border) 50%,
+            var(--bg-surface) 75%);
+    background-size: 200% 100%;
+    animation: card-shimmer 1.4s ease infinite;
+    border-radius: 4px;
+}
+
+/* ── Header do card ── */
+.skel-card__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+.skel-card__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.skel-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.skel-card__name {
+    height: 12px;
+    width: 38%;
+    border-radius: 4px;
+}
+
+.skel-card__date {
+    height: 9px;
+    width: 22%;
+    border-radius: 4px;
+}
+
+/* ── Área de media (imagem/vídeo/álbum) ── */
+.skel-card__media {
+    width: 100%;
+    /* Proporção 4:3 por defeito — mantém o espaço antes da imagem carregar */
+    aspect-ratio: 4 / 3;
+    border-radius: 0;
+}
+
+/* Variante vídeo — proporção 16:9 */
+.skel-card__media--video {
+    aspect-ratio: 16 / 9;
+}
+
+/* Variante quadrado (álbum / post quadrado) */
+.skel-card__media--square {
+    aspect-ratio: 1;
+}
+
+/* ── Texto / caption ── */
+.skel-card__text {
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.skel-card__line {
+    height: 10px;
+    border-radius: 4px;
+}
+
+/* ── Footer (botões de ação) ── */
+.skel-card__footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+}
+
+.skel-card__btn {
+    height: 30px;
+    border-radius: 20px;
+}
+
+/* ============================================
+   IMAGENS REAIS — reserva espaço antes de carregar
+   Impede o salto de layout quando a imagem chega.
+   SEM ::before — conflituava com o media-backdrop JS.
+   ============================================ */
+
+/* min-height reserva espaço; a imagem expande o container ao carregar */
+.post-image-container {
+    min-height: 200px;
+    /* background já definido acima como #0d0f14 */
+}
+
+/* Reserva espaço para vídeos */
+.post-video-container {
+    min-height: 200px;
+}
+
+/* Álbuns — altura mínima reservada */
+.album-container,
+.album-locked,
+.album-placeholder-link {
+    min-height: 200px;
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ============================================
+   SKELETON — Markup PHP (incluir antes do feed real)
+   Uso: <?php include '_card-skeleton.php' ?>
+   Ou via JS: remover .feed-skeletons quando
+   .posts-list tiver conteúdo.
+   ============================================ */
+
+/* Container dos skeletons pré-render.
+   SEM padding-top — o wrapper pai (.posts-list ou o content-wrapper)
+   já tem o padding do header. Duplicar aqui deslocava os skeletons. */
+.feed-skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    /* is-hidden adicionada pelo JS quando o feed real está pronto */
+}
+
+/* Selector ~ (sibling posterior) não funciona para elemento anterior.
+   A ocultação é feita exclusivamente pelo JS via .is-hidden. */
+.feed-skeletons.is-hidden {
+    display: none;
 }

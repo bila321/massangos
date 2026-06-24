@@ -50,6 +50,6 @@ define('MAX_BIO_LENGTH', 500);
 define('MIN_PASSWORD_LENGTH', 8);
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 define('ALLOWED_VIDEO_TYPES', ['video/mp4', 'video/webm', 'video/ogg']);
-define('FFMPEG_PATH', 'C:\ffmpeg\bin\ffmpeg.exe');
-define('FFPROBE_PATH', 'C:\ffmpeg\bin\ffprobe.exe');
+define('FFMPEG_PATH', '/usr/bin/ffmpeg');
+define('FFPROBE_PATH', '/usr/bin/ffprobe');
 date_default_timezone_set('Africa/Maputo');

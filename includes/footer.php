@@ -74,6 +74,7 @@ $paymentService = new \Massango\Services\PaymentService($pdo);
 <script src="<?= BASE_URL ?>assets/js/components/edit-modals.js" defer></script>
 <script src="<?= BASE_URL ?>assets/js/core/track_views.js" defer></script>
 
+</div><!-- /#app-scroll-root -->
 </body>
 
 </html>
