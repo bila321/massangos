@@ -1,4 +1,3 @@
-
 import mysql.connector
 import time
 import os
@@ -35,7 +34,9 @@ def resolve_path(relative_path):
     STORAGE_ROOT = os.path.abspath(STORAGE_ROOT)
 
     # 1. tentar caminho directo dentro de storage
-    direct_path = os.path.abspath(os.path.join(STORAGE_ROOT, relative_path.replace("\\", "/")))
+    direct_path = os.path.abspath(
+        os.path.join(STORAGE_ROOT, relative_path.replace("\\", "/"))
+    )
     if os.path.exists(direct_path):
         return direct_path
 
@@ -72,7 +73,9 @@ def resolve_path(relative_path):
     return None
 
 
-def update_analysis(post_id, is_sensitive, score, triggered_by, status, item_type, conn=None):
+def update_analysis(
+    post_id, is_sensitive, score, triggered_by, status, item_type, conn=None
+):
     """
     Grava ou actualiza o resultado de análise em media_analysis.
     Calcula também o risk_level com base no score.
@@ -105,7 +108,16 @@ def update_analysis(post_id, is_sensitive, score, triggered_by, status, item_typ
                 score              = VALUES(score),
                 triggered_by       = VALUES(triggered_by)
             """,
-            (post_id, item_type, score, risk_level, status, is_sensitive, score, triggered_by),
+            (
+                post_id,
+                item_type,
+                score,
+                risk_level,
+                status,
+                is_sensitive,
+                score,
+                triggered_by,
+            ),
         )
         conn.commit()
     except Exception as e:
@@ -120,7 +132,8 @@ def get_album_cover_path(conn, album_id):
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
-            "SELECT thumbnail_path, cover_photo_url FROM albums WHERE id = %s", (album_id,)
+            "SELECT thumbnail_path, cover_photo_url FROM albums WHERE id = %s",
+            (album_id,),
         )
         album = cursor.fetchone()
         if album:
@@ -148,7 +161,9 @@ def get_all_album_photos(conn, album_id):
             rows = cursor.fetchall()
             photos = [r for r in rows if r.get("photo_path")]
             if photos:
-                print(f"  [DB] album_photos -> {len(photos)} foto(s) para album_id={album_id}")
+                print(
+                    f"  [DB] album_photos -> {len(photos)} foto(s) para album_id={album_id}"
+                )
                 return photos
             else:
                 print(f"  [AVISO] album_photos sem fotos para album_id={album_id}")
@@ -164,15 +179,21 @@ def get_all_album_photos(conn, album_id):
             rows = cursor.fetchall()
             photos = [r for r in rows if r.get("photo_path")]
             if photos:
-                print(f"  [DB] photos -> {len(photos)} foto(s) para album_id={album_id}")
+                print(
+                    f"  [DB] photos -> {len(photos)} foto(s) para album_id={album_id}"
+                )
                 return photos
             else:
                 print(f"  [AVISO] photos sem fotos para album_id={album_id}")
         except Exception as e2:
             print(f"  [AVISO] Tabela photos inacessivel: {e2}")
 
-        print(f"  [ERRO FATAL] Nenhuma tabela de fotos encontrada para album_id={album_id}.")
-        print(f"  [DICA] Verifica se a tabela se chama album_photos ou photos e se tem coluna album_id.")
+        print(
+            f"  [ERRO FATAL] Nenhuma tabela de fotos encontrada para album_id={album_id}."
+        )
+        print(
+            f"  [DICA] Verifica se a tabela se chama album_photos ou photos e se tem coluna album_id."
+        )
         return []
     finally:
         cursor.close()
@@ -230,11 +251,15 @@ def analyze_album(album_id, conn):
             triggered_by = result.get("triggered_by")
             analysed += 1
 
-            print(f"  [FOTO] {os.path.basename(rel_path)} -> score={score:.1f}% sensitive={is_sensitive} trigger={triggered_by}")
+            print(
+                f"  [FOTO] {os.path.basename(rel_path)} -> score={score:.1f}% sensitive={is_sensitive} trigger={triggered_by}"
+            )
 
             # Gravar analise individual desta foto (para blur selectivo no PHP)
             if photo_id is not None:
-                update_analysis(photo_id, is_sensitive, score, triggered_by, "done", "image", conn)
+                update_analysis(
+                    photo_id, is_sensitive, score, triggered_by, "done", "image", conn
+                )
 
             # Acumular worst-case para o resultado do album
             if score > best_score:
@@ -246,8 +271,10 @@ def analyze_album(album_id, conn):
             print(f"  [ERRO] Falha a analisar {rel_path}: {e}")
             failed += 1
 
-    print(f"  [ALBUM {album_id}] Analisadas: {analysed} | Falhadas: {failed} | "
-          f"Score max: {best_score:.1f}% | Sensivel: {best_is_sensitive} | Trigger: {best_triggered_by}")
+    print(
+        f"  [ALBUM {album_id}] Analisadas: {analysed} | Falhadas: {failed} | "
+        f"Score max: {best_score:.1f}% | Sensivel: {best_is_sensitive} | Trigger: {best_triggered_by}"
+    )
 
     if analysed == 0:
         return None
@@ -274,22 +301,30 @@ def process_queue():
         item = cursor.fetchone()
         if not item:
             # Debug: mostrar contagem total da fila para ajudar a diagnosticar
-            cursor.execute("SELECT COUNT(*) as total, status FROM media_queue GROUP BY status")
+            cursor.execute(
+                "SELECT COUNT(*) as total, status FROM media_queue GROUP BY status"
+            )
             stats = cursor.fetchall()
             if stats:
-                print(f"  [FILA] Estado actual: { {r['status']: r['total'] for r in stats} }")
+                print(
+                    f"  [FILA] Estado actual: { {r['status']: r['total'] for r in stats} }"
+                )
             return False
 
-        queue_id  = item["id"]
-        post_id   = item["post_id"]
+        queue_id = item["id"]
+        post_id = item["post_id"]
         file_path = item["file_path"]
         item_type = item.get("item_type") or (
             "video" if file_path.lower().endswith((".mp4", ".webm")) else "image"
         )
 
-        print(f"\n[*] Processando Item ID {queue_id} | Post ID {post_id} | Tipo: {item_type}")
+        print(
+            f"\n[*] Processando Item ID {queue_id} | Post ID {post_id} | Tipo: {item_type}"
+        )
 
-        cursor.execute("UPDATE media_queue SET status='processing' WHERE id=%s", (queue_id,))
+        cursor.execute(
+            "UPDATE media_queue SET status='processing' WHERE id=%s", (queue_id,)
+        )
         conn.commit()
 
         update_analysis(post_id, False, 0, None, "processing", item_type, conn)
@@ -309,7 +344,9 @@ def process_queue():
                 print(f"  [ALBUM]   3. Caminhos de ficheiro incorrectos")
                 print(f"  [ALBUM]   4. Album sem fotos na base de dados")
 
-        elif item_type == "video" or file_path.lower().endswith((".mp4", ".mov", ".avi", ".mkv", ".webm")):
+        elif item_type == "video" or file_path.lower().endswith(
+            (".mp4", ".mov", ".avi", ".mkv", ".webm")
+        ):
             full_path = resolve_path(file_path)
             if not full_path:
                 raise Exception(f"Ficheiro de vídeo não encontrado: {file_path}")
@@ -330,12 +367,17 @@ def process_queue():
         if not result:
             raise Exception("Análise falhou — resultado vazio")
 
-        is_sensitive = bool(result.get("is_sensitive", False))
-        score        = float(result.get("score", 0))
-        triggered_by = result.get("triggered_by")
-        final_type   = result.get("type", item_type)
+        is_sensitive = bool(result.get("is_sensitive", False))  # ← 8 espaços
+        score = float(result.get("score", 0))  # ← 8 espaços
+        triggered_by = result.get("triggered_by")  # ← 8 espaços
+        final_type = result.get("type", item_type)  # ← 8 espaços
+        frames_analyzed = result.get(
+            "frames_analyzed"
+        )  # ← TEM que ter 8 espaços também
 
-        update_analysis(post_id, is_sensitive, score, triggered_by, "done", final_type, conn)
+        update_analysis(
+            post_id, is_sensitive, score, triggered_by, "done", final_type, conn
+        )
         cursor.execute("UPDATE media_queue SET status='done' WHERE id=%s", (queue_id,))
         conn.commit()
 
@@ -351,7 +393,9 @@ def process_queue():
         if "post_id" in locals():
             update_analysis(post_id, False, 0, None, "failed", item_type, conn)
         if "queue_id" in locals():
-            cursor.execute("UPDATE media_queue SET status='failed' WHERE id=%s", (queue_id,))
+            cursor.execute(
+                "UPDATE media_queue SET status='failed' WHERE id=%s", (queue_id,)
+            )
             conn.commit()
         return True
 

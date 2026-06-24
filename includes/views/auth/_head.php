@@ -18,4 +18,5 @@
 <script>
     window.BASE_URL = <?= json_encode(BASE_URL) ?>;
     window.CAROUSEL_SLIDES = <?= $slides_json ?>;
+    window.PASSWORD_POLICY = { minLength: <?= MIN_PASSWORD_LENGTH ?>, requireUppercase: true, requireLowercase: true, requireNumber: true, requireSymbol: false };
 </script>

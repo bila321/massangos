@@ -25,5 +25,6 @@
         <?php require __DIR__ . '/_panel_right.php'; ?>
     </div>
     <script src="<?= BASE_URL ?>assets/js/pages/register.js"></script>
+    <script src="<?= BASE_URL ?>assets/js/pages/password-strength.js"></script>
 </body>
 </html>

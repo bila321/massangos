@@ -102,7 +102,7 @@ class RegisterService
         $rules = [
             'username'         => ['required' => true, 'min_length' => 3],
             'email'            => ['required' => true, 'type' => 'email'],
-            'password'         => ['required' => true, 'min_length' => 6, 'type' => 'password'],
+            'password'         => ['required' => true, 'min_length' => MIN_PASSWORD_LENGTH, 'type' => 'password'],
             'confirm_password' => ['required' => true],
         ];
         $validation_errors = \SecurityManager::validateInput(

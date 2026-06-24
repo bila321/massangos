@@ -32,7 +32,7 @@
         <div class="auth-input-wrap">
             <i class="ti ti-lock auth-input-icon" aria-hidden="true"></i>
             <input type="password" id="password" name="password" class="form-control"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres, com maiúscula, minúscula e número"
                 autocomplete="new-password" required>
             <button type="button" class="auth-password-toggle"
                 aria-label="Mostrar/ocultar senha"

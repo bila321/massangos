@@ -215,29 +215,17 @@ header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload'
      * @return bool True se a requisição for permitida, False caso contrário.
      */
     public static function checkRateLimit(string $key, int $max_attempts, int $time_window): bool {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        $attempts_key = 'rate_limit_' . $key;
-        $currentTime = time();
-
-        if (!isset($_SESSION[$attempts_key])) {
-            $_SESSION[$attempts_key] = ['count' => 1, 'time' => $currentTime];
+        try {
+            $redis = \Massango\Core\RedisManager::getInstance();
+            $redisKey = 'ratelimit:' . $key;
+            $current = $redis->incr($redisKey);
+            if ($current === 1) {
+                $redis->expire($redisKey, $time_window);
+            }
+            return $current <= $max_attempts;
+        } catch (\Throwable $e) {
+            error_log('[SecurityManager] Redis indisponivel em checkRateLimit (fail-open): ' . $e->getMessage());
             return true;
-        }
-
-        $attempts = $_SESSION[$attempts_key]['count'];
-        $first_attempt_time = $_SESSION[$attempts_key]['time'];
-
-        if (($currentTime - $first_attempt_time) > $time_window) {
-            $_SESSION[$attempts_key] = ['count' => 1, 'time' => $currentTime];
-            return true;
-        } elseif ($attempts < $max_attempts) {
-            $_SESSION[$attempts_key]['count']++;
-            return true;
-        } else {
-            return false; // Limite excedido
         }
     }
 
@@ -247,28 +235,19 @@ header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload'
      * @param bool $success True para login bem-sucedido, False para falha.
      */
     public static function logLoginAttempt(string $username_email, bool $success): void {
-        $pdo = \Massango\Core\Database::getInstance();
+        try {
+            $redis = \Massango\Core\RedisManager::getInstance();
+            $hashed_identifier = hash('sha256', strtolower($username_email));
+            $key = 'login_attempts:' . $hashed_identifier;
 
-        // Usar um hash do username/email para não expor dados diretamente em logs ou sessão,
-        // mas ainda ser capaz de identificar o utilizador para o bloqueio.
-        $hashed_identifier = hash('sha256', strtolower($username_email));
-        $attempts_key = 'login_attempts_' . $hashed_identifier;
-        $currentTime = time();
-
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        if ($success) {
-            // Se o login for bem-sucedido, limpa as tentativas falhadas na sessão para este identificador
-            unset($_SESSION[$attempts_key]); 
-        } else {
-            if (!isset($_SESSION[$attempts_key])) {
-                $_SESSION[$attempts_key] = ['count' => 1, 'last_attempt' => $currentTime];
+            if ($success) {
+                $redis->del($key);
             } else {
-                $_SESSION[$attempts_key]['count']++;
-                $_SESSION[$attempts_key]['last_attempt'] = $currentTime;
+                $redis->incr($key);
+                $redis->expire($key, defined('LOGIN_LOCKOUT_TIME') ? LOGIN_LOCKOUT_TIME : 900);
             }
+        } catch (\Throwable $e) {
+            error_log('[SecurityManager] Redis indisponivel em logLoginAttempt: ' . $e->getMessage());
         }
     }
 
@@ -280,25 +259,19 @@ header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload'
      * @return bool True se o login estiver bloqueado, False caso contrário.
      */
     public static function isLoginBlocked(string $username_email): bool {
-        $hashed_identifier = hash('sha256', strtolower($username_email));
-        $attempts_key = 'login_attempts_' . $hashed_identifier;
+        try {
+            $redis = \Massango\Core\RedisManager::getInstance();
+            $hashed_identifier = hash('sha256', strtolower($username_email));
+            $key = 'login_attempts:' . $hashed_identifier;
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            $attempts = (int)$redis->get($key);
+            $maxLoginAttempts = defined('MAX_LOGIN_ATTEMPTS') ? MAX_LOGIN_ATTEMPTS : 5;
+
+            return $attempts >= $maxLoginAttempts;
+        } catch (\Throwable $e) {
+            error_log('[SecurityManager] Redis indisponivel em isLoginBlocked (fail-open): ' . $e->getMessage());
+            return false;
         }
-
-        if (isset($_SESSION[$attempts_key])) {
-            $attempts = $_SESSION[$attempts_key]['count'];
-            $last_attempt_time = $_SESSION[$attempts_key]['last_attempt'];
-
-            $loginLockoutTime = defined('LOGIN_LOCKOUT_TIME') ? LOGIN_LOCKOUT_TIME : 900; // 15 minutos padrão
-            $maxLoginAttempts = defined('MAX_LOGIN_ATTEMPTS') ? MAX_LOGIN_ATTEMPTS : 5; // 5 tentativas padrão
-
-            if ((time() - $last_attempt_time) < $loginLockoutTime && $attempts >= $maxLoginAttempts) {
-                return true; // Bloqueado temporariamente pela sessão
-            }
-        }
-        return false;
     }
 
     /**

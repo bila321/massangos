@@ -36,8 +36,10 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    window.SP_CHART_DAYS    = <?= json_encode($chart_days) ?>;
-    window.SP_CHART_REVENUE = <?= json_encode($chart_revenue) ?>;
-    window.SP_CHART_COUNTS  = <?= json_encode($chart_counts) ?>;
+    window.SP_CHART = {
+        labels: <?= json_encode($chart_days) ?>,
+        revenue: <?= json_encode($chart_revenue) ?>,
+        counts: <?= json_encode($chart_counts) ?>
+    };
 </script>
 <script src="<?= BASE_URL ?>assets/js/pages/sales_performance.js"></script>
