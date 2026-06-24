@@ -1,6 +1,5 @@
 <?php
 define('SECURE_ACCESS', true);
-define('ENVIRONMENT', 'development');
 
 $provider = $_GET['provider'] ?? '';
 $code = $_GET['code'] ?? '';

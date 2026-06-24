@@ -3,7 +3,6 @@
 // O POST vai para public/actions/post.php (chamado pelo create-post.js via AJAX)
 
 define('SECURE_ACCESS', true);
-define('ENVIRONMENT', 'development');
 
 require_once __DIR__ . '/../app/bootstrap.php';
 

@@ -1,5 +1,4 @@
 <?php
-defined('ENVIRONMENT') || define('ENVIRONMENT', 'development');
 
 define('APP_ROOT', dirname(__DIR__));
 

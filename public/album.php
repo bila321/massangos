@@ -5,7 +5,6 @@
 define('SECURE_ACCESS', true);
 
 // **2. DEFINE O AMBIENTE AQUI (apenas uma vez)!**
-define('ENVIRONMENT', 'development'); // Usa 'development' durante o desenvolvimento
 
 // 3. Inclui o arquivo de configuração.
 require_once __DIR__ . '/../includes/config.php';

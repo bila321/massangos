@@ -16,7 +16,6 @@
  */
 
 define('SECURE_ACCESS', true);
-define('ENVIRONMENT', 'development'); // Mudar para 'production' no servidor real
 
 // Captura qualquer output (warnings, notices) antes do header JSON
 ob_start();

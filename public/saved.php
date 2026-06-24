@@ -11,7 +11,6 @@
  */
 
 define('SECURE_ACCESS', true);
-define('ENVIRONMENT', 'development');
 
 ob_start();
 
